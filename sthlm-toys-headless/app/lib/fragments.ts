@@ -1,119 +1,16 @@
-// NOTE: https://shopify.dev/docs/api/storefront/latest/queries/cart
-export const CART_QUERY_FRAGMENT = `#graphql
+// Fragment for money fields
+const MONEY_FRAGMENT = `#graphql
   fragment Money on MoneyV2 {
     currencyCode
     amount
   }
-  fragment CartLine on CartLine {
-    id
-    quantity
-    attributes {
-      key
-      value
-    }
-    cost {
-      totalAmount {
-        ...Money
-      }
-      amountPerQuantity {
-        ...Money
-      }
-      compareAtAmountPerQuantity {
-        ...Money
-      }
-    }
-    merchandise {
-      ... on ProductVariant {
-        id
-        availableForSale
-        compareAtPrice {
-          ...Money
-        }
-        price {
-          ...Money
-        }
-        requiresShipping
-        title
-        image {
-          id
-          url
-          altText
-          width
-          height
+` as const;
 
-        }
-        product {
-          handle
-          title
-          id
-          vendor
-        }
-        selectedOptions {
-          name
-          value
-        }
-      }
-    }
-  }
-  fragment CartLineComponent on ComponentizableCartLine {
-    id
-    quantity
-    attributes {
-      key
-      value
-    }
-    cost {
-      totalAmount {
-        ...Money
-      }
-      amountPerQuantity {
-        ...Money
-      }
-      compareAtAmountPerQuantity {
-        ...Money
-      }
-    }
-    merchandise {
-      ... on ProductVariant {
-        id
-        availableForSale
-        compareAtPrice {
-          ...Money
-        }
-        price {
-          ...Money
-        }
-        requiresShipping
-        title
-        image {
-          id
-          url
-          altText
-          width
-          height
-        }
-        product {
-          handle
-          title
-          id
-          vendor
-        }
-        selectedOptions {
-          name
-          value
-        }
-      }
-    }
-  }
+// Cart-related fragments
+const CART_FRAGMENT = `#graphql
   fragment CartApiQuery on Cart {
     updatedAt
     id
-    appliedGiftCards {
-      lastCharacters
-      amountUsed {
-        ...Money
-      }
-    }
     checkoutUrl
     totalQuantity
     buyerIdentity {
@@ -128,12 +25,58 @@ export const CART_QUERY_FRAGMENT = `#graphql
       email
       phone
     }
-    lines(first: $numCartLines) {
-      nodes {
-        ...CartLine
-      }
-      nodes {
-        ...CartLineComponent
+    lines(first: 100) {
+      edges {
+        node {
+          id
+          quantity
+          attributes {
+            key
+            value
+          }
+          cost {
+            totalAmount {
+              ...Money
+            }
+            amountPerQuantity {
+              ...Money
+            }
+            compareAtAmountPerQuantity {
+              ...Money
+            }
+          }
+          merchandise {
+            ... on ProductVariant {
+              id
+              availableForSale
+              compareAtPrice {
+                ...Money
+              }
+              price {
+                ...Money
+              }
+              requiresShipping
+              title
+              image {
+                id
+                url
+                altText
+                width
+                height
+              }
+              product {
+                handle
+                title
+                id
+                vendor
+              }
+              selectedOptions {
+                name
+                value
+              }
+            }
+          }
+        }
       }
     }
     cost {
@@ -160,9 +103,10 @@ export const CART_QUERY_FRAGMENT = `#graphql
       applicable
     }
   }
+  ${MONEY_FRAGMENT}
 ` as const;
 
-// Updated MENU_FRAGMENT to support 3 levels of nesting for mega-menu
+// Fixed MENU_FRAGMENT without circular references
 const MENU_FRAGMENT = `#graphql
   fragment MenuItem on MenuItem {
     id
@@ -171,31 +115,33 @@ const MENU_FRAGMENT = `#graphql
     title
     type
     url
-  }
-  fragment GrandChildMenuItem on MenuItem {
-    ...MenuItem
-  }
-  fragment ChildMenuItem on MenuItem {
-    ...MenuItem
     items {
-      ...GrandChildMenuItem
-    }
-  }
-  fragment ParentMenuItem on MenuItem {
-    ...MenuItem
-    items {
-      ...ChildMenuItem
+      id
+      resourceId
+      tags
+      title
+      type
+      url
+      items {
+        id
+        resourceId
+        tags
+        title
+        type
+        url
+      }
     }
   }
   fragment Menu on Menu {
     id
     items {
-      ...ParentMenuItem
+      ...MenuItem
     }
   }
 ` as const;
 
-export const HEADER_QUERY = `#graphql
+// Shop fragment
+const SHOP_FRAGMENT = `#graphql
   fragment Shop on Shop {
     id
     name
@@ -211,6 +157,10 @@ export const HEADER_QUERY = `#graphql
       }
     }
   }
+` as const;
+
+// Header query with fixed fragments
+export const HEADER_QUERY = `#graphql
   query Header(
     $country: CountryCode
     $headerMenuHandle: String!
@@ -223,9 +173,11 @@ export const HEADER_QUERY = `#graphql
       ...Menu
     }
   }
+  ${SHOP_FRAGMENT}
   ${MENU_FRAGMENT}
 ` as const;
 
+// Footer query
 export const FOOTER_QUERY = `#graphql
   query Footer(
     $country: CountryCode
@@ -238,3 +190,6 @@ export const FOOTER_QUERY = `#graphql
   }
   ${MENU_FRAGMENT}
 ` as const;
+
+// Export the cart fragment for use elsewhere
+export { CART_FRAGMENT, MONEY_FRAGMENT };
