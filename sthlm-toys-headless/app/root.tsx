@@ -1,5 +1,5 @@
-import {Analytics, getShopAnalytics, useNonce} from '@shopify/hydrogen';
-import {type LoaderFunctionArgs} from '@shopify/remix-oxygen';
+import { Analytics, getShopAnalytics, useNonce } from "@shopify/hydrogen";
+import { type LoaderFunctionArgs } from "@shopify/remix-oxygen";
 import {
   Outlet,
   useRouteError,
@@ -10,13 +10,13 @@ import {
   Scripts,
   ScrollRestoration,
   useRouteLoaderData,
-} from 'react-router';
-import favicon from '~/assets/favicon.svg';
-import {FOOTER_QUERY, HEADER_QUERY} from '~/lib/fragments';
-import resetStyles from '~/styles/reset.css?url';
-import appStyles from '~/styles/app.css?url';
-import tailwindCss from './styles/tailwind.css?url';
-import {PageLayout} from './components/PageLayout';
+} from "react-router";
+import favicon from "~/assets/favicon.svg";
+import { FOOTER_QUERY, HEADER_QUERY } from "~/lib/fragments";
+import resetStyles from "~/styles/reset.css?url";
+import appStyles from "~/styles/app.css?url";
+import tailwindCss from "./styles/tailwind.css?url";
+import { PageLayout } from "./components/PageLayout";
 
 export type RootLoader = typeof loader;
 
@@ -29,7 +29,7 @@ export const shouldRevalidate: ShouldRevalidateFunction = ({
   nextUrl,
 }) => {
   // revalidate when a mutation is performed e.g add to cart, login...
-  if (formMethod && formMethod !== 'GET') return true;
+  if (formMethod && formMethod !== "GET") return true;
 
   // revalidate when manually revalidating via useRevalidator
   if (currentUrl.toString() === nextUrl.toString()) return true;
@@ -55,14 +55,14 @@ export const shouldRevalidate: ShouldRevalidateFunction = ({
 export function links() {
   return [
     {
-      rel: 'preconnect',
-      href: 'https://cdn.shopify.com',
+      rel: "preconnect",
+      href: "https://cdn.shopify.com",
     },
     {
-      rel: 'preconnect',
-      href: 'https://shop.app',
+      rel: "preconnect",
+      href: "https://shop.app",
     },
-    {rel: 'icon', type: 'image/svg+xml', href: favicon},
+    { rel: "icon", type: "image/svg+xml", href: favicon },
   ];
 }
 
@@ -73,7 +73,7 @@ export async function loader(args: LoaderFunctionArgs) {
   // Await the critical data required to render initial state of the page
   const criticalData = await loadCriticalData(args);
 
-  const {storefront, env} = args.context;
+  const { storefront, env } = args.context;
 
   return {
     ...deferredData,
@@ -98,20 +98,20 @@ export async function loader(args: LoaderFunctionArgs) {
  * Load data necessary for rendering content above the fold. This is the critical data
  * needed to render the page. If it's unavailable, the whole page should 400 or 500 error.
  */
-async function loadCriticalData({context}: LoaderFunctionArgs) {
-  const {storefront} = context;
+async function loadCriticalData({ context }: LoaderFunctionArgs) {
+  const { storefront } = context;
 
   const [header] = await Promise.all([
     storefront.query(HEADER_QUERY, {
       cache: storefront.CacheLong(),
       variables: {
-        headerMenuHandle: 'main-menu', // Adjust to your header menu handle
+        headerMenuHandle: "mega-menu", // Changed from 'main-menu' to 'mega-menu'
       },
     }),
     // Add other queries here, so that they are loaded in parallel
   ]);
 
-  return {header};
+  return { header };
 }
 
 /**
@@ -119,15 +119,15 @@ async function loadCriticalData({context}: LoaderFunctionArgs) {
  * fetched after the initial page load. If it's unavailable, the page should still 200.
  * Make sure to not throw any errors here, as it will cause the page to 500.
  */
-function loadDeferredData({context}: LoaderFunctionArgs) {
-  const {storefront, customerAccount, cart} = context;
+function loadDeferredData({ context }: LoaderFunctionArgs) {
+  const { storefront, customerAccount, cart } = context;
 
   // defer the footer query (below the fold)
   const footer = storefront
     .query(FOOTER_QUERY, {
       cache: storefront.CacheLong(),
       variables: {
-        footerMenuHandle: 'footer', // Adjust to your footer menu handle
+        footerMenuHandle: "footer", // Adjust to your footer menu handle
       },
     })
     .catch((error) => {
@@ -142,9 +142,9 @@ function loadDeferredData({context}: LoaderFunctionArgs) {
   };
 }
 
-export function Layout({children}: {children?: React.ReactNode}) {
+export function Layout({ children }: { children?: React.ReactNode }) {
   const nonce = useNonce();
-  const data = useRouteLoaderData<RootLoader>('root');
+  const data = useRouteLoaderData<RootLoader>("root");
 
   return (
     <html lang="en">
@@ -182,7 +182,7 @@ export default function App() {
 
 export function ErrorBoundary() {
   const error = useRouteError();
-  let errorMessage = 'Unknown error';
+  let errorMessage = "Unknown error";
   let errorStatus = 500;
 
   if (isRouteErrorResponse(error)) {

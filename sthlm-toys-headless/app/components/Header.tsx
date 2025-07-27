@@ -1,12 +1,15 @@
-import {Suspense} from 'react';
-import {Await, NavLink, useAsyncValue} from 'react-router';
+import { Suspense, useState } from "react";
+import { Await, Link, useAsyncValue } from "react-router";
 import {
   type CartViewPayload,
   useAnalytics,
   useOptimisticCart,
-} from '@shopify/hydrogen';
-import type {HeaderQuery, CartApiQueryFragment} from 'storefrontapi.generated';
-import {useAside} from '~/components/Aside';
+} from "@shopify/hydrogen";
+import type {
+  HeaderQuery,
+  CartApiQueryFragment,
+} from "storefrontapi.generated";
+import { useAside } from "~/components/Aside";
 
 interface HeaderProps {
   header: HeaderQuery;
@@ -15,7 +18,7 @@ interface HeaderProps {
   publicStoreDomain: string;
 }
 
-type Viewport = 'desktop' | 'mobile';
+type Viewport = "desktop" | "mobile";
 
 export function Header({
   header,
@@ -23,20 +26,161 @@ export function Header({
   cart,
   publicStoreDomain,
 }: HeaderProps) {
-  const {shop, menu} = header;
+  const { shop, menu } = header;
+
   return (
-    <header className="header">
-      <NavLink prefetch="intent" to="/" style={activeLinkStyle} end>
-        <strong>{shop.name}</strong>
-      </NavLink>
-      <HeaderMenu
+    <header className="bg-blue-600 text-white relative z-50">
+      {/* Top Promotional Bar */}
+      <div className="bg-blue-700 py-2">
+        <div className="container mx-auto px-4">
+          <div className="flex justify-center">
+            <span className="text-sm font-medium">
+              🚚 FREE DELIVERY ON ORDERS OVER £29
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Header */}
+      <div className="container mx-auto px-4 py-4">
+        <div className="flex items-center justify-between gap-4">
+          {/* Logo */}
+          <Link to="/" className="flex-shrink-0">
+            <div className="bg-red-500 text-white px-4 py-2 rounded font-bold text-xl border-2 border-yellow-400">
+              STHLM TOYS
+            </div>
+          </Link>
+
+          {/* Search Bar */}
+          <div className="hidden md:flex flex-1 max-w-2xl mx-8">
+            <div className="flex w-full">
+              <input
+                type="text"
+                placeholder="Search for product or brand"
+                className="flex-1 px-4 py-3 text-black rounded-l-md"
+              />
+              <button className="bg-yellow-400 hover:bg-yellow-500 px-6 py-3 rounded-r-md">
+                Search
+              </button>
+            </div>
+          </div>
+
+          {/* Right side */}
+          <div className="flex items-center space-x-4">
+            <Link to="/account" className="text-white hover:text-yellow-400">
+              Account
+            </Link>
+            <CartToggle cart={cart} />
+            <MobileMenuToggle />
+          </div>
+        </div>
+      </div>
+
+      {/* Navigation with Mega Menu */}
+      <MegaMenuNavigation
         menu={menu}
-        viewport="desktop"
         primaryDomainUrl={header.shop.primaryDomain.url}
         publicStoreDomain={publicStoreDomain}
       />
-      <HeaderCtas isLoggedIn={isLoggedIn} cart={cart} />
     </header>
+  );
+}
+
+function MegaMenuNavigation({
+  menu,
+  primaryDomainUrl,
+  publicStoreDomain,
+}: {
+  menu: HeaderProps["header"]["menu"];
+  primaryDomainUrl: string;
+  publicStoreDomain: string;
+}) {
+  const [activeMenu, setActiveMenu] = useState<string | null>(null);
+
+  const handleMenuHover = (itemId: string) => {
+    setActiveMenu(itemId);
+  };
+
+  const handleMenuLeave = () => {
+    setActiveMenu(null);
+  };
+
+  const getUrl = (url: string | null | undefined): string => {
+    if (!url) return "/";
+
+    if (
+      url.includes("myshopify.com") ||
+      url.includes(publicStoreDomain) ||
+      url.includes(primaryDomainUrl)
+    ) {
+      return new URL(url).pathname;
+    }
+    return url;
+  };
+
+  return (
+    <div className="hidden md:block relative" onMouseLeave={handleMenuLeave}>
+      <nav className="bg-blue-700 border-t border-blue-500">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center space-x-8 py-3">
+            {(menu?.items || []).map((item) => {
+              const hasSubItems = item.items && item.items.length > 0;
+
+              return (
+                <div
+                  key={item.id}
+                  className="relative"
+                  onMouseEnter={() => handleMenuHover(item.id)}
+                >
+                  <Link
+                    to={getUrl(item.url)}
+                    className="flex items-center text-white hover:text-yellow-400 font-medium px-3 py-2"
+                  >
+                    {item.title}
+                    {hasSubItems && <span className="ml-1">▼</span>}
+                  </Link>
+
+                  {/* Mega Menu Dropdown */}
+                  {hasSubItems && activeMenu === item.id && (
+                    <div className="absolute top-full left-0 w-screen bg-white shadow-lg border-t-4 border-yellow-400 z-50">
+                      <div className="container mx-auto px-4 py-6">
+                        <div className="grid grid-cols-4 gap-6">
+                          {item.items?.map((subItem) => (
+                            <div key={subItem.id} className="space-y-3">
+                              <Link
+                                to={getUrl(subItem.url)}
+                                className="block text-lg font-bold text-gray-900 hover:text-blue-600"
+                              >
+                                {subItem.title}
+                              </Link>
+
+                              {subItem.items && subItem.items.length > 0 && (
+                                <ul className="space-y-1">
+                                  {subItem.items.map((subSubItem) => (
+                                    <li key={subSubItem.id}>
+                                      <Link
+                                        to={getUrl(subSubItem.url)}
+                                        className="text-sm text-gray-600 hover:text-blue-600"
+                                      >
+                                        {subSubItem.title}
+                                      </Link>
+                                    </li>
+                                  ))}
+                                </ul>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </nav>
+    </div>
   );
 }
 
@@ -46,122 +190,47 @@ export function HeaderMenu({
   viewport,
   publicStoreDomain,
 }: {
-  menu: HeaderProps['header']['menu'];
-  primaryDomainUrl: HeaderProps['header']['shop']['primaryDomain']['url'];
+  menu: HeaderProps["header"]["menu"];
+  primaryDomainUrl: HeaderProps["header"]["shop"]["primaryDomain"]["url"];
   viewport: Viewport;
-  publicStoreDomain: HeaderProps['publicStoreDomain'];
+  publicStoreDomain: HeaderProps["publicStoreDomain"];
 }) {
-  const className = `header-menu-${viewport}`;
-  const {close} = useAside();
+  if (viewport === "mobile") {
+    return (
+      <nav className="md:hidden bg-blue-600 p-4">
+        {(menu?.items || []).map((item) => (
+          <div key={item.id} className="py-2">
+            <Link
+              to={item.url || "/"}
+              className="block text-white hover:text-yellow-400"
+            >
+              {item.title}
+            </Link>
+            {item.items && item.items.length > 0 && (
+              <div className="ml-4 mt-2 space-y-1">
+                {item.items.map((subItem) => (
+                  <Link
+                    key={subItem.id}
+                    to={subItem.url || "/"}
+                    className="block text-sm text-gray-300 hover:text-yellow-400"
+                  >
+                    {subItem.title}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+      </nav>
+    );
+  }
 
-  return (
-    <nav className={className} role="navigation">
-      {viewport === 'mobile' && (
-        <NavLink
-          end
-          onClick={close}
-          prefetch="intent"
-          style={activeLinkStyle}
-          to="/"
-        >
-          Home
-        </NavLink>
-      )}
-      {(menu || FALLBACK_HEADER_MENU).items.map((item) => {
-        if (!item.url) return null;
-
-        // if the url is internal, we strip the domain
-        const url =
-          item.url.includes('myshopify.com') ||
-          item.url.includes(publicStoreDomain) ||
-          item.url.includes(primaryDomainUrl)
-            ? new URL(item.url).pathname
-            : item.url;
-        return (
-          <NavLink
-            className="header-menu-item"
-            end
-            key={item.id}
-            onClick={close}
-            prefetch="intent"
-            style={activeLinkStyle}
-            to={url}
-          >
-            {item.title}
-          </NavLink>
-        );
-      })}
-    </nav>
-  );
+  return null;
 }
 
-function HeaderCtas({
-  isLoggedIn,
-  cart,
-}: Pick<HeaderProps, 'isLoggedIn' | 'cart'>) {
+function CartToggle({ cart }: Pick<HeaderProps, "cart">) {
   return (
-    <nav className="header-ctas" role="navigation">
-      <HeaderMenuMobileToggle />
-      <NavLink prefetch="intent" to="/account" style={activeLinkStyle}>
-        <Suspense fallback="Sign in">
-          <Await resolve={isLoggedIn} errorElement="Sign in">
-            {(isLoggedIn) => (isLoggedIn ? 'Account' : 'Sign in')}
-          </Await>
-        </Suspense>
-      </NavLink>
-      <SearchToggle />
-      <CartToggle cart={cart} />
-    </nav>
-  );
-}
-
-function HeaderMenuMobileToggle() {
-  const {open} = useAside();
-  return (
-    <button
-      className="header-menu-mobile-toggle reset"
-      onClick={() => open('mobile')}
-    >
-      <h3>☰</h3>
-    </button>
-  );
-}
-
-function SearchToggle() {
-  const {open} = useAside();
-  return (
-    <button className="reset" onClick={() => open('search')}>
-      Search
-    </button>
-  );
-}
-
-function CartBadge({count}: {count: number | null}) {
-  const {open} = useAside();
-  const {publish, shop, cart, prevCart} = useAnalytics();
-
-  return (
-    <a
-      href="/cart"
-      onClick={(e) => {
-        e.preventDefault();
-        open('cart');
-        publish('cart_viewed', {
-          cart,
-          prevCart,
-          shop,
-          url: window.location.href || '',
-        } as CartViewPayload);
-      }}
-    >
-      Cart {count === null ? <span>&nbsp;</span> : count}
-    </a>
-  );
-}
-
-function CartToggle({cart}: Pick<HeaderProps, 'cart'>) {
-  return (
-    <Suspense fallback={<CartBadge count={null} />}>
+    <Suspense fallback={<div>Cart</div>}>
       <Await resolve={cart}>
         <CartBanner />
       </Await>
@@ -172,60 +241,26 @@ function CartToggle({cart}: Pick<HeaderProps, 'cart'>) {
 function CartBanner() {
   const originalCart = useAsyncValue() as CartApiQueryFragment | null;
   const cart = useOptimisticCart(originalCart);
-  return <CartBadge count={cart?.totalQuantity ?? 0} />;
+  const { open } = useAside();
+
+  return (
+    <button
+      onClick={() => open("cart")}
+      className="text-white hover:text-yellow-400"
+    >
+      Cart ({cart?.totalQuantity ?? 0})
+    </button>
+  );
 }
 
-const FALLBACK_HEADER_MENU = {
-  id: 'gid://shopify/Menu/199655587896',
-  items: [
-    {
-      id: 'gid://shopify/MenuItem/461609500728',
-      resourceId: null,
-      tags: [],
-      title: 'Collections',
-      type: 'HTTP',
-      url: '/collections',
-      items: [],
-    },
-    {
-      id: 'gid://shopify/MenuItem/461609533496',
-      resourceId: null,
-      tags: [],
-      title: 'Blog',
-      type: 'HTTP',
-      url: '/blogs/journal',
-      items: [],
-    },
-    {
-      id: 'gid://shopify/MenuItem/461609566264',
-      resourceId: null,
-      tags: [],
-      title: 'Policies',
-      type: 'HTTP',
-      url: '/policies',
-      items: [],
-    },
-    {
-      id: 'gid://shopify/MenuItem/461609599032',
-      resourceId: 'gid://shopify/Page/92591030328',
-      tags: [],
-      title: 'About',
-      type: 'PAGE',
-      url: '/pages/about',
-      items: [],
-    },
-  ],
-};
-
-function activeLinkStyle({
-  isActive,
-  isPending,
-}: {
-  isActive: boolean;
-  isPending: boolean;
-}) {
-  return {
-    fontWeight: isActive ? 'bold' : undefined,
-    color: isPending ? 'grey' : 'black',
-  };
+function MobileMenuToggle() {
+  const { open } = useAside();
+  return (
+    <button
+      className="md:hidden text-white hover:text-yellow-400"
+      onClick={() => open("mobile")}
+    >
+      Menu
+    </button>
+  );
 }

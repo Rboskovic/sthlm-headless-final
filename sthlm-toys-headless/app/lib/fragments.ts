@@ -162,6 +162,7 @@ export const CART_QUERY_FRAGMENT = `#graphql
   }
 ` as const;
 
+// Updated MENU_FRAGMENT to support 3 levels of nesting for mega-menu
 const MENU_FRAGMENT = `#graphql
   fragment MenuItem on MenuItem {
     id
@@ -171,8 +172,14 @@ const MENU_FRAGMENT = `#graphql
     type
     url
   }
+  fragment GrandChildMenuItem on MenuItem {
+    ...MenuItem
+  }
   fragment ChildMenuItem on MenuItem {
     ...MenuItem
+    items {
+      ...GrandChildMenuItem
+    }
   }
   fragment ParentMenuItem on MenuItem {
     ...MenuItem
