@@ -351,9 +351,31 @@ function MegaMenuNavigation({
     return url;
   };
 
+  // Trending data
+  const trendingItems = [
+    {
+      title: "NEW WWE SummerSlam Elite",
+      url: "/collections/wwe",
+      image: "wwe-image.jpg",
+      bgColor: "bg-red-600",
+    },
+    {
+      title: "4 for 3 on all Tonies Audio Characters",
+      url: "/collections/tonies",
+      image: "tonies-image.jpg",
+      bgColor: "bg-red-600",
+    },
+  ];
+
+  const activeMenuItem = activeMenu
+    ? menu?.items.find((item) => item.id === activeMenu)
+    : null;
+  const hasSubItems = activeMenuItem?.items && activeMenuItem.items.length > 0;
+  const isBrands = activeMenuItem?.title?.toLowerCase().includes("brand");
+
   return (
     <div className="hidden lg:block relative" onMouseLeave={handleMenuLeave}>
-      <nav className="border-t border-blue-400/30">
+      <nav className="border-t border-blue-400/30 relative">
         <ul
           className="flex relative w-full justify-center"
           style={{
@@ -362,10 +384,11 @@ function MegaMenuNavigation({
             margin: "0 auto",
             paddingLeft: "80px",
             paddingRight: "80px",
+            fontFamily:
+              "UniformRnd, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
           }}
         >
-          {(menu?.items || []).map((item, index) => {
-            const hasSubItems = item.items && item.items.length > 0;
+          {(menu?.items || []).map((item) => {
             const isGiftFinder = item.title?.toLowerCase().includes("gift");
 
             return (
@@ -404,152 +427,176 @@ function MegaMenuNavigation({
                   </h3>
                 </Link>
 
-                {/* Yellow Underline on Hover */}
+                {/* Yellow Underline on Hover - Stays in <li> */}
                 {activeMenu === item.id && !isGiftFinder && (
                   <div
                     className="absolute bottom-0 left-0 w-full border-yellow-400"
                     style={{ borderBottomWidth: "4px" }}
                   />
                 )}
-
-                {/* Mega Menu Dropdown */}
-                {hasSubItems && activeMenu === item.id && !isGiftFinder && (
-                  <div
-                    className="absolute top-full bg-white z-50"
-                    style={{
-                      width: "1272px",
-                      left: "50%",
-                      transform: "translateX(-50%)",
-                      borderBottomLeftRadius: "8px",
-                      borderBottomRightRadius: "8px",
-                      boxShadow: "rgba(32, 34, 35, 0.25) 0px 24px 48px -12px",
-                    }}
-                  >
-                    <div
-                      className="flex shadow-2xl gap-6 items-start self-stretch rounded-b-lg p-6 bg-white text-black"
-                      style={{
-                        gap: "24px",
-                        padding: "24px",
-                      }}
-                    >
-                      {/* Trending Section */}
-                      <div
-                        className="left shrink-0"
-                        style={{
-                          width: "195px",
-                          paddingLeft: "40px",
-                        }}
-                      >
-                        <h3
-                          style={{
-                            fontSize: "16px",
-                            fontWeight: 500,
-                            lineHeight: "21.6px",
-                            color: "rgb(32, 34, 35)",
-                            textAlign: "left",
-                            marginBottom: "8px",
-                            textDecoration: "underline",
-                          }}
-                        >
-                          Trending
-                        </h3>
-                        {/* Trending content would go here */}
-                      </div>
-
-                      {/* Main Categories Grid */}
-                      <div
-                        className="right grid grid-cols-4 gap-6 flex-grow"
-                        style={{
-                          width: "1005px",
-                          gap: "24px",
-                        }}
-                      >
-                        {item.items?.slice(0, 4).map((subItem) => (
-                          <div
-                            key={subItem.id}
-                            className="flex flex-col items-start content-start"
-                            style={{ width: "233.25px" }}
-                          >
-                            <Link
-                              to={getUrl(subItem.url)}
-                              className="cursor-pointer"
-                              style={{
-                                fontSize: "16px",
-                                fontWeight: 500,
-                                lineHeight: "21.6px",
-                                color: "rgb(32, 34, 35)",
-                                textAlign: "left",
-                                textDecoration: "underline",
-                                marginBottom: "8px",
-                              }}
-                            >
-                              {subItem.title}
-                            </Link>
-
-                            {subItem.items && subItem.items.length > 0 && (
-                              <ul
-                                style={{
-                                  listStyle: "none",
-                                  padding: 0,
-                                  margin: 0,
-                                }}
-                              >
-                                {subItem.items.slice(0, 8).map((subSubItem) => (
-                                  <li
-                                    key={subSubItem.id}
-                                    className="py-1"
-                                    style={{ padding: "4px 0px" }}
-                                  >
-                                    <Link
-                                      to={getUrl(subSubItem.url)}
-                                      className="cursor-pointer hover:underline"
-                                      style={{
-                                        fontSize: "14px",
-                                        fontWeight: 400,
-                                        lineHeight: "18.9px",
-                                        color: "rgb(49, 53, 56)",
-                                        textAlign: "left",
-                                      }}
-                                    >
-                                      {subSubItem.title}
-                                    </Link>
-                                  </li>
-                                ))}
-                                {subItem.items.length > 8 && (
-                                  <li
-                                    className="text-body-30-m mt-1"
-                                    style={{
-                                      marginTop: "4px",
-                                      padding: 0,
-                                    }}
-                                  >
-                                    <Link
-                                      to={getUrl(subItem.url)}
-                                      className="cursor-pointer underline"
-                                      style={{
-                                        fontSize: "14px",
-                                        fontWeight: 500,
-                                        lineHeight: "18.9px",
-                                        color: "rgb(33, 113, 225)",
-                                        textDecoration: "underline",
-                                      }}
-                                    >
-                                      Shop Full Range →
-                                    </Link>
-                                  </li>
-                                )}
-                              </ul>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
               </li>
             );
           })}
         </ul>
+
+        {/* Mega Menu Dropdown */}
+        {activeMenuItem &&
+          hasSubItems &&
+          !activeMenuItem.title?.toLowerCase().includes("gift") && (
+            <div
+              className="absolute bg-white z-50"
+              style={{
+                width: "1272px",
+                left: 0,
+                right: 0,
+                margin: "0 auto",
+                top: "100%",
+                borderBottomLeftRadius: "8px",
+                borderBottomRightRadius: "8px",
+                boxShadow: "rgba(32, 34, 35, 0.25) 0px 24px 48px -12px",
+                fontFamily:
+                  "UniformRnd, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+              }}
+            >
+              <div
+                className="flex shadow-2xl gap-6 items-start self-stretch rounded-b-lg p-6 bg-white text-black"
+                style={{
+                  gap: "24px",
+                  padding: "24px",
+                  height: isBrands ? "461.875px" : "424.094px",
+                  width: "1272px",
+                }}
+              >
+                {/* Main Categories Grid */}
+                <div
+                  className={`grid ${
+                    isBrands ? "grid-cols-4" : "grid-cols-4"
+                  } gap-6 flex-grow`}
+                  style={{
+                    width: isBrands ? "1005px" : "810px",
+                    gap: "24px",
+                  }}
+                >
+                  {activeMenuItem.items?.map((subItem) => (
+                    <div
+                      key={subItem.id}
+                      className="flex flex-col items-start"
+                      style={{ width: "233.25px" }}
+                    >
+                      <Link
+                        to={getUrl(subItem.url)}
+                        className="cursor-pointer hover:underline block"
+                        style={{
+                          fontSize: "16px",
+                          fontWeight: 500,
+                          lineHeight: "21.6px",
+                          color: "rgb(32, 34, 35)",
+                          textAlign: "left",
+                          textDecoration: "underline",
+                          marginBottom: "8px",
+                        }}
+                      >
+                        {subItem.title}
+                      </Link>
+
+                      {subItem.items && subItem.items.length > 0 && (
+                        <ul
+                          style={{
+                            listStyle: "none",
+                            padding: 0,
+                            margin: 0,
+                            width: "100%",
+                          }}
+                        >
+                          {subItem.items.slice(0, 6).map((subSubItem) => (
+                            <li
+                              key={subSubItem.id}
+                              style={{
+                                paddingTop: "2px",
+                                paddingBottom: "2px",
+                                marginBottom: "2px",
+                              }}
+                            >
+                              <Link
+                                to={getUrl(subSubItem.url)}
+                                className="cursor-pointer hover:underline block"
+                                style={{
+                                  fontSize: "14px",
+                                  fontWeight: 400,
+                                  lineHeight: "18.9px",
+                                  color: "rgb(49, 53, 56)",
+                                  textAlign: "left",
+                                }}
+                              >
+                                {subSubItem.title}
+                              </Link>
+                            </li>
+                          ))}
+                          {/* Shop Full Range Link */}
+                          <li
+                            style={{
+                              marginTop: "8px",
+                            }}
+                          >
+                            <Link
+                              to={getUrl(subItem.url)}
+                              className="cursor-pointer underline block"
+                              style={{
+                                fontSize: "14px",
+                                fontWeight: 500,
+                                lineHeight: "18.9px",
+                                color: "rgb(33, 113, 225)",
+                                textDecoration: "underline",
+                              }}
+                            >
+                              Shop Full Range
+                            </Link>
+                          </li>
+                        </ul>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Trending Section - Only show for non-Brands menu */}
+                {!isBrands && (
+                  <div
+                    className="shrink-0"
+                    style={{
+                      width: "195px",
+                      paddingRight: "40px",
+                    }}
+                  >
+                    <h3
+                      style={{
+                        fontSize: "16px",
+                        fontWeight: 500,
+                        lineHeight: "21.6px",
+                        color: "rgb(32, 34, 35)",
+                        textAlign: "left",
+                        marginBottom: "8px",
+                      }}
+                    >
+                      Trending
+                    </h3>
+                    <div className="flex flex-col gap-4">
+                      {trendingItems.map((trendingItem, idx) => (
+                        <Link
+                          key={idx}
+                          to={trendingItem.url}
+                          className={`${trendingItem.bgColor} text-white p-3 rounded text-sm block hover:opacity-90 transition-opacity`}
+                        >
+                          <div className="font-medium text-white text-sm leading-tight">
+                            {trendingItem.title}
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
       </nav>
     </div>
   );
