@@ -520,3 +520,15 @@ button.reset:hover:not(:has(> *)) {
 .account-logout {
   display: inline-block;
 }
+
+/* Override section padding for hero banner */
+section:first-child {
+  padding-top: 0 !important;
+  margin-top: 0 !important;
+}
+
+/* Ensure no spacing on homepage */
+.home section:first-child {
+  padding: 0 !important;
+  margin: 0 !important;
+}
