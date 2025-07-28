@@ -193,3 +193,4 @@ export const FOOTER_QUERY = `#graphql
 
 // Export the cart fragment for use elsewhere
 export { CART_FRAGMENT, MONEY_FRAGMENT };
+export const CART_QUERY_FRAGMENT = CART_FRAGMENT;
