@@ -1,19 +1,19 @@
-import { type LoaderFunctionArgs } from "@shopify/remix-oxygen";
-import { Await, useLoaderData, Link, type MetaFunction } from "react-router";
-import { Suspense } from "react";
-import { Image, Money } from "@shopify/hydrogen";
+import {type LoaderFunctionArgs} from '@shopify/remix-oxygen';
+import {Await, useLoaderData, Link, type MetaFunction} from 'react-router';
+import {Suspense} from 'react';
+import {Image, Money} from '@shopify/hydrogen';
 import type {
   FeaturedCollectionFragment,
   RecommendedProductsQuery,
-} from "storefrontapi.generated";
-import { ProductItem } from "~/components/ProductItem";
-import { HeroBanner } from "~/components/HeroBanner";
-import { TopCategories } from "~/components/TopCategories";
-import { ShopByAge } from "~/components/ShopByAge";
-import { FeaturedCollections } from "~/components/FeaturedCollections";
+} from 'storefrontapi.generated';
+import {ProductItem} from '~/components/ProductItem';
+import {HeroBanner} from '~/components/HeroBanner';
+import {TopCategories} from '~/components/TopCategories';
+import {ShopByAge} from '~/components/ShopByAge';
+import {FeaturedBrands} from '~/components/FeaturedBrands';
 
 export const meta: MetaFunction = () => {
-  return [{ title: "STHLM Toys & Games | Home" }];
+  return [{title: 'STHLM Toys & Games | Home'}];
 };
 
 export async function loader(args: LoaderFunctionArgs) {
@@ -23,45 +23,45 @@ export async function loader(args: LoaderFunctionArgs) {
   // Await the critical data required to render initial state of the page
   const criticalData = await loadCriticalData(args);
 
-  return { ...deferredData, ...criticalData };
+  return {...deferredData, ...criticalData};
 }
 
 /**
  * Load data necessary for rendering content above the fold. This is the critical data
  * needed to render the page. If it's unavailable, the whole page should 400 or 500 error.
  */
-async function loadCriticalData({ context }: LoaderFunctionArgs) {
+async function loadCriticalData({context}: LoaderFunctionArgs) {
   try {
-    const [featuredCollectionData, topCategoriesData, featuredCollectionsData] =
+    const [featuredCollectionData, topCategoriesData, featuredBrandsData] =
       await Promise.all([
         context.storefront.query(FEATURED_COLLECTION_QUERY),
         context.storefront.query(TOP_CATEGORIES_QUERY),
-        context.storefront.query(FEATURED_COLLECTIONS_QUERY),
+        context.storefront.query(FEATURED_BRANDS_QUERY),
       ]);
 
     return {
       featuredCollection: featuredCollectionData.collections.nodes[0],
       topCategories: topCategoriesData.collections.nodes || [],
-      featuredCollections: featuredCollectionsData.collections.nodes || [],
+      featuredBrands: featuredBrandsData.collections.nodes || [],
     };
   } catch (error) {
-    console.error("Error loading collections:", error);
+    console.error('Error loading collections:', error);
     // Fallback to just featured collection if others fail
     try {
       const featuredCollectionData = await context.storefront.query(
-        FEATURED_COLLECTION_QUERY
+        FEATURED_COLLECTION_QUERY,
       );
       return {
         featuredCollection: featuredCollectionData.collections.nodes[0],
         topCategories: [],
-        featuredCollections: [],
+        featuredBrands: [],
       };
     } catch (fallbackError) {
-      console.error("Error loading fallback data:", fallbackError);
+      console.error('Error loading fallback data:', fallbackError);
       return {
         featuredCollection: null,
         topCategories: [],
-        featuredCollections: [],
+        featuredBrands: [],
       };
     }
   }
@@ -72,7 +72,7 @@ async function loadCriticalData({ context }: LoaderFunctionArgs) {
  * fetched after the initial page load. If it's unavailable, the page should still 200.
  * Make sure to not throw any errors here, as it will cause the page to 500.
  */
-function loadDeferredData({ context }: LoaderFunctionArgs) {
+function loadDeferredData({context}: LoaderFunctionArgs) {
   const recommendedProducts = context.storefront
     .query(RECOMMENDED_PRODUCTS_QUERY)
     .catch((error) => {
@@ -90,18 +90,18 @@ export default function Homepage() {
   const data = useLoaderData<typeof loader>();
 
   return (
-    <div style={{ margin: 0, padding: 0 }}>
+    <div style={{margin: 0, padding: 0}}>
       {/* Hero Banner - Immediately after header with no gap */}
       <HeroBanner
-        title="Build, Create & Imagine"
-        subtitle="Discover endless possibilities with our amazing LEGO collection"
-        buttonText="Shop Now"
+        title="Bygg, skapa & föreställ dig"
+        subtitle="Upptäck oändliga möjligheter med vår fantastiska LEGO-kollektion"
+        buttonText="Handla nu"
         buttonLink="/collections/lego"
       />
 
       <div className="home">
         {/* Top Categories Section */}
-        <div style={{ paddingTop: "64px", paddingBottom: "64px" }}>
+        <div style={{paddingTop: '8px', paddingBottom: '48px'}}>
           <TopCategories
             title="Populära kategorier"
             collections={data.topCategories}
@@ -119,8 +119,8 @@ export default function Homepage() {
         {/* Shop by Age Section */}
         <ShopByAge title="Handla efter ålder" />
 
-        {/* Featured Collections Section */}
-        <FeaturedCollections collections={data.featuredCollections} />
+        {/* Featured Brands Section */}
+        <FeaturedBrands brands={data.featuredBrands} />
       </div>
     </div>
   );
@@ -158,16 +158,16 @@ function RecommendedProducts({
     <section
       className="w-full"
       style={{
-        backgroundColor: "rgb(248, 249, 251)", // Smyths light gray background
-        padding: "40px 0px",
+        backgroundColor: 'rgb(248, 249, 251)', // Smyths light gray background
+        padding: '20px 0px',
       }}
     >
       {/* Container matching Smyths specs */}
       <div
         className="mx-auto"
         style={{
-          maxWidth: "1400px",
-          padding: "0px 64px",
+          maxWidth: '1400px',
+          padding: '0px 64px',
           fontFamily:
             "UniformRnd, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
         }}
@@ -176,11 +176,11 @@ function RecommendedProducts({
         <h2
           className="text-grey-900"
           style={{
-            fontSize: "30px",
+            fontSize: '30px',
             fontWeight: 700,
-            lineHeight: "36px",
-            marginBottom: "24px",
-            color: "rgb(32, 34, 35)",
+            lineHeight: '36px',
+            marginBottom: '24px',
+            color: 'rgb(32, 34, 35)',
             fontFamily:
               "UniformRnd, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
           }}
@@ -195,7 +195,7 @@ function RecommendedProducts({
               <div
                 className="flex flex-wrap gap-4"
                 style={{
-                  gap: "16px",
+                  gap: '16px',
                 }}
               >
                 {response?.products?.nodes
@@ -204,7 +204,7 @@ function RecommendedProducts({
                     <ProductItem
                       key={product.id}
                       product={product}
-                      loading={index < 4 ? "eager" : "lazy"}
+                      loading={index < 4 ? 'eager' : 'lazy'}
                     />
                   )) || (
                   <div className="w-full text-center py-8 text-gray-500">
@@ -222,23 +222,23 @@ function RecommendedProducts({
 
 function LoadingSkeleton() {
   return (
-    <div className="flex flex-wrap gap-4" style={{ gap: "16px" }}>
+    <div className="flex flex-wrap gap-4" style={{gap: '16px'}}>
       {[...Array(4)].map((_, i) => (
         <div
           key={i}
           className="animate-pulse cursor-pointer flex flex-col"
           style={{
-            width: "298px",
-            height: "443.766px",
-            paddingBottom: "12px",
+            width: '298px',
+            height: '443.766px',
+            paddingBottom: '12px',
           }}
         >
           {/* Image Skeleton */}
           <div
             className="bg-gray-200"
             style={{
-              aspectRatio: "1/1",
-              marginBottom: "12px",
+              aspectRatio: '1/1',
+              marginBottom: '12px',
             }}
           ></div>
 
@@ -257,7 +257,7 @@ function LoadingSkeleton() {
   );
 }
 
-// Enhanced query to get more collections and prioritize those with images
+// UPDATED Top Categories Query with Metafield Filtering
 const TOP_CATEGORIES_QUERY = `#graphql
   fragment TopCategory on Collection {
     id
@@ -270,10 +270,17 @@ const TOP_CATEGORIES_QUERY = `#graphql
       width
       height
     }
+    metafields(identifiers: [
+      {namespace: "custom", key: "top_category"},
+      {namespace: "custom", key: "featured_category"}
+    ]) {
+      key
+      value
+    }
   }
   query TopCategories($country: CountryCode, $language: LanguageCode)
     @inContext(country: $country, language: $language) {
-    collections(first: 20, sortKey: TITLE) {
+    collections(first: 50, sortKey: TITLE) {
       nodes {
         ...TopCategory
       }
@@ -333,8 +340,9 @@ const RECOMMENDED_PRODUCTS_QUERY = `#graphql
   }
 ` as const;
 
-const FEATURED_COLLECTIONS_QUERY = `#graphql
-  fragment FeaturedCollectionCard on Collection {
+// Featured Brands Query with metafield filtering
+const FEATURED_BRANDS_QUERY = `#graphql
+  fragment FeaturedBrand on Collection {
     id
     title
     handle
@@ -346,12 +354,18 @@ const FEATURED_COLLECTIONS_QUERY = `#graphql
       width
       height
     }
+    metafields(identifiers: [
+      {namespace: "custom", key: "featured-brand"}
+    ]) {
+      key
+      value
+    }
   }
-  query FeaturedCollections($country: CountryCode, $language: LanguageCode)
+  query FeaturedBrands($country: CountryCode, $language: LanguageCode)
     @inContext(country: $country, language: $language) {
-    collections(first: 6, sortKey: UPDATED_AT, reverse: true) {
+    collections(first: 50, sortKey: UPDATED_AT, reverse: true) {
       nodes {
-        ...FeaturedCollectionCard
+        ...FeaturedBrand
       }
     }
   }

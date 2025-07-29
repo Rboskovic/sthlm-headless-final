@@ -255,6 +255,9 @@ export type TopCategoryFragment = Pick<
   image?: StorefrontAPI.Maybe<
     Pick<StorefrontAPI.Image, 'id' | 'url' | 'altText' | 'width' | 'height'>
   >;
+  metafields: Array<
+    StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'key' | 'value'>>
+  >;
 };
 
 export type TopCategoriesQueryVariables = StorefrontAPI.Exact<{
@@ -271,6 +274,9 @@ export type TopCategoriesQuery = {
             StorefrontAPI.Image,
             'id' | 'url' | 'altText' | 'width' | 'height'
           >
+        >;
+        metafields: Array<
+          StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'key' | 'value'>>
         >;
       }
     >;
@@ -344,21 +350,24 @@ export type RecommendedProductsQuery = {
   };
 };
 
-export type FeaturedCollectionCardFragment = Pick<
+export type FeaturedBrandFragment = Pick<
   StorefrontAPI.Collection,
   'id' | 'title' | 'handle' | 'description'
 > & {
   image?: StorefrontAPI.Maybe<
     Pick<StorefrontAPI.Image, 'id' | 'url' | 'altText' | 'width' | 'height'>
   >;
+  metafields: Array<
+    StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'key' | 'value'>>
+  >;
 };
 
-export type FeaturedCollectionsQueryVariables = StorefrontAPI.Exact<{
+export type FeaturedBrandsQueryVariables = StorefrontAPI.Exact<{
   country?: StorefrontAPI.InputMaybe<StorefrontAPI.CountryCode>;
   language?: StorefrontAPI.InputMaybe<StorefrontAPI.LanguageCode>;
 }>;
 
-export type FeaturedCollectionsQuery = {
+export type FeaturedBrandsQuery = {
   collections: {
     nodes: Array<
       Pick<
@@ -370,6 +379,9 @@ export type FeaturedCollectionsQuery = {
             StorefrontAPI.Image,
             'id' | 'url' | 'altText' | 'width' | 'height'
           >
+        >;
+        metafields: Array<
+          StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'key' | 'value'>>
         >;
       }
     >;
@@ -1230,7 +1242,7 @@ interface GeneratedQueryTypes {
     return: FooterQuery;
     variables: FooterQueryVariables;
   };
-  '#graphql\n  fragment TopCategory on Collection {\n    id\n    title\n    handle\n    image {\n      id\n      url\n      altText\n      width\n      height\n    }\n  }\n  query TopCategories($country: CountryCode, $language: LanguageCode)\n    @inContext(country: $country, language: $language) {\n    collections(first: 20, sortKey: TITLE) {\n      nodes {\n        ...TopCategory\n      }\n    }\n  }\n': {
+  '#graphql\n  fragment TopCategory on Collection {\n    id\n    title\n    handle\n    image {\n      id\n      url\n      altText\n      width\n      height\n    }\n    metafields(identifiers: [\n      {namespace: "custom", key: "top_category"},\n      {namespace: "custom", key: "featured_category"}\n    ]) {\n      key\n      value\n    }\n  }\n  query TopCategories($country: CountryCode, $language: LanguageCode)\n    @inContext(country: $country, language: $language) {\n    collections(first: 50, sortKey: TITLE) {\n      nodes {\n        ...TopCategory\n      }\n    }\n  }\n': {
     return: TopCategoriesQuery;
     variables: TopCategoriesQueryVariables;
   };
@@ -1242,9 +1254,9 @@ interface GeneratedQueryTypes {
     return: RecommendedProductsQuery;
     variables: RecommendedProductsQueryVariables;
   };
-  '#graphql\n  fragment FeaturedCollectionCard on Collection {\n    id\n    title\n    handle\n    description\n    image {\n      id\n      url\n      altText\n      width\n      height\n    }\n  }\n  query FeaturedCollections($country: CountryCode, $language: LanguageCode)\n    @inContext(country: $country, language: $language) {\n    collections(first: 6, sortKey: UPDATED_AT, reverse: true) {\n      nodes {\n        ...FeaturedCollectionCard\n      }\n    }\n  }\n': {
-    return: FeaturedCollectionsQuery;
-    variables: FeaturedCollectionsQueryVariables;
+  '#graphql\n  fragment FeaturedBrand on Collection {\n    id\n    title\n    handle\n    description\n    image {\n      id\n      url\n      altText\n      width\n      height\n    }\n    metafields(identifiers: [\n      {namespace: "custom", key: "featured-brand"}\n    ]) {\n      key\n      value\n    }\n  }\n  query FeaturedBrands($country: CountryCode, $language: LanguageCode)\n    @inContext(country: $country, language: $language) {\n    collections(first: 50, sortKey: UPDATED_AT, reverse: true) {\n      nodes {\n        ...FeaturedBrand\n      }\n    }\n  }\n': {
+    return: FeaturedBrandsQuery;
+    variables: FeaturedBrandsQueryVariables;
   };
   '#graphql\n  query Article(\n    $articleHandle: String!\n    $blogHandle: String!\n    $country: CountryCode\n    $language: LanguageCode\n  ) @inContext(language: $language, country: $country) {\n    blog(handle: $blogHandle) {\n      handle\n      articleByHandle(handle: $articleHandle) {\n        handle\n        title\n        contentHtml\n        publishedAt\n        author: authorV2 {\n          name\n        }\n        image {\n          id\n          altText\n          url\n          width\n          height\n        }\n        seo {\n          description\n          title\n        }\n      }\n    }\n  }\n': {
     return: ArticleQuery;

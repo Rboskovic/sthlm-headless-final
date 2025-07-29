@@ -1,14 +1,14 @@
-import { Link } from "react-router";
-import { Image } from "@shopify/hydrogen";
-import { Heart } from "lucide-react";
-import { useState } from "react";
+import {Link} from 'react-router';
+import {Image} from '@shopify/hydrogen';
+import {Heart} from 'lucide-react';
+import {useState} from 'react';
 import type {
   ProductItemFragment,
   CollectionItemFragment,
   RecommendedProductFragment,
-} from "storefrontapi.generated";
-import { useVariantUrl } from "~/lib/variants";
-import { ProductPrice } from "./ProductPrice";
+} from 'storefrontapi.generated';
+import {useVariantUrl} from '~/lib/variants';
+import {ProductPrice} from './ProductPrice';
 
 export function ProductItem({
   product,
@@ -18,7 +18,7 @@ export function ProductItem({
     | CollectionItemFragment
     | ProductItemFragment
     | RecommendedProductFragment;
-  loading?: "eager" | "lazy";
+  loading?: 'eager' | 'lazy';
 }) {
   const variantUrl = useVariantUrl(product.handle);
   const image = product.featuredImage;
@@ -36,7 +36,7 @@ export function ProductItem({
     discountPercentage = Math.round(
       ((parseFloat(compareAtPrice.amount) - parseFloat(minPrice.amount)) /
         parseFloat(compareAtPrice.amount)) *
-        100
+        100,
     );
   }
 
@@ -44,12 +44,12 @@ export function ProductItem({
   const getBadge = () => {
     const title = product.title.toLowerCase();
 
-    if (title.includes("exclusive") || title.includes("limited")) {
-      return { text: "EXCLUSIVE", color: "bg-blue-600" };
+    if (title.includes('exclusive') || title.includes('limited')) {
+      return {text: 'EXCLUSIVE', color: 'bg-blue-600'};
     }
 
     if (discountPercentage > 0) {
-      return { text: `-${discountPercentage}%`, color: "bg-red-600" };
+      return {text: `-${discountPercentage}%`, color: 'bg-red-600'};
     }
 
     return null;
@@ -63,8 +63,8 @@ export function ProductItem({
     setIsWishlisted(!isWishlisted);
     // TODO: Integrate with your wishlist system
     console.log(
-      `${isWishlisted ? "Removed from" : "Added to"} wishlist:`,
-      product.title
+      `${isWishlisted ? 'Removed from' : 'Added to'} wishlist:`,
+      product.title,
     );
   };
 
@@ -72,9 +72,9 @@ export function ProductItem({
     <div
       className="group relative overflow-hidden cursor-pointer flex flex-col"
       style={{
-        width: "298px", // Exact Smyths width
-        height: "443.766px", // Exact Smyths height
-        paddingBottom: "12px", // Smyths padding
+        width: '298px', // Exact Smyths width
+        height: '443.766px', // Exact Smyths height
+        paddingBottom: '12px', // Smyths padding
         fontFamily:
           "UniformRnd, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
       }}
@@ -83,14 +83,14 @@ export function ProductItem({
       <button
         onClick={handleWishlistClick}
         className="absolute top-2 right-2 z-10 p-1.5 rounded-full bg-white shadow-sm hover:shadow-md transition-all duration-200"
-        style={{ width: "32px", height: "32px" }}
+        style={{width: '32px', height: '32px'}}
       >
         <Heart
           size={18}
           className={`transition-colors duration-200 ${
             isWishlisted
-              ? "fill-red-500 text-red-500"
-              : "text-gray-400 hover:text-red-500"
+              ? 'fill-red-500 text-red-500'
+              : 'text-gray-400 hover:text-red-500'
           }`}
         />
       </button>
@@ -100,9 +100,9 @@ export function ProductItem({
         <div
           className={`absolute top-2 left-2 z-10 px-1.5 py-0.5 rounded text-white text-xs font-bold ${badge.color}`}
           style={{
-            fontSize: "10px",
+            fontSize: '10px',
             fontWeight: 700,
-            lineHeight: "13px",
+            lineHeight: '13px',
           }}
         >
           {badge.text}
@@ -120,8 +120,8 @@ export function ProductItem({
         <div
           className="relative overflow-hidden bg-white"
           style={{
-            aspectRatio: "1/1",
-            marginBottom: "12px",
+            aspectRatio: '1/1',
+            marginBottom: '12px',
           }}
         >
           {image && (
@@ -142,18 +142,18 @@ export function ProductItem({
           <h4
             className="text-gray-900 font-medium group-hover:text-blue-600 transition-colors duration-200 line-clamp-2"
             style={{
-              fontSize: "14px",
+              fontSize: '14px',
               fontWeight: 500,
-              lineHeight: "18.9px",
+              lineHeight: '18.9px',
               fontFamily:
                 "UniformRnd, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-              marginBottom: "8px",
-              minHeight: "38px",
-              display: "-webkit-box",
+              marginBottom: '8px',
+              minHeight: '38px',
+              display: '-webkit-box',
               WebkitLineClamp: 2,
-              WebkitBoxOrient: "vertical",
-              overflow: "hidden",
-              color: "rgb(32, 34, 35)",
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              color: 'rgb(32, 34, 35)',
             }}
           >
             {product.title}

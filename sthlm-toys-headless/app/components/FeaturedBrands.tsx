@@ -3,11 +3,15 @@ import {Image} from '@shopify/hydrogen';
 import {ChevronLeft, ChevronRight} from 'lucide-react';
 import {useState} from 'react';
 
-interface FeaturedCollection {
+interface FeaturedBrand {
   id: string;
   title: string;
   handle: string;
   description?: string | null;
+  metafields?: Array<{
+    key: string;
+    value: string;
+  } | null> | null;
   image?: {
     id: string;
     url: string;
@@ -17,90 +21,133 @@ interface FeaturedCollection {
   } | null;
 }
 
-interface FeaturedCollectionsProps {
-  collections?: FeaturedCollection[];
+interface FeaturedBrandsProps {
+  brands?: FeaturedBrand[];
 }
 
-// Fallback featured collections with Swedish content
-const fallbackCollections: (FeaturedCollection & {
+// Fallback brands for development/testing
+const fallbackBrands: (FeaturedBrand & {
   backgroundColor: string;
   isNew?: boolean;
 })[] = [
   {
     id: 'fallback-1',
-    title: 'Rainbow High My Fashion Style Dolls',
-    description: 'Style That Pops!',
-    handle: 'rainbow-high-dolls',
-    backgroundColor: '#B83D9E', // Purple/magenta
+    title: 'LEGO',
+    handle: 'lego',
+    description: 'Build your imagination',
+    metafields: [
+      {key: 'featured-brand', value: 'true'},
+      {key: 'new-brand', value: 'true'},
+    ],
+    backgroundColor: '#6B7280', // Gray for LEGO
     isNew: true,
     image: {
       id: 'fallback-img-1',
-      url: 'https://images.unsplash.com/photo-1572351721488-3ea5e12e36b5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      altText: 'Rainbow High Fashion Dolls',
+      url: 'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+      altText: 'LEGO Collection',
       width: 800,
       height: 600,
     },
   },
   {
     id: 'fallback-2',
-    title: 'WWE SummerSlam Elite Action Figures',
-    description: 'Wrestling Champions Collection',
-    handle: 'wwe-action-figures',
-    backgroundColor: '#C41E3A', // Red
+    title: 'MATTEL',
+    handle: 'mattel',
+    description: 'Imaginative play experiences',
+    metafields: [
+      {key: 'featured-brand', value: 'true'},
+      {key: 'new-brand', value: 'true'},
+    ],
+    backgroundColor: '#D97706', // Orange
     isNew: true,
     image: {
       id: 'fallback-img-2',
-      url: 'https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      altText: 'WWE Action Figures',
+      url: 'https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+      altText: 'MATTEL Toys',
       width: 800,
       height: 600,
     },
   },
   {
     id: 'fallback-3',
-    title: 'Wicked Toys',
-    description: "Step into Glinda's world of style & sparkle!",
-    handle: 'wicked-toys',
-    backgroundColor: '#228B22', // Green
+    title: 'HASBRO',
+    handle: 'hasbro',
+    description: 'Fun for everyone',
+    metafields: [
+      {key: 'featured-brand', value: 'true'},
+      {key: 'new-brand', value: 'true'},
+    ],
+    backgroundColor: '#DC2626', // Red
     isNew: true,
     image: {
       id: 'fallback-img-3',
-      url: 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      altText: 'Wicked Toys Collection',
+      url: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+      altText: 'HASBRO Games',
       width: 800,
       height: 600,
     },
   },
 ];
 
-// Collection background colors (you can customize these or use metafields)
-const collectionColors: Record<string, string> = {
-  'rainbow-high-dolls': '#B83D9E',
-  'wwe-action-figures': '#C41E3A',
-  'wicked-toys': '#228B22',
-  // Add more collection handles and their colors here
+// Brand background colors (you can customize these or use metafields later)
+const brandColors: Record<string, string> = {
+  lego: 'rgb(248, 249, 251)',
+  mattel: 'rgb(248, 249, 251)',
+  hasbro: 'rgb(248, 249, 251)',
+  playmobil: 'rgb(248, 249, 251)',
+  // Add more brand handles and their colors here
 };
 
-export function FeaturedCollections({collections}: FeaturedCollectionsProps) {
+export function FeaturedBrands({brands}: FeaturedBrandsProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // Use Shopify collections if available, otherwise fallback
-  const displayCollections =
-    collections && collections.length > 0
-      ? collections.map((collection, index) => ({
-          ...collection,
-          backgroundColor: collectionColors[collection.handle] || '#6B7280', // Default gray
-          isNew: index < 3, // Mark first 3 as new, you can customize this logic
+  // Helper function to get metafield value with proper null checks
+  const getMetafieldValue = (
+    metafields: Array<{key: string; value: string} | null> | null | undefined,
+    key: string,
+  ): string | null => {
+    if (!metafields || !Array.isArray(metafields)) return null;
+
+    const metafield = metafields.find((m) => m && m.key === key);
+    return metafield ? metafield.value : null;
+  };
+
+  console.log('FeaturedBrands received brands:', brands);
+
+  // Filter brands that have featured-brand metafield set to "true" (note: using hyphen)
+  const featuredBrands =
+    brands && brands.length > 0
+      ? brands.filter((brand) => {
+          const isFeatured =
+            getMetafieldValue(brand.metafields, 'featured-brand') === 'true';
+          console.log(
+            `Brand ${brand.title}: featured-brand = ${getMetafieldValue(brand.metafields, 'featured-brand')}, isFeatured = ${isFeatured}`,
+          );
+          return isFeatured;
+        })
+      : [];
+
+  console.log('Filtered featured brands:', featuredBrands);
+
+  // Process Shopify brands or use fallback
+  const displayBrands =
+    featuredBrands.length > 0
+      ? featuredBrands.map((brand, index) => ({
+          ...brand,
+          backgroundColor: brandColors[brand.handle] || '#6B7280', // Default gray
+          isNew: getMetafieldValue(brand.metafields, 'new-brand') === 'true', // Also using hyphen
         }))
-      : fallbackCollections;
+      : fallbackBrands;
+
+  console.log('Final display brands:', displayBrands);
 
   const itemsPerPage = 3;
   const maxIndex = Math.max(
     0,
-    Math.ceil(displayCollections.length / itemsPerPage) - 1,
+    Math.ceil(displayBrands.length / itemsPerPage) - 1,
   );
 
-  const visibleCollections = displayCollections.slice(
+  const visibleBrands = displayBrands.slice(
     currentIndex * itemsPerPage,
     (currentIndex + 1) * itemsPerPage,
   );
@@ -113,7 +160,7 @@ export function FeaturedCollections({collections}: FeaturedCollectionsProps) {
     setCurrentIndex(currentIndex < maxIndex ? currentIndex + 1 : 0);
   };
 
-  const showNavigation = displayCollections.length > itemsPerPage;
+  const showNavigation = displayBrands.length > itemsPerPage;
 
   return (
     <section className="w-full bg-white">
@@ -125,28 +172,28 @@ export function FeaturedCollections({collections}: FeaturedCollectionsProps) {
           maxWidth: '100%',
           paddingLeft: '12px',
           paddingRight: '12px',
-          paddingTop: '32px',
-          paddingBottom: '32px',
+          paddingTop: '64px',
+          paddingBottom: '64px',
         }}
       >
-        {/* Collections Grid */}
+        {/* Brands Grid */}
         <div
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
           style={{
             gap: '24px',
           }}
         >
-          {visibleCollections.map((collection) => (
+          {visibleBrands.map((brand) => (
             <div
-              key={collection.id}
+              key={brand.id}
               className="group relative overflow-hidden rounded-lg"
               style={{
                 borderRadius: '12px',
                 height: '520px',
               }}
             >
-              {/* NEW Badge */}
-              {collection.isNew && (
+              {/* NY Badge */}
+              {brand.isNew && (
                 <div
                   className="absolute top-4 left-4 z-20 bg-white text-black font-bold px-3 py-1 rounded"
                   style={{
@@ -161,25 +208,25 @@ export function FeaturedCollections({collections}: FeaturedCollectionsProps) {
               )}
 
               <Link
-                to={`/collections/${collection.handle}`}
+                to={`/collections/${brand.handle}`}
                 className="block relative w-full h-full"
                 style={{
-                  backgroundColor: collection.backgroundColor,
+                  backgroundColor: brand.backgroundColor,
                 }}
               >
                 {/* Background Image */}
-                {collection.image?.url && (
+                {brand.image?.url && (
                   <div className="absolute inset-0">
                     <Image
                       data={{
-                        id: collection.image.id,
-                        url: collection.image.url,
-                        altText: collection.image.altText || collection.title,
-                        width: collection.image.width || 800,
-                        height: collection.image.height || 520,
+                        id: brand.image.id,
+                        url: brand.image.url,
+                        altText: brand.image.altText || brand.title,
+                        width: brand.image.width || 800,
+                        height: brand.image.height || 520,
                       }}
                       sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
                     />
                   </div>
                 )}
@@ -188,15 +235,15 @@ export function FeaturedCollections({collections}: FeaturedCollectionsProps) {
                 <div
                   className="absolute inset-0 flex flex-col justify-between text-white p-8"
                   style={{
-                    background: collection.image?.url
+                    background: brand.image?.url
                       ? 'linear-gradient(45deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.1) 100%)'
                       : 'none',
                     padding: '32px',
                   }}
                 >
-                  {/* Text Content */}
+                  {/* Brand Content */}
                   <div>
-                    {/* Title */}
+                    {/* Brand Title */}
                     <h3
                       className="text-white font-bold mb-3"
                       style={{
@@ -208,11 +255,11 @@ export function FeaturedCollections({collections}: FeaturedCollectionsProps) {
                         marginBottom: '12px',
                       }}
                     >
-                      {collection.title}
+                      {brand.title}
                     </h3>
 
-                    {/* Description */}
-                    {collection.description && (
+                    {/* Brand Description */}
+                    {brand.description && (
                       <p
                         className="text-white mb-6"
                         style={{
@@ -224,7 +271,7 @@ export function FeaturedCollections({collections}: FeaturedCollectionsProps) {
                           marginBottom: '24px',
                         }}
                       >
-                        {collection.description}
+                        {brand.description}
                       </p>
                     )}
                   </div>

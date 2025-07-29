@@ -1,15 +1,13 @@
-import { Suspense, useState } from "react";
-import { Await, Link, useAsyncValue } from "react-router";
+import {Suspense, useState} from 'react';
+import {Await, Link, useAsyncValue} from 'react-router';
 import {
   type CartViewPayload,
   useAnalytics,
   useOptimisticCart,
-} from "@shopify/hydrogen";
-import type {
-  HeaderQuery,
-  CartApiQueryFragment,
-} from "storefrontapi.generated";
-import { useAside } from "~/components/Aside";
+  Image,
+} from '@shopify/hydrogen';
+import type {HeaderQuery, CartApiQueryFragment} from 'storefrontapi.generated';
+import {useAside} from '~/components/Aside';
 import {
   Search,
   Heart,
@@ -18,11 +16,10 @@ import {
   User,
   FileText,
   HelpCircle,
-  MapPin,
   Truck,
   Clock,
   Smartphone,
-} from "lucide-react";
+} from 'lucide-react';
 
 interface HeaderProps {
   header: HeaderQuery;
@@ -31,7 +28,58 @@ interface HeaderProps {
   publicStoreDomain: string;
 }
 
-type Viewport = "desktop" | "mobile";
+type Viewport = 'desktop' | 'mobile';
+
+// Logo Component
+function Logo({shop}: {shop: HeaderQuery['shop']}) {
+  const logoUrl = shop?.brand?.logo?.image?.url;
+  const shopName = shop?.name || 'STHLM Toys & Games';
+
+  if (logoUrl) {
+    return (
+      <Link to="/" className="flex-shrink-0">
+        <div
+          className="flex items-center justify-center"
+          style={{
+            height: '46px',
+            width: '130px',
+          }}
+        >
+          <Image
+            data={{
+              url: logoUrl,
+              altText: `${shopName} logo`,
+              width: 130,
+              height: 46,
+            }}
+            sizes="130px"
+            className="object-contain w-full h-full"
+            style={{
+              maxWidth: '130px',
+              maxHeight: '46px',
+            }}
+          />
+        </div>
+      </Link>
+    );
+  }
+
+  // Fallback to text logo if no image is set in Shopify
+  return (
+    <Link to="/" className="flex-shrink-0">
+      <div
+        className="flex items-center justify-center bg-red-500 text-white rounded-lg font-bold border-2 border-yellow-400 shadow-lg"
+        style={{
+          height: '46px',
+          width: '130px',
+          fontSize: '18px',
+        }}
+      >
+        {shopName.length > 8 ? shopName.substring(0, 8) : shopName}
+      </div>
+    </Link>
+  );
+}
 
 export function Header({
   header,
@@ -39,63 +87,48 @@ export function Header({
   cart,
   publicStoreDomain,
 }: HeaderProps) {
-  const { shop, menu } = header;
+  const {shop, menu} = header;
 
   return (
     <header
       className="relative z-50"
       style={{
-        background: "linear-gradient(to bottom, #1f96f4, #2171e1)",
+        background: 'linear-gradient(to bottom, #1f96f4, #2171e1)',
       }}
     >
       {/* Top Utility Bar */}
       <div
-        className="hidden lg:flex justify-between items-center self-stretch"
+        className="hidden lg:flex justify-end items-center self-stretch"
         style={{
-          height: "52px",
-          width: "1272px",
-          margin: "0 auto",
-          paddingTop: "8px",
-          paddingRight: "12px",
-          paddingBottom: "4px",
-          paddingLeft: "12px",
+          height: '52px',
+          width: '1272px',
+          margin: '0 auto',
+          paddingTop: '8px',
+          paddingRight: '12px',
+          paddingBottom: '4px',
+          paddingLeft: '12px',
         }}
       >
-        {/* Left side - Country selector */}
-        <div className="flex items-center space-x-2">
-          <span className="text-xs">🇬🇧</span>
-          <span
-            className="text-white"
-            style={{
-              fontSize: "14px",
-              fontWeight: 500,
-              lineHeight: "18.9px",
-            }}
-          >
-            UK (£)
-          </span>
-        </div>
-
         {/* Right side - Utility links */}
-        <div className="flex" style={{ gap: "1.25rem" }}>
+        <div className="flex" style={{gap: '1.25rem'}}>
           <Suspense fallback={null}>
             <Await resolve={isLoggedIn}>
               {(isLoggedIn) => (
                 <button
                   className="flex items-center rounded-full text-white hover:bg-gray-900/[.08] transition-colors"
                   style={{
-                    fontSize: "14px",
+                    fontSize: '14px',
                     fontWeight: 500,
-                    lineHeight: "18.9px",
-                    gap: "8px",
-                    paddingLeft: "12px",
-                    paddingRight: "12px",
-                    paddingTop: "8px",
-                    paddingBottom: "8px",
+                    lineHeight: '18.9px',
+                    gap: '8px',
+                    paddingLeft: '12px',
+                    paddingRight: '12px',
+                    paddingTop: '8px',
+                    paddingBottom: '8px',
                   }}
                 >
                   <User size={16} className="text-white" />
-                  <span>{isLoggedIn ? "My Account" : "Log in / Sign up"}</span>
+                  <span>{isLoggedIn ? 'Konto' : 'Logga in'}</span>
                 </button>
               )}
             </Await>
@@ -103,50 +136,34 @@ export function Header({
           <button
             className="flex items-center rounded-full text-white hover:bg-gray-900/[.08] transition-colors"
             style={{
-              fontSize: "14px",
+              fontSize: '14px',
               fontWeight: 500,
-              lineHeight: "18.9px",
-              gap: "8px",
-              paddingLeft: "12px",
-              paddingRight: "12px",
-              paddingTop: "8px",
-              paddingBottom: "8px",
+              lineHeight: '18.9px',
+              gap: '8px',
+              paddingLeft: '12px',
+              paddingRight: '12px',
+              paddingTop: '8px',
+              paddingBottom: '8px',
             }}
           >
             <FileText size={16} className="text-white" />
-            <span>My orders</span>
+            <span>Mina beställningar</span>
           </button>
           <button
             className="flex items-center rounded-full text-white hover:bg-gray-900/[.08] transition-colors"
             style={{
-              fontSize: "14px",
+              fontSize: '14px',
               fontWeight: 500,
-              lineHeight: "18.9px",
-              gap: "8px",
-              paddingLeft: "12px",
-              paddingRight: "12px",
-              paddingTop: "8px",
-              paddingBottom: "8px",
+              lineHeight: '18.9px',
+              gap: '8px',
+              paddingLeft: '12px',
+              paddingRight: '12px',
+              paddingTop: '8px',
+              paddingBottom: '8px',
             }}
           >
             <HelpCircle size={16} className="text-white" />
-            <span>Help</span>
-          </button>
-          <button
-            className="flex items-center rounded-full text-white hover:bg-gray-900/[.08] transition-colors"
-            style={{
-              fontSize: "14px",
-              fontWeight: 500,
-              lineHeight: "18.9px",
-              gap: "8px",
-              paddingLeft: "12px",
-              paddingRight: "12px",
-              paddingTop: "8px",
-              paddingBottom: "8px",
-            }}
-          >
-            <MapPin size={16} className="text-white" />
-            <span>Store finder</span>
+            <span>Hjälp</span>
           </button>
         </div>
       </div>
@@ -155,58 +172,47 @@ export function Header({
       <div
         className="hidden lg:flex lg:items-center lg:self-stretch"
         style={{
-          width: "1272px",
-          height: "48px",
-          margin: "12px auto 0px",
-          paddingLeft: "12px",
-          paddingRight: "12px",
-          gap: "40px",
+          width: '1272px',
+          height: '48px',
+          margin: '12px auto 0px',
+          paddingLeft: '12px',
+          paddingRight: '12px',
+          gap: '40px',
         }}
       >
-        {/* Logo */}
-        <Link to="/" className="flex-shrink-0">
-          <div
-            className="flex items-center justify-center bg-red-500 text-white rounded-lg font-bold border-2 border-yellow-400 shadow-lg"
-            style={{
-              height: "46px",
-              width: "130px",
-              fontSize: "18px",
-            }}
-          >
-            SMYTHS
-          </div>
-        </Link>
+        {/* Logo - Now using the Logo component */}
+        <Logo shop={shop} />
 
         {/* Search Bar */}
         <div className="flex-1">
           <div
             className="relative flex overflow-hidden bg-white"
             style={{
-              height: "48px",
-              borderRadius: "9999px",
+              height: '48px',
+              borderRadius: '9999px',
             }}
           >
             <input
               type="text"
-              placeholder="Search for product or brand"
+              placeholder="Sök efter produkt eller varumärke"
               className="flex-1 bg-white border-0 outline-none placeholder:text-gray-600 text-gray-900"
               style={{
-                fontSize: "16px",
+                fontSize: '16px',
                 fontWeight: 500,
-                lineHeight: "24px",
-                padding: "12px 0px 12px 24px",
-                border: "none",
-                outline: "none",
+                lineHeight: '24px',
+                padding: '12px 0px 12px 24px',
+                border: 'none',
+                outline: 'none',
               }}
             />
             <button
               className="flex items-center justify-center"
               style={{
-                height: "48px",
-                width: "48px",
-                backgroundColor: "rgb(255, 212, 43)",
-                borderTopRightRadius: "9999px",
-                borderBottomRightRadius: "9999px",
+                height: '48px',
+                width: '48px',
+                backgroundColor: 'rgb(255, 212, 43)',
+                borderTopRightRadius: '9999px',
+                borderBottomRightRadius: '9999px',
               }}
             >
               <Search size={24} />
@@ -218,27 +224,27 @@ export function Header({
         <div
           className="flex items-center"
           style={{
-            width: "267px",
-            height: "48px",
-            gap: "12px",
+            width: '267px',
+            height: '48px',
+            gap: '12px',
           }}
         >
           <button
             className="flex items-center justify-center rounded-full text-white hover:bg-gray-900/[.08] transition-colors relative"
             style={{
-              minHeight: "42px",
-              gap: "8px",
-              paddingLeft: "16px",
-              paddingRight: "16px",
-              paddingTop: "8px",
-              paddingBottom: "8px",
+              minHeight: '42px',
+              gap: '8px',
+              paddingLeft: '16px',
+              paddingRight: '16px',
+              paddingTop: '8px',
+              paddingBottom: '8px',
               fontWeight: 500,
-              fontSize: "16px",
-              lineHeight: "21.6px",
+              fontSize: '16px',
+              lineHeight: '21.6px',
             }}
           >
             <Heart size={32} className="text-white" />
-            <span className="hidden lg:inline text-white">Wishlist</span>
+            <span className="hidden lg:inline text-white">Önskelista</span>
           </button>
           <CartToggle cart={cart} />
           <MobileMenuToggle />
@@ -249,30 +255,30 @@ export function Header({
       <div
         className="lg:hidden"
         style={{
-          paddingLeft: "16px",
-          paddingRight: "16px",
-          paddingBottom: "16px",
+          paddingLeft: '16px',
+          paddingRight: '16px',
+          paddingBottom: '16px',
         }}
       >
         <div className="flex w-full rounded-full overflow-hidden shadow-lg bg-white">
           <input
             type="text"
-            placeholder="Search for product or brand"
+            placeholder="Sök efter produkt eller varumärke"
             className="flex-1 text-gray-700 bg-white border-none focus:outline-none focus:ring-2 focus:ring-yellow-400"
             style={{
-              paddingLeft: "16px",
-              paddingRight: "16px",
-              paddingTop: "12px",
-              paddingBottom: "12px",
+              paddingLeft: '16px',
+              paddingRight: '16px',
+              paddingTop: '12px',
+              paddingBottom: '12px',
             }}
           />
           <button
             className="bg-yellow-400 hover:bg-yellow-500 font-semibold text-black flex items-center justify-center"
             style={{
-              paddingLeft: "24px",
-              paddingRight: "24px",
-              paddingTop: "12px",
-              paddingBottom: "12px",
+              paddingLeft: '24px',
+              paddingRight: '24px',
+              paddingTop: '12px',
+              paddingBottom: '12px',
             }}
           >
             <Search size={16} />
@@ -290,28 +296,19 @@ export function Header({
       {/* Promotional Banner */}
       <div
         className="bg-gray-100 text-black"
-        style={{ paddingTop: "8px", paddingBottom: "8px" }}
+        style={{paddingTop: '8px', paddingBottom: '8px'}}
       >
         <div
           className="mx-auto flex justify-center text-sm font-medium"
           style={{
-            width: "1272px",
-            paddingLeft: "12px",
-            paddingRight: "12px",
-            gap: "32px",
+            width: '1272px',
+            paddingLeft: '12px',
+            paddingRight: '12px',
           }}
         >
-          <div className="flex items-center" style={{ gap: "8px" }}>
+          <div className="flex items-center" style={{gap: '8px'}}>
             <Truck size={16} className="text-blue-600" />
-            <span>FREE DELIVERY ON ORDERS OVER £20*</span>
-          </div>
-          <div className="hidden lg:flex items-center" style={{ gap: "8px" }}>
-            <Clock size={16} className="text-blue-600" />
-            <span>ORDER BY 10PM FOR NEXT DAY DELIVERY*</span>
-          </div>
-          <div className="hidden lg:flex items-center" style={{ gap: "8px" }}>
-            <Smartphone size={16} className="text-blue-600" />
-            <span>FREE CLICK & COLLECT WITHIN 2 HOURS*</span>
+            <span>FRI FRAKT PÅ BESTÄLLNINGAR ÖVER €20</span>
           </div>
         </div>
       </div>
@@ -319,12 +316,13 @@ export function Header({
   );
 }
 
+// Rest of the component functions remain the same...
 function MegaMenuNavigation({
   menu,
   primaryDomainUrl,
   publicStoreDomain,
 }: {
-  menu: HeaderProps["header"]["menu"];
+  menu: HeaderProps['header']['menu'];
   primaryDomainUrl: string;
   publicStoreDomain: string;
 }) {
@@ -339,10 +337,10 @@ function MegaMenuNavigation({
   };
 
   const getUrl = (url: string | null | undefined): string => {
-    if (!url) return "/";
+    if (!url) return '/';
 
     if (
-      url.includes("myshopify.com") ||
+      url.includes('myshopify.com') ||
       url.includes(publicStoreDomain) ||
       url.includes(primaryDomainUrl)
     ) {
@@ -351,19 +349,19 @@ function MegaMenuNavigation({
     return url;
   };
 
-  // Trending data
+  // Trending data - Updated with Swedish translations
   const trendingItems = [
     {
-      title: "NEW WWE SummerSlam Elite",
-      url: "/collections/wwe",
-      image: "wwe-image.jpg",
-      bgColor: "bg-red-600",
+      title: 'NYHET: WWE SummerSlam Elite',
+      url: '/collections/wwe',
+      image: 'wwe-image.jpg',
+      bgColor: 'bg-red-600',
     },
     {
-      title: "4 for 3 on all Tonies Audio Characters",
-      url: "/collections/tonies",
-      image: "tonies-image.jpg",
-      bgColor: "bg-red-600",
+      title: '15 % rabatt på alla superhjältar',
+      url: '/collections/superheroes',
+      image: 'superhero-image.jpg',
+      bgColor: 'bg-red-600',
     },
   ];
 
@@ -371,7 +369,7 @@ function MegaMenuNavigation({
     ? menu?.items.find((item) => item.id === activeMenu)
     : null;
   const hasSubItems = activeMenuItem?.items && activeMenuItem.items.length > 0;
-  const isBrands = activeMenuItem?.title?.toLowerCase().includes("brand");
+  const isBrands = activeMenuItem?.title?.toLowerCase().includes('brand');
 
   return (
     <div className="hidden lg:block relative" onMouseLeave={handleMenuLeave}>
@@ -379,17 +377,17 @@ function MegaMenuNavigation({
         <ul
           className="flex relative w-full justify-center"
           style={{
-            width: "1272px",
-            height: "45.5938px",
-            margin: "0 auto",
-            paddingLeft: "80px",
-            paddingRight: "80px",
+            width: '1272px',
+            height: '45.5938px',
+            margin: '0 auto',
+            paddingLeft: '80px',
+            paddingRight: '80px',
             fontFamily:
               "UniformRnd, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
           }}
         >
           {(menu?.items || []).map((item) => {
-            const isGiftFinder = item.title?.toLowerCase().includes("gift");
+            const isGiftFinder = item.title?.toLowerCase().includes('gift');
 
             return (
               <li
@@ -401,26 +399,26 @@ function MegaMenuNavigation({
                   to={getUrl(item.url)}
                   className="cursor-pointer relative block h-full"
                   style={{
-                    fontSize: "16px",
+                    fontSize: '16px',
                     fontWeight: 500,
-                    lineHeight: "21.6px",
-                    padding: "12px 16px",
-                    textAlign: "center",
+                    lineHeight: '21.6px',
+                    padding: '12px 16px',
+                    textAlign: 'center',
                     color: isGiftFinder
-                      ? "rgb(250, 211, 0)"
-                      : "rgb(255, 255, 255)",
-                    width: isGiftFinder ? "240.797px" : "auto",
+                      ? 'rgb(250, 211, 0)'
+                      : 'rgb(255, 255, 255)',
+                    width: isGiftFinder ? '240.797px' : 'auto',
                   }}
                 >
                   <h3
                     style={{
-                      fontSize: "16px",
+                      fontSize: '16px',
                       fontWeight: 500,
-                      lineHeight: "21.6px",
+                      lineHeight: '21.6px',
                       margin: 0,
                       color: isGiftFinder
-                        ? "rgb(250, 211, 0)"
-                        : "rgb(255, 255, 255)",
+                        ? 'rgb(250, 211, 0)'
+                        : 'rgb(255, 255, 255)',
                     }}
                   >
                     {item.title}
@@ -431,7 +429,7 @@ function MegaMenuNavigation({
                 {activeMenu === item.id && !isGiftFinder && (
                   <div
                     className="absolute bottom-0 left-0 w-full border-yellow-400"
-                    style={{ borderBottomWidth: "4px" }}
+                    style={{borderBottomWidth: '4px'}}
                   />
                 )}
               </li>
@@ -442,18 +440,18 @@ function MegaMenuNavigation({
         {/* Mega Menu Dropdown */}
         {activeMenuItem &&
           hasSubItems &&
-          !activeMenuItem.title?.toLowerCase().includes("gift") && (
+          !activeMenuItem.title?.toLowerCase().includes('gift') && (
             <div
               className="absolute bg-white z-50"
               style={{
-                width: "1272px",
+                width: '1272px',
                 left: 0,
                 right: 0,
-                margin: "0 auto",
-                top: "100%",
-                borderBottomLeftRadius: "8px",
-                borderBottomRightRadius: "8px",
-                boxShadow: "rgba(32, 34, 35, 0.25) 0px 24px 48px -12px",
+                margin: '0 auto',
+                top: '100%',
+                borderBottomLeftRadius: '8px',
+                borderBottomRightRadius: '8px',
+                boxShadow: 'rgba(32, 34, 35, 0.25) 0px 24px 48px -12px',
                 fontFamily:
                   "UniformRnd, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
               }}
@@ -461,39 +459,39 @@ function MegaMenuNavigation({
               <div
                 className="flex shadow-2xl gap-6 items-start self-stretch rounded-b-lg p-6 bg-white text-black"
                 style={{
-                  gap: "24px",
-                  padding: "24px",
-                  height: isBrands ? "461.875px" : "424.094px",
-                  width: "1272px",
+                  gap: '24px',
+                  padding: '24px',
+                  height: isBrands ? '461.875px' : '424.094px',
+                  width: '1272px',
                 }}
               >
                 {/* Main Categories Grid */}
                 <div
                   className={`grid ${
-                    isBrands ? "grid-cols-4" : "grid-cols-4"
+                    isBrands ? 'grid-cols-4' : 'grid-cols-4'
                   } gap-6 flex-grow`}
                   style={{
-                    width: isBrands ? "1005px" : "810px",
-                    gap: "24px",
+                    width: isBrands ? '1005px' : '810px',
+                    gap: '24px',
                   }}
                 >
                   {activeMenuItem.items?.map((subItem) => (
                     <div
                       key={subItem.id}
                       className="flex flex-col items-start"
-                      style={{ width: "233.25px" }}
+                      style={{width: '233.25px'}}
                     >
                       <Link
                         to={getUrl(subItem.url)}
                         className="cursor-pointer hover:underline block"
                         style={{
-                          fontSize: "16px",
+                          fontSize: '16px',
                           fontWeight: 500,
-                          lineHeight: "21.6px",
-                          color: "rgb(32, 34, 35)",
-                          textAlign: "left",
-                          textDecoration: "underline",
-                          marginBottom: "8px",
+                          lineHeight: '21.6px',
+                          color: 'rgb(32, 34, 35)',
+                          textAlign: 'left',
+                          textDecoration: 'underline',
+                          marginBottom: '8px',
                         }}
                       >
                         {subItem.title}
@@ -502,30 +500,30 @@ function MegaMenuNavigation({
                       {subItem.items && subItem.items.length > 0 && (
                         <ul
                           style={{
-                            listStyle: "none",
+                            listStyle: 'none',
                             padding: 0,
                             margin: 0,
-                            width: "100%",
+                            width: '100%',
                           }}
                         >
                           {subItem.items.slice(0, 6).map((subSubItem) => (
                             <li
                               key={subSubItem.id}
                               style={{
-                                paddingTop: "2px",
-                                paddingBottom: "2px",
-                                marginBottom: "2px",
+                                paddingTop: '2px',
+                                paddingBottom: '2px',
+                                marginBottom: '2px',
                               }}
                             >
                               <Link
                                 to={getUrl(subSubItem.url)}
                                 className="cursor-pointer hover:underline block"
                                 style={{
-                                  fontSize: "14px",
+                                  fontSize: '14px',
                                   fontWeight: 400,
-                                  lineHeight: "18.9px",
-                                  color: "rgb(49, 53, 56)",
-                                  textAlign: "left",
+                                  lineHeight: '18.9px',
+                                  color: 'rgb(49, 53, 56)',
+                                  textAlign: 'left',
                                 }}
                               >
                                 {subSubItem.title}
@@ -535,18 +533,18 @@ function MegaMenuNavigation({
                           {/* Shop Full Range Link */}
                           <li
                             style={{
-                              marginTop: "8px",
+                              marginTop: '8px',
                             }}
                           >
                             <Link
                               to={getUrl(subItem.url)}
                               className="cursor-pointer underline block"
                               style={{
-                                fontSize: "14px",
+                                fontSize: '14px',
                                 fontWeight: 500,
-                                lineHeight: "18.9px",
-                                color: "rgb(33, 113, 225)",
-                                textDecoration: "underline",
+                                lineHeight: '18.9px',
+                                color: 'rgb(33, 113, 225)',
+                                textDecoration: 'underline',
                               }}
                             >
                               Shop Full Range
@@ -563,21 +561,21 @@ function MegaMenuNavigation({
                   <div
                     className="shrink-0"
                     style={{
-                      width: "195px",
-                      paddingRight: "40px",
+                      width: '195px',
+                      paddingRight: '40px',
                     }}
                   >
                     <h3
                       style={{
-                        fontSize: "16px",
+                        fontSize: '16px',
                         fontWeight: 500,
-                        lineHeight: "21.6px",
-                        color: "rgb(32, 34, 35)",
-                        textAlign: "left",
-                        marginBottom: "8px",
+                        lineHeight: '21.6px',
+                        color: 'rgb(32, 34, 35)',
+                        textAlign: 'left',
+                        marginBottom: '8px',
                       }}
                     >
-                      Trending
+                      Trendigt
                     </h3>
                     <div className="flex flex-col gap-4">
                       {trendingItems.map((trendingItem, idx) => (
@@ -608,16 +606,16 @@ export function HeaderMenu({
   viewport,
   publicStoreDomain,
 }: {
-  menu: HeaderProps["header"]["menu"];
-  primaryDomainUrl: HeaderProps["header"]["shop"]["primaryDomain"]["url"];
+  menu: HeaderProps['header']['menu'];
+  primaryDomainUrl: HeaderProps['header']['shop']['primaryDomain']['url'];
   viewport: Viewport;
-  publicStoreDomain: HeaderProps["publicStoreDomain"];
+  publicStoreDomain: HeaderProps['publicStoreDomain'];
 }) {
   const getUrl = (url: string | null | undefined): string => {
-    if (!url) return "/";
+    if (!url) return '/';
 
     if (
-      url.includes("myshopify.com") ||
+      url.includes('myshopify.com') ||
       url.includes(publicStoreDomain) ||
       url.includes(primaryDomainUrl)
     ) {
@@ -626,7 +624,7 @@ export function HeaderMenu({
     return url;
   };
 
-  if (viewport === "mobile") {
+  if (viewport === 'mobile') {
     return (
       <nav className="lg:hidden border-t border-blue-400">
         <div className="px-4 py-2">
@@ -667,7 +665,7 @@ function MobileMenuItem({
         <Link
           to={getUrl(item.url)}
           className="flex-1 text-white hover:text-yellow-300 font-medium transition-colors"
-          style={{ paddingLeft: `${level * 16}px` }}
+          style={{paddingLeft: `${level * 16}px`}}
         >
           {item.title}
         </Link>
@@ -676,7 +674,7 @@ function MobileMenuItem({
             onClick={() => setIsOpen(!isOpen)}
             className="text-white hover:text-yellow-300 px-2 transition-colors"
           >
-            {isOpen ? "−" : "+"}
+            {isOpen ? '−' : '+'}
           </button>
         )}
       </div>
@@ -697,7 +695,7 @@ function MobileMenuItem({
   );
 }
 
-function CartToggle({ cart }: Pick<HeaderProps, "cart">) {
+function CartToggle({cart}: Pick<HeaderProps, 'cart'>) {
   return (
     <Suspense fallback={<CartFallback />}>
       <Await resolve={cart}>
@@ -712,19 +710,19 @@ function CartFallback() {
     <button
       className="flex items-center justify-center rounded-full text-white"
       style={{
-        minHeight: "42px",
-        gap: "8px",
-        paddingLeft: "16px",
-        paddingRight: "16px",
-        paddingTop: "8px",
-        paddingBottom: "8px",
+        minHeight: '42px',
+        gap: '8px',
+        paddingLeft: '16px',
+        paddingRight: '16px',
+        paddingTop: '8px',
+        paddingBottom: '8px',
         fontWeight: 500,
-        fontSize: "16px",
-        lineHeight: "21.6px",
+        fontSize: '16px',
+        lineHeight: '21.6px',
       }}
     >
       <ShoppingCart size={32} className="text-white" />
-      <span className="hidden lg:inline text-white">Basket</span>
+      <span className="hidden lg:inline text-white">Kundvagn</span>
     </button>
   );
 }
@@ -732,26 +730,26 @@ function CartFallback() {
 function CartBanner() {
   const originalCart = useAsyncValue() as CartApiQueryFragment | null;
   const cart = useOptimisticCart(originalCart);
-  const { open } = useAside();
+  const {open} = useAside();
 
   return (
     <button
-      onClick={() => open("cart")}
+      onClick={() => open('cart')}
       className="flex items-center justify-center rounded-full text-white hover:bg-gray-900/[.08] transition-colors relative"
       style={{
-        minHeight: "42px",
-        gap: "8px",
-        paddingLeft: "16px",
-        paddingRight: "16px",
-        paddingTop: "8px",
-        paddingBottom: "8px",
+        minHeight: '42px',
+        gap: '8px',
+        paddingLeft: '16px',
+        paddingRight: '16px',
+        paddingTop: '8px',
+        paddingBottom: '8px',
         fontWeight: 500,
-        fontSize: "16px",
-        lineHeight: "21.6px",
+        fontSize: '16px',
+        lineHeight: '21.6px',
       }}
     >
       <ShoppingCart size={32} className="text-white" />
-      <span className="hidden lg:inline text-white">Basket</span>
+      <span className="hidden lg:inline text-white">Kundvagn</span>
       {cart?.totalQuantity && cart.totalQuantity > 0 && (
         <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center">
           {cart.totalQuantity}
@@ -762,11 +760,11 @@ function CartBanner() {
 }
 
 function MobileMenuToggle() {
-  const { open } = useAside();
+  const {open} = useAside();
   return (
     <button
       className="lg:hidden text-white hover:text-yellow-300 transition-colors"
-      onClick={() => open("mobile")}
+      onClick={() => open('mobile')}
     >
       <Menu size={32} className="text-white" />
     </button>
