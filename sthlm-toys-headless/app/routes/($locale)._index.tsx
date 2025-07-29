@@ -176,9 +176,9 @@ function RecommendedProducts({
         <h2
           className="text-grey-900"
           style={{
-            fontSize: '30px',
-            fontWeight: 700,
-            lineHeight: '36px',
+            fontSize: '24px',
+            fontWeight: 500,
+            lineHeight: '32.4px',
             marginBottom: '24px',
             color: 'rgb(32, 34, 35)',
             fontFamily:
@@ -340,7 +340,7 @@ const RECOMMENDED_PRODUCTS_QUERY = `#graphql
   }
 ` as const;
 
-// Featured Brands Query with metafield filtering
+// Featured Brands Query - Try different namespace possibilities
 const FEATURED_BRANDS_QUERY = `#graphql
   fragment FeaturedBrand on Collection {
     id
@@ -355,10 +355,16 @@ const FEATURED_BRANDS_QUERY = `#graphql
       height
     }
     metafields(identifiers: [
-      {namespace: "custom", key: "featured-brand"}
+      {namespace: "custom", key: "featured-brand"},
+      {namespace: "custom", key: "featured_brand"},
+      {namespace: "custom", key: "new-brand"},
+      {namespace: "custom", key: "new_brand"},
+      {namespace: "app", key: "featured-brand"},
+      {namespace: "app", key: "featured_brand"}
     ]) {
       key
       value
+      namespace
     }
   }
   query FeaturedBrands($country: CountryCode, $language: LanguageCode)

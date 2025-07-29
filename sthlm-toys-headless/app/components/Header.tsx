@@ -41,22 +41,22 @@ function Logo({shop}: {shop: HeaderQuery['shop']}) {
         <div
           className="flex items-center justify-center"
           style={{
-            height: '46px',
-            width: '130px',
+            height: '80px', // Much bigger - matches your red square
+            width: '200px', // Much wider - matches your red square
           }}
         >
           <Image
             data={{
               url: logoUrl,
               altText: `${shopName} logo`,
-              width: 130,
-              height: 46,
+              width: 200, // Much bigger
+              height: 80, // Much bigger
             }}
-            sizes="130px"
+            sizes="200px"
             className="object-contain w-full h-full"
             style={{
-              maxWidth: '130px',
-              maxHeight: '46px',
+              maxWidth: '200px',
+              maxHeight: '80px',
             }}
           />
         </div>
@@ -149,7 +149,8 @@ export function Header({
             <FileText size={16} className="text-white" />
             <span>Mina beställningar</span>
           </button>
-          <button
+          <Link
+            to="/hjalp"
             className="flex items-center rounded-full text-white hover:bg-gray-900/[.08] transition-colors"
             style={{
               fontSize: '14px',
@@ -160,11 +161,12 @@ export function Header({
               paddingRight: '12px',
               paddingTop: '8px',
               paddingBottom: '8px',
+              color: 'white',
             }}
           >
             <HelpCircle size={16} className="text-white" />
-            <span>Hjälp</span>
-          </button>
+            <span style={{color: 'white'}}>Hjälp</span>
+          </Link>
         </div>
       </div>
 
@@ -173,7 +175,7 @@ export function Header({
         className="hidden lg:flex lg:items-center lg:self-stretch"
         style={{
           width: '1272px',
-          height: '48px',
+          height: '68px', // Increased from 48px to accommodate larger logo
           margin: '12px auto 0px',
           paddingLeft: '12px',
           paddingRight: '12px',
@@ -188,7 +190,7 @@ export function Header({
           <div
             className="relative flex overflow-hidden bg-white"
             style={{
-              height: '48px',
+              height: '52px', // Slightly increased from 48px to match new proportions
               borderRadius: '9999px',
             }}
           >
@@ -200,7 +202,7 @@ export function Header({
                 fontSize: '16px',
                 fontWeight: 500,
                 lineHeight: '24px',
-                padding: '12px 0px 12px 24px',
+                padding: '14px 0px 14px 24px', // Slightly increased padding
                 border: 'none',
                 outline: 'none',
               }}
@@ -208,8 +210,8 @@ export function Header({
             <button
               className="flex items-center justify-center"
               style={{
-                height: '48px',
-                width: '48px',
+                height: '52px', // Increased to match input height
+                width: '52px', // Slightly increased to maintain proportion
                 backgroundColor: 'rgb(255, 212, 43)',
                 borderTopRightRadius: '9999px',
                 borderBottomRightRadius: '9999px',
@@ -225,14 +227,14 @@ export function Header({
           className="flex items-center"
           style={{
             width: '267px',
-            height: '48px',
+            height: '68px', // Increased to match new header height
             gap: '12px',
           }}
         >
           <button
             className="flex items-center justify-center rounded-full text-white hover:bg-gray-900/[.08] transition-colors relative"
             style={{
-              minHeight: '42px',
+              minHeight: '48px', // Increased from 42px
               gap: '8px',
               paddingLeft: '16px',
               paddingRight: '16px',
@@ -710,7 +712,7 @@ function CartFallback() {
     <button
       className="flex items-center justify-center rounded-full text-white"
       style={{
-        minHeight: '42px',
+        minHeight: '48px', // Increased from 42px
         gap: '8px',
         paddingLeft: '16px',
         paddingRight: '16px',
@@ -737,7 +739,7 @@ function CartBanner() {
       onClick={() => open('cart')}
       className="flex items-center justify-center rounded-full text-white hover:bg-gray-900/[.08] transition-colors relative"
       style={{
-        minHeight: '42px',
+        minHeight: '48px', // Increased from 42px
         gap: '8px',
         paddingLeft: '16px',
         paddingRight: '16px',

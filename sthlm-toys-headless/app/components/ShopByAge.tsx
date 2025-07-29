@@ -76,18 +76,18 @@ export function ShopByAge({title = 'Handla efter ålder'}: ShopByAgeProps) {
           maxWidth: '100%',
           paddingLeft: '12px',
           paddingRight: '12px',
-          paddingTop: '8px',
-          paddingBottom: '8px',
+          paddingTop: '64px',
+          paddingBottom: '64px',
         }}
       >
-        {/* Section Title */}
+        {/* Section Title - STANDARDIZED STYLING */}
         <h2
-          className="text-black font-medium mb-8 text-center"
+          className="text-black font-medium mb-6"
           style={{
-            fontSize: '30px',
-            fontWeight: 700,
-            lineHeight: '36px',
-            marginBottom: '48px',
+            fontSize: '24px',
+            fontWeight: 500,
+            lineHeight: '32.4px',
+            marginBottom: '24px',
             fontFamily:
               "UniformRnd, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
             color: 'rgb(32, 34, 35)',

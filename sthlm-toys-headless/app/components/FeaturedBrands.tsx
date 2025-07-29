@@ -39,7 +39,7 @@ const fallbackBrands: (FeaturedBrand & {
       {key: 'featured-brand', value: 'true'},
       {key: 'new-brand', value: 'true'},
     ],
-    backgroundColor: '#6B7280', // Gray for LEGO
+    backgroundColor: '#FFCC00', // LEGO Yellow
     isNew: true,
     image: {
       id: 'fallback-img-1',
@@ -58,7 +58,7 @@ const fallbackBrands: (FeaturedBrand & {
       {key: 'featured-brand', value: 'true'},
       {key: 'new-brand', value: 'true'},
     ],
-    backgroundColor: '#D97706', // Orange
+    backgroundColor: '#E4002B', // Mattel Red
     isNew: true,
     image: {
       id: 'fallback-img-2',
@@ -77,7 +77,7 @@ const fallbackBrands: (FeaturedBrand & {
       {key: 'featured-brand', value: 'true'},
       {key: 'new-brand', value: 'true'},
     ],
-    backgroundColor: '#DC2626', // Red
+    backgroundColor: '#0076CE', // Hasbro Blue
     isNew: true,
     image: {
       id: 'fallback-img-3',
@@ -91,10 +91,11 @@ const fallbackBrands: (FeaturedBrand & {
 
 // Brand background colors (you can customize these or use metafields later)
 const brandColors: Record<string, string> = {
-  lego: 'rgb(248, 249, 251)',
-  mattel: 'rgb(248, 249, 251)',
-  hasbro: 'rgb(248, 249, 251)',
-  playmobil: 'rgb(248, 249, 251)',
+  lego: '#FFCC00', // LEGO Yellow
+  mattel: '#E4002B', // Mattel Red
+  hasbro: '#0076CE', // Hasbro Blue
+  playmobil: '#0066CC', // Playmobil Blue
+  'fisher-price': '#FFA500', // Orange
   // Add more brand handles and their colors here
 };
 
@@ -103,7 +104,10 @@ export function FeaturedBrands({brands}: FeaturedBrandsProps) {
 
   // Helper function to get metafield value with proper null checks
   const getMetafieldValue = (
-    metafields: Array<{key: string; value: string} | null> | null | undefined,
+    metafields:
+      | Array<{key: string; value: string; namespace?: string} | null>
+      | null
+      | undefined,
     key: string,
   ): string | null => {
     if (!metafields || !Array.isArray(metafields)) return null;
@@ -112,17 +116,40 @@ export function FeaturedBrands({brands}: FeaturedBrandsProps) {
     return metafield ? metafield.value : null;
   };
 
+  // Helper function to check if a value represents "true"
+  const isTrueValue = (value: string | null): boolean => {
+    if (!value) return false;
+    const normalizedValue = value.toLowerCase().trim();
+    return (
+      normalizedValue === 'true' ||
+      normalizedValue === '1' ||
+      normalizedValue === 'yes'
+    );
+  };
+
   console.log('FeaturedBrands received brands:', brands);
 
-  // Filter brands that have featured-brand metafield set to "true" (note: using hyphen)
+  // Filter brands that have featured-brand metafield set to "true"
   const featuredBrands =
     brands && brands.length > 0
       ? brands.filter((brand) => {
-          const isFeatured =
-            getMetafieldValue(brand.metafields, 'featured-brand') === 'true';
-          console.log(
-            `Brand ${brand.title}: featured-brand = ${getMetafieldValue(brand.metafields, 'featured-brand')}, isFeatured = ${isFeatured}`,
-          );
+          // Check for featured-brand metafield (try both hyphen and underscore)
+          const featuredBrandValue =
+            getMetafieldValue(brand.metafields, 'featured-brand') ||
+            getMetafieldValue(brand.metafields, 'featured_brand');
+          const isFeatured = isTrueValue(featuredBrandValue);
+
+          console.log(`Brand ${brand.title}:`, {
+            metafields: brand.metafields,
+            metafieldDetails: brand.metafields?.map((m) =>
+              m ? `${m.namespace}:${m.key} = ${m.value}` : 'null',
+            ),
+            featuredBrandValue,
+            isFeatured,
+            hasImage: !!brand.image?.url,
+            imageUrl: brand.image?.url,
+          });
+
           return isFeatured;
         })
       : [];
@@ -135,7 +162,9 @@ export function FeaturedBrands({brands}: FeaturedBrandsProps) {
       ? featuredBrands.map((brand, index) => ({
           ...brand,
           backgroundColor: brandColors[brand.handle] || '#6B7280', // Default gray
-          isNew: getMetafieldValue(brand.metafields, 'new-brand') === 'true', // Also using hyphen
+          isNew:
+            isTrueValue(getMetafieldValue(brand.metafields, 'new-brand')) ||
+            isTrueValue(getMetafieldValue(brand.metafields, 'new_brand')), // Check both versions
         }))
       : fallbackBrands;
 
@@ -176,6 +205,20 @@ export function FeaturedBrands({brands}: FeaturedBrandsProps) {
           paddingBottom: '64px',
         }}
       >
+        {/* Title */}
+        <h2
+          className="text-black font-medium mb-6"
+          style={{
+            fontSize: '24px',
+            fontWeight: 500,
+            lineHeight: '32.4px',
+            marginBottom: '24px',
+            fontFamily:
+              "UniformRnd, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+          }}
+        >
+          Handla efter varumärke
+        </h2>
         {/* Brands Grid */}
         <div
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
@@ -209,36 +252,49 @@ export function FeaturedBrands({brands}: FeaturedBrandsProps) {
 
               <Link
                 to={`/collections/${brand.handle}`}
-                className="block relative w-full h-full"
-                style={{
-                  backgroundColor: brand.backgroundColor,
-                }}
+                className="block h-full"
               >
-                {/* Background Image */}
-                {brand.image?.url && (
-                  <div className="absolute inset-0">
+                {/* Image Section (Top 60%) - Clean logo display */}
+                <div
+                  className="relative overflow-hidden flex items-center justify-center bg-white"
+                  style={{height: '312px'}} // 60% of 520px
+                >
+                  {brand.image?.url ? (
                     <Image
                       data={{
                         id: brand.image.id,
                         url: brand.image.url,
                         altText: brand.image.altText || brand.title,
-                        width: brand.image.width || 800,
-                        height: brand.image.height || 520,
+                        width: brand.image.width || 400,
+                        height: brand.image.height || 400,
                       }}
                       sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
-                      className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+                      className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-300"
+                      style={{
+                        maxWidth: '80%',
+                        maxHeight: '80%',
+                      }}
                     />
-                  </div>
-                )}
+                  ) : (
+                    // Fallback if no image
+                    <div
+                      className="w-full h-full flex items-center justify-center"
+                      style={{backgroundColor: brand.backgroundColor}}
+                    >
+                      <span className="text-white text-2xl font-bold">
+                        {brand.title}
+                      </span>
+                    </div>
+                  )}
+                </div>
 
-                {/* Content Overlay */}
+                {/* Content Section (Bottom 40%) - Clean solid background */}
                 <div
-                  className="absolute inset-0 flex flex-col justify-between text-white p-8"
+                  className="flex flex-col justify-between p-6 text-white"
                   style={{
-                    background: brand.image?.url
-                      ? 'linear-gradient(45deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.1) 100%)'
-                      : 'none',
-                    padding: '32px',
+                    height: '208px', // 40% of 520px
+                    backgroundColor: brand.backgroundColor,
+                    padding: '32px 24px',
                   }}
                 >
                   {/* Brand Content */}

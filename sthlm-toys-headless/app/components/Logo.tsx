@@ -8,15 +8,16 @@ interface LogoProps {
   style?: React.CSSProperties;
   linkClassName?: string;
   linkStyle?: React.CSSProperties;
-  size?: 'small' | 'medium' | 'large' | 'custom';
+  size?: 'small' | 'medium' | 'large' | 'xlarge' | 'custom'; // Added xlarge option
   linkTo?: string;
 }
 
-// Default sizes for the logo
+// Default sizes for the logo - UPDATED to match new header sizes
 const logoSizes = {
-  small: {width: '80px', height: '32px'},
-  medium: {width: '130px', height: '46px'},
-  large: {width: '180px', height: '64px'},
+  small: {width: '100px', height: '40px'}, // Increased from 80px x 32px
+  medium: {width: '200px', height: '80px'}, // Increased to match header size
+  large: {width: '240px', height: '96px'}, // Increased from 180px x 64px
+  xlarge: {width: '300px', height: '120px'}, // New extra large size
   custom: {width: 'auto', height: 'auto'},
 };
 
@@ -63,8 +64,8 @@ export function Logo({
             data={{
               url: logoUrl,
               altText: `${shopName} logo`,
-              width: parseInt(containerStyles.width as string) || 130,
-              height: parseInt(containerStyles.height as string) || 46,
+              width: parseInt(containerStyles.width as string) || 200, // Updated default from 130
+              height: parseInt(containerStyles.height as string) || 80, // Updated default from 46
             }}
             sizes={`${containerStyles.width}`}
             className="object-contain w-full h-full"
@@ -96,8 +97,9 @@ export function Logo({
 }
 
 // Usage examples:
-// <Logo shop={shop} />  // Default medium size
-// <Logo shop={shop} size="small" />  // Small size
-// <Logo shop={shop} size="large" />  // Large size
-// <Logo shop={shop} size="custom" style={{width: '200px', height: '80px'}} />  // Custom size
+// <Logo shop={shop} />  // Default medium size (200px x 80px)
+// <Logo shop={shop} size="small" />  // Small size (100px x 40px)
+// <Logo shop={shop} size="large" />  // Large size (240px x 96px)
+// <Logo shop={shop} size="xlarge" />  // Extra large size (300px x 120px)
+// <Logo shop={shop} size="custom" style={{width: '250px', height: '100px'}} />  // Custom size
 // <Logo shop={shop} linkTo="/about" />  // Custom link destination
