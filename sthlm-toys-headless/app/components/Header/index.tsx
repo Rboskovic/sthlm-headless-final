@@ -1,36 +1,44 @@
-// app/components/Header/index.tsx - Restored proper structure
-import {useState, useEffect} from 'react';
-import {useAside} from '~/components/Aside';
+// app/components/Header/index.tsx - Updated with fullscreen mobile menu
+import {useState} from 'react';
 import {HeaderBanner} from './HeaderBanner';
 import {HeaderMain} from './HeaderMain';
 import {DesktopNav} from './DesktopNav';
-import {MobileNav} from './MobileNav';
+import {MobileMenuFullscreen} from './MobileMenuFullscreen';
 import type {HeaderProps} from './types';
+import type {Collection} from '@shopify/hydrogen/storefront-api-types';
+
+// Extended interface to include collections for mobile menu
+interface HeaderPropsExtended extends HeaderProps {
+  popularCollections?: Collection[];
+}
 
 export function Header({
   header,
   cart,
   isLoggedIn,
   publicStoreDomain,
-}: HeaderProps) {
-  const {close, type: asideType} = useAside();
-  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+  popularCollections = [],
+}: HeaderPropsExtended) {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Listen to aside state changes
-  useEffect(() => {
-    setIsMobileNavOpen(asideType === 'mobile');
-  }, [asideType]);
+  const handleMobileMenuToggle = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
 
-  const handleMobileNavClose = () => {
-    close();
-    setIsMobileNavOpen(false);
+  const handleMobileMenuClose = () => {
+    setIsMobileMenuOpen(false);
   };
 
   return (
     <>
       <header className="sticky top-0 z-40 w-full">
         {/* 1. Main Header - Logo, search, cart, etc. */}
-        <HeaderMain shop={header.shop} cart={cart} isLoggedIn={isLoggedIn} />
+        <HeaderMain
+          shop={header.shop}
+          cart={cart}
+          isLoggedIn={isLoggedIn}
+          onMobileMenuToggle={handleMobileMenuToggle}
+        />
 
         {/* 2. Desktop Navigation - Menu items */}
         <DesktopNav
@@ -43,13 +51,13 @@ export function Header({
         <HeaderBanner />
       </header>
 
-      {/* Mobile Navigation */}
-      <MobileNav
-        menu={header.menu}
-        isOpen={isMobileNavOpen}
-        onClose={handleMobileNavClose}
-        primaryDomainUrl={header.shop.primaryDomain.url}
-        publicStoreDomain={publicStoreDomain}
+      {/* Fullscreen Mobile Navigation */}
+      <MobileMenuFullscreen
+        isOpen={isMobileMenuOpen}
+        onClose={handleMobileMenuClose}
+        shop={header.shop}
+        isLoggedIn={isLoggedIn}
+        popularCollections={popularCollections}
       />
     </>
   );

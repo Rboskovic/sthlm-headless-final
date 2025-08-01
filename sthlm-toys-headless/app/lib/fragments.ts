@@ -1,5 +1,3 @@
-// app/lib/fragments.ts - Fixed to use STRING queries for Hydrogen
-
 // Fragment for money fields
 const MONEY_FRAGMENT = `#graphql
   fragment Money on MoneyV2 {
@@ -191,8 +189,55 @@ export const FOOTER_QUERY = `#graphql
   ${MENU_FRAGMENT}
 ` as const;
 
+// MOBILE MENU QUERY - TEMPORARILY COMMENTED OUT TO FIX CODEGEN
+// TODO: Add back after fixing syntax
+/*
+const MOBILE_MENU_COLLECTION_FRAGMENT = `#graphql
+  fragment MobileMenuCollection on Collection {
+    id
+    title
+    handle
+    image {
+      id
+      url
+      altText
+      width
+      height
+    }
+    metafields(identifiers: [
+      {namespace: "custom", key: "mobile_menu_featured"},
+      {namespace: "custom", key: "mobile-menu-featured"},
+      {namespace: "app", key: "mobile_menu_featured"},
+      {namespace: "app", key: "mobile-menu-featured"}
+    ]) {
+      key
+      value
+      namespace
+    }
+  }
+` as const;
+
+export const MOBILE_MENU_COLLECTIONS_QUERY = `#graphql
+  query MobileMenuCollections($country: CountryCode, $language: LanguageCode)
+    @inContext(country: $country, language: $language) {
+    collections(first: 50, sortKey: TITLE) {
+      nodes {
+        ...MobileMenuCollection
+      }
+    }
+  }
+  ${MOBILE_MENU_COLLECTION_FRAGMENT}
+` as const;
+*/
+
 // Export for compatibility with existing context.ts
 export const CART_QUERY_FRAGMENT = CART_FRAGMENT;
 
 // Export fragments for reuse
-export {MONEY_FRAGMENT, CART_FRAGMENT, MENU_FRAGMENT, SHOP_FRAGMENT};
+export {
+  MONEY_FRAGMENT,
+  CART_FRAGMENT,
+  MENU_FRAGMENT,
+  SHOP_FRAGMENT,
+  // MOBILE_MENU_COLLECTION_FRAGMENT - TODO: Add back when fixed
+};

@@ -1,16 +1,23 @@
-// app/components/Header/HeaderMain.tsx - Fixed all header issues
+// app/components/Header/HeaderMain.tsx - Updated for fullscreen mobile menu
 import {Suspense} from 'react';
 import {Link, Await} from 'react-router';
 import {Heart, Menu, User, FileText, HelpCircle} from 'lucide-react';
-import {useAside} from '~/components/Aside';
 import {SearchBar} from './SearchBar';
 import {CartToggle} from './CartToggle';
 import {Logo} from './Logo';
 import type {HeaderMainProps} from './types';
 
-export function HeaderMain({shop, cart, isLoggedIn}: HeaderMainProps) {
-  const {open} = useAside();
+// Updated interface to include mobile menu toggle
+interface HeaderMainPropsUpdated extends HeaderMainProps {
+  onMobileMenuToggle?: () => void;
+}
 
+export function HeaderMain({
+  shop,
+  cart,
+  isLoggedIn,
+  onMobileMenuToggle,
+}: HeaderMainPropsUpdated) {
   return (
     <div
       className="w-full"
@@ -26,35 +33,39 @@ export function HeaderMain({shop, cart, isLoggedIn}: HeaderMainProps) {
             <Suspense fallback={null}>
               <Await resolve={isLoggedIn}>
                 {(isLoggedIn) => (
-                  <button
+                  <Link
+                    to={isLoggedIn ? '/account' : '/account/login'}
                     className="flex items-center rounded-full text-white hover:bg-white/10 transition-colors px-3 py-2"
                     style={{
                       fontSize: '14px',
                       fontWeight: 500,
                       lineHeight: '18.9px',
                       gap: '8px',
+                      textDecoration: 'none',
                     }}
                   >
                     <User size={16} className="text-white" />
                     <span className="text-white">
                       {isLoggedIn ? 'Konto' : 'Logga in'}
                     </span>
-                  </button>
+                  </Link>
                 )}
               </Await>
             </Suspense>
-            <button
+            <Link
+              to="/account/orders"
               className="flex items-center rounded-full text-white hover:bg-white/10 transition-colors px-3 py-2"
               style={{
                 fontSize: '14px',
                 fontWeight: 500,
                 lineHeight: '18.9px',
                 gap: '8px',
+                textDecoration: 'none',
               }}
             >
               <FileText size={16} className="text-white" />
               <span className="text-white">Mina beställningar</span>
-            </button>
+            </Link>
             <Link
               to="/hjalp"
               className="flex items-center rounded-full text-white hover:bg-white/10 transition-colors px-3 py-2"
@@ -99,7 +110,8 @@ export function HeaderMain({shop, cart, isLoggedIn}: HeaderMainProps) {
           {/* Right Actions */}
           <div className="flex items-center" style={{gap: '16px'}}>
             {/* Wishlist */}
-            <button
+            <Link
+              to="/account/wishlist"
               className="flex items-center rounded-full text-white hover:bg-white/10 transition-colors"
               style={{
                 minHeight: '48px',
@@ -111,11 +123,12 @@ export function HeaderMain({shop, cart, isLoggedIn}: HeaderMainProps) {
                 fontWeight: 500,
                 fontSize: '16px',
                 lineHeight: '21.6px',
+                textDecoration: 'none',
               }}
             >
               <Heart size={32} className="text-white" />
               <span className="text-white">Önskelista</span>
-            </button>
+            </Link>
 
             {/* Cart */}
             <CartToggle cart={cart} />
@@ -123,13 +136,13 @@ export function HeaderMain({shop, cart, isLoggedIn}: HeaderMainProps) {
         </div>
       </div>
 
-      {/* Mobile Header - Fixed Layout: Hamburger Left, Logo Center, Actions Right */}
+      {/* Mobile Header - Updated to use fullscreen menu */}
       <div className="lg:hidden">
         <div className="flex items-center justify-between px-4 py-3">
-          {/* Left: Hamburger Menu */}
+          {/* Left: Hamburger Menu - Updated to use onMobileMenuToggle */}
           <button
-            className="text-white p-2"
-            onClick={() => open('mobile')}
+            className="text-white p-2 hover:bg-white/10 rounded-lg transition-colors"
+            onClick={onMobileMenuToggle}
             aria-label="Öppna meny"
           >
             <Menu size={24} />
@@ -149,9 +162,12 @@ export function HeaderMain({shop, cart, isLoggedIn}: HeaderMainProps) {
 
           {/* Right: Wishlist and Cart */}
           <div className="flex items-center gap-2">
-            <button className="text-white p-2">
+            <Link
+              to="/account/wishlist"
+              className="text-white p-2 hover:bg-white/10 rounded-lg transition-colors"
+            >
               <Heart size={24} />
-            </button>
+            </Link>
             <CartToggle cart={cart} />
           </div>
         </div>

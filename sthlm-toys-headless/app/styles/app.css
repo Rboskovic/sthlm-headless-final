@@ -75,21 +75,11 @@ aside {
   width: 1.25rem;
   height: 1.25rem;
 }
-*
-  Override
-  section
-  padding
-  for
-  hero
-  banner
-  -
-  make
-  it
-  stick
-  to
-  header
-  */
-  section:first-child {
+
+/* 
+  Override section padding for hero banner - make it stick to header
+*/
+section:first-child {
   padding-top: 0 !important;
   margin-top: 0 !important;
 }
@@ -137,4 +127,277 @@ div[style*='padding-top'] {
 div[style*='margin: 0, padding: 0'] {
   margin: 0 !important;
   padding: 0 !important;
+}
+
+/* FULLSCREEN MOBILE MENU STYLES */
+
+/* Ensure mobile menu has highest z-index */
+.mobile-menu-fullscreen {
+  z-index: 200; /* Higher than header and other asides */
+}
+
+/* Smooth transitions for mobile menu */
+.mobile-menu-slide-enter {
+  transform: translateX(-100%);
+}
+
+.mobile-menu-slide-enter-active {
+  transform: translateX(0);
+  transition: transform 300ms ease-in-out;
+}
+
+.mobile-menu-slide-exit {
+  transform: translateX(0);
+}
+
+.mobile-menu-slide-exit-active {
+  transform: translateX(-100%);
+  transition: transform 300ms ease-in-out;
+}
+
+/* Backdrop animation */
+.mobile-menu-backdrop-enter {
+  opacity: 0;
+}
+
+.mobile-menu-backdrop-enter-active {
+  opacity: 1;
+  transition: opacity 300ms ease-in-out;
+}
+
+.mobile-menu-backdrop-exit {
+  opacity: 1;
+}
+
+.mobile-menu-backdrop-exit-active {
+  opacity: 0;
+  transition: opacity 300ms ease-in-out;
+}
+
+/* Popular grid responsive adjustments */
+@media (max-width: 320px) {
+  .mobile-menu-popular-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+  }
+
+  .mobile-menu-popular-item {
+    width: 3.5rem;
+    height: 3.5rem;
+  }
+
+  .mobile-menu-popular-text {
+    font-size: 0.6875rem;
+    line-height: 0.875rem;
+  }
+}
+
+/* Ensure proper scrolling on mobile */
+.mobile-menu-container {
+  overscroll-behavior: contain;
+}
+
+/* Fix for iOS Safari bounce */
+.mobile-menu-container {
+  position: fixed;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Prevent body scroll when mobile menu is open */
+body.mobile-menu-open {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+}
+
+/* Main navigation icons styling */
+.mobile-nav-icon {
+  flex-shrink: 0;
+}
+
+/* Bottom links icons styling */
+.mobile-bottom-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s ease;
+  text-decoration: none;
+  color: inherit;
+}
+
+.mobile-bottom-link:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* User greeting section styling */
+.mobile-user-greeting {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  border-bottom: 1px solid #f3f4f6;
+  transition: background-color 0.2s ease;
+  text-decoration: none;
+  color: inherit;
+}
+
+.mobile-user-greeting:hover {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+/* Logo styling in mobile menu */
+.mobile-menu-logo {
+  max-height: 2.5rem;
+  width: auto;
+  object-fit: contain;
+}
+
+/* Ensure proper touch targets */
+.mobile-nav-item,
+.mobile-popular-item,
+.mobile-bottom-link {
+  min-height: 44px; /* iOS minimum touch target */
+  display: flex;
+  align-items: center;
+}
+
+/* Popular section title styling */
+.mobile-popular-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 1rem;
+  font-family:
+    UniformRnd,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    Ubuntu,
+    Cantarell,
+    'Noto Sans',
+    sans-serif;
+}
+
+/* Navigation item text styling */
+.mobile-nav-text {
+  font-family:
+    UniformRnd,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    Ubuntu,
+    Cantarell,
+    'Noto Sans',
+    sans-serif;
+  font-weight: 500;
+  color: #111827;
+}
+
+/* Popular item text styling */
+.mobile-popular-text {
+  font-family:
+    UniformRnd,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    Ubuntu,
+    Cantarell,
+    'Noto Sans',
+    sans-serif;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #111827;
+  text-align: center;
+  line-height: 1rem;
+}
+
+/* Fix header z-index to be below mobile menu */
+header {
+  z-index: 50; /* Lower than mobile menu z-index of 200 */
+}
+
+/* Fix any potential layout shifts */
+.mobile-menu-fullscreen * {
+  box-sizing: border-box;
+}
+
+/* LEGACY MOBILE MENU STYLES (Keep for backward compatibility) */
+
+/* Mobile menu specific styling */
+.mobile-menu {
+  padding: 0;
+  margin: 0;
+}
+
+/* Ensure mobile aside appears above header */
+aside[data-type='mobile'] {
+  z-index: 100;
+}
+
+/* Mobile menu styling within aside */
+aside .mobile-menu {
+  height: 100%;
+  overflow-y: auto;
+}
+
+/* Fix for mobile menu links */
+.mobile-menu a {
+  display: block;
+  text-decoration: none;
+  border-radius: 4px;
+}
+
+.mobile-menu a:hover {
+  background-color: #f3f4f6;
+}
+
+/* Ensure aside is properly sized for mobile */
+@media (max-width: 1024px) {
+  aside {
+    width: min(320px, 85vw);
+    right: calc(-1 * min(320px, 85vw));
+  }
+
+  .overlay.expanded aside {
+    transform: translateX(calc(min(320px, 85vw) * -1));
+  }
+}
+
+/* Ensure mobile menu is scrollable if content overflows */
+aside main {
+  height: calc(100vh - 64px); /* Subtract header height */
+  overflow-y: auto;
+}
+
+/* Additional mobile menu item styling */
+.mobile-menu .space-y-2 > div {
+  margin-bottom: 0;
+}
+
+.mobile-menu .space-y-2 > div + div {
+  margin-top: 0;
+}
+
+/* Mobile menu text styling */
+.mobile-menu a {
+  font-family:
+    UniformRnd,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    Ubuntu,
+    Cantarell,
+    'Noto Sans',
+    sans-serif;
 }

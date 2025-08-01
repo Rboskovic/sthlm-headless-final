@@ -1,4 +1,4 @@
-// app/components/PageLayout.tsx (NEW) - Fixed for new Header architecture
+// app/components/PageLayout.tsx - Clean implementation with fullscreen mobile menu
 import {Await, Link} from 'react-router';
 import {Suspense, useId} from 'react';
 import type {CartApiQueryFragment} from 'storefrontapi.generated';
@@ -11,6 +11,7 @@ import {
   SearchFormPredictive,
 } from '~/components/SearchFormPredictive';
 import {SearchResultsPredictive} from '~/components/SearchResultsPredictive';
+import type {Collection} from '@shopify/hydrogen/storefront-api-types';
 
 interface PageLayoutProps {
   cart: Promise<CartApiQueryFragment | null>;
@@ -19,6 +20,7 @@ interface PageLayoutProps {
   isLoggedIn: Promise<boolean>;
   publicStoreDomain: string;
   children?: React.ReactNode;
+  popularCollections?: Collection[];
 }
 
 export function PageLayout({
@@ -28,18 +30,20 @@ export function PageLayout({
   header,
   isLoggedIn,
   publicStoreDomain,
+  popularCollections = [],
 }: PageLayoutProps) {
   return (
     <Aside.Provider>
       <CartAside cart={cart} />
       <SearchAside />
-      <MobileMenuAside header={header} publicStoreDomain={publicStoreDomain} />
+      {/* Mobile menu is now handled by Header component directly */}
       {header && (
         <Header
           header={header}
           cart={cart}
           isLoggedIn={isLoggedIn}
           publicStoreDomain={publicStoreDomain}
+          popularCollections={popularCollections}
         />
       )}
       <main>{children}</main>
@@ -54,7 +58,7 @@ export function PageLayout({
 
 function CartAside({cart}: {cart: PageLayoutProps['cart']}) {
   return (
-    <Aside type="cart" heading="CART">
+    <Aside type="cart" heading="KUNDVAGN">
       <Suspense fallback={<p>Loading cart ...</p>}>
         <Await resolve={cart}>
           {(cart) => {
@@ -69,7 +73,7 @@ function CartAside({cart}: {cart: PageLayoutProps['cart']}) {
 function SearchAside() {
   const queriesDatalistId = useId();
   return (
-    <Aside type="search" heading="SEARCH">
+    <Aside type="search" heading="SÖK">
       <div className="predictive-search">
         <br />
         <SearchFormPredictive>
@@ -79,13 +83,19 @@ function SearchAside() {
                 name="q"
                 onChange={fetchResults}
                 onFocus={fetchResults}
-                placeholder="Search"
+                placeholder="Sök"
                 ref={inputRef}
                 type="search"
                 list={queriesDatalistId}
+                className="w-full p-2 border border-gray-300 rounded"
               />
               &nbsp;
-              <button onClick={goToSearch}>Search</button>
+              <button
+                onClick={goToSearch}
+                className="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              >
+                Sök
+              </button>
             </>
           )}
         </SearchFormPredictive>
@@ -95,7 +105,7 @@ function SearchAside() {
             const {articles, collections, pages, products, queries} = items;
 
             if (state === 'loading' && term.current) {
-              return <div>Loading...</div>;
+              return <div className="p-4 text-gray-600">Loading...</div>;
             }
 
             if (!total) {
@@ -103,7 +113,7 @@ function SearchAside() {
             }
 
             return (
-              <>
+              <div className="space-y-4">
                 <SearchResultsPredictive.Queries
                   queries={queries}
                   queriesDatalistId={queriesDatalistId}
@@ -132,6 +142,7 @@ function SearchAside() {
                   <Link
                     onClick={closeSearch}
                     to={`${SEARCH_ENDPOINT}?q=${term.current}`}
+                    className="block p-2 text-blue-600 hover:text-blue-800"
                   >
                     <p>
                       View all results for <q>{term.current}</q>
@@ -139,24 +150,11 @@ function SearchAside() {
                     </p>
                   </Link>
                 ) : null}
-              </>
+              </div>
             );
           }}
         </SearchResultsPredictive>
       </div>
     </Aside>
   );
-}
-
-function MobileMenuAside({
-  header,
-  publicStoreDomain,
-}: {
-  header: PageLayoutProps['header'];
-  publicStoreDomain: PageLayoutProps['publicStoreDomain'];
-}) {
-  // Since mobile navigation is now handled inside the Header component itself,
-  // we can simplify this or remove it entirely. For now, let's return null
-  // as the mobile menu is integrated into the Header component.
-  return null;
 }

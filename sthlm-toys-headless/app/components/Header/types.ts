@@ -1,5 +1,6 @@
-// app/components/Header/types.ts - Updated with Logo support
+// app/components/Header/types.ts - Updated with mobile menu support
 import type {CartApiQueryFragment} from 'storefrontapi.generated';
+import type {Collection} from '@shopify/hydrogen/storefront-api-types';
 
 export interface MenuItem {
   id: string;
@@ -42,12 +43,14 @@ export interface HeaderProps {
   cart: Promise<CartApiQueryFragment | null>;
   isLoggedIn: Promise<boolean>;
   publicStoreDomain: string;
+  popularCollections?: Collection[];
 }
 
 export interface HeaderMainProps {
   shop: Shop;
   cart: Promise<CartApiQueryFragment | null>;
   isLoggedIn: Promise<boolean>;
+  onMobileMenuToggle?: () => void;
 }
 
 export interface DesktopNavProps {
@@ -78,6 +81,15 @@ export interface CartToggleProps {
 export interface SearchBarProps {
   isMobile?: boolean;
   className?: string;
+}
+
+// New interface for fullscreen mobile menu
+export interface MobileMenuFullscreenProps {
+  isOpen: boolean;
+  onClose: () => void;
+  shop: Shop;
+  isLoggedIn: Promise<boolean>;
+  popularCollections?: Collection[];
 }
 
 export type Viewport = 'mobile' | 'desktop';
