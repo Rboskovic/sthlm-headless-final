@@ -3,73 +3,73 @@ import {Image} from '@shopify/hydrogen';
 import {useState, useRef} from 'react';
 import type {Collection} from '@shopify/hydrogen/storefront-api-types';
 
-interface TopCategoriesProps {
-  collections?: Collection[] | null;
+interface ShopByCharacterProps {
+  characters?: Collection[] | null;
 }
 
-interface CategoryWithColor extends Collection {
+interface CharacterWithColor extends Collection {
   backgroundColor?: string;
 }
 
-// Category color mapping for fallbacks (matching popular categories)
-const categoryColors: Record<string, string> = {
-  lego: '#FFEB3B',
-  barbie: '#E91E63',
+// Character color mapping for fallbacks (matching popular characters)
+const characterColors: Record<string, string> = {
+  'mickey-mouse': '#E91E63',
+  frozen: '#1976D2',
+  'spider-man': '#FF1744',
+  batman: '#424242',
+  princess: '#E91E63',
   cars: '#F44336',
-  dolls: '#E91E63',
-  puzzles: '#4CAF50',
-  games: '#2196F3',
-  outdoor: '#4CAF50',
-  crafts: '#FF9800',
+  'peppa-pig': '#E91E63',
+  'paw-patrol': '#2196F3',
 };
 
-// Fallback categories (popular toy categories)
-const fallbackCategories: CategoryWithColor[] = [
+// Fallback characters (popular toy characters)
+const fallbackCharacters: CharacterWithColor[] = [
   {
-    id: 'lego',
-    title: 'LEGO',
-    handle: 'lego',
-    backgroundColor: '#FFEB3B',
-    image: null,
-  },
-  {
-    id: 'barbie',
-    title: 'Dockor',
-    handle: 'barbie',
+    id: 'mickey-mouse',
+    title: 'Mickey Mouse',
+    handle: 'mickey-mouse',
     backgroundColor: '#E91E63',
     image: null,
   },
   {
-    id: 'cars',
-    title: 'Bilar',
-    handle: 'cars',
-    backgroundColor: '#F44336',
+    id: 'frozen',
+    title: 'Frozen',
+    handle: 'frozen',
+    backgroundColor: '#1976D2',
     image: null,
   },
   {
-    id: 'puzzles',
-    title: 'Pussel',
-    handle: 'puzzles',
-    backgroundColor: '#4CAF50',
+    id: 'spider-man',
+    title: 'Spider-Man',
+    handle: 'spider-man',
+    backgroundColor: '#FF1744',
     image: null,
   },
   {
-    id: 'games',
-    title: 'Spel',
-    handle: 'games',
+    id: 'batman',
+    title: 'Batman',
+    handle: 'batman',
+    backgroundColor: '#424242',
+    image: null,
+  },
+  {
+    id: 'princess',
+    title: 'Princess',
+    handle: 'princess',
+    backgroundColor: '#E91E63',
+    image: null,
+  },
+  {
+    id: 'paw-patrol',
+    title: 'Paw Patrol',
+    handle: 'paw-patrol',
     backgroundColor: '#2196F3',
-    image: null,
-  },
-  {
-    id: 'crafts',
-    title: 'Pyssel',
-    handle: 'crafts',
-    backgroundColor: '#FF9800',
     image: null,
   },
 ];
 
-export function TopCategories({collections}: TopCategoriesProps) {
+export function ShopByCharacter({characters}: ShopByCharacterProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
@@ -93,24 +93,24 @@ export function TopCategories({collections}: TopCategoriesProps) {
     );
   };
 
-  // Filter featured categories from Shopify data
-  const featuredCategories =
-    collections && collections.length > 0
-      ? collections.filter((category) => {
-          const featuredCategoryValue =
-            getMetafieldValue(category.metafields, 'featured-category') ||
-            getMetafieldValue(category.metafields, 'featured_category');
-          const isFeatured = isTrueValue(featuredCategoryValue);
-          return isFeatured && category.image?.url;
+  // Filter featured characters from Shopify data
+  const featuredCharacters =
+    characters && characters.length > 0
+      ? characters.filter((character) => {
+          const featuredCharacterValue =
+            getMetafieldValue(character.metafields, 'featured-character') ||
+            getMetafieldValue(character.metafields, 'featured_character');
+          const isFeatured = isTrueValue(featuredCharacterValue);
+          return isFeatured && character.image?.url;
         })
       : [];
 
-  // Use Shopify categories or fallback
-  const displayCategories: CategoryWithColor[] =
-    featuredCategories.length > 0 ? featuredCategories : fallbackCategories;
+  // Use Shopify characters or fallback
+  const displayCharacters: CharacterWithColor[] =
+    featuredCharacters.length > 0 ? featuredCharacters : fallbackCharacters;
 
-  // Desktop: Show only first 6 categories (no scrolling/pagination)
-  const visibleCategories = displayCategories.slice(0, 6);
+  // Desktop: Show only first 6 characters (no scrolling/pagination)
+  const visibleCharacters = displayCharacters.slice(0, 6);
 
   // Mouse drag handlers for mobile scroll container
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -175,13 +175,13 @@ export function TopCategories({collections}: TopCategoriesProps) {
                   padding: '0px',
                 }}
               >
-                Populära kategorier
+                Handla efter karaktär
               </h2>
             </div>
 
             <div className="flex-1 flex justify-end items-center">
               <Link
-                to="/collections"
+                to="/collections/characters"
                 style={{
                   fontFamily:
                     'Buenos Aires, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, Cantarell, "Noto Sans", sans-serif',
@@ -207,18 +207,18 @@ export function TopCategories({collections}: TopCategoriesProps) {
                 }}
                 className="hover:opacity-80"
               >
-                Visa alla kategorier
+                Handla alla karaktärer
               </Link>
             </div>
           </div>
 
-          {/* Desktop Categories Grid - No Navigation */}
+          {/* Desktop Characters Grid - No Navigation */}
           <div className="relative">
             <div className="grid grid-cols-6 gap-4 justify-center">
-              {visibleCategories.map((category) => (
+              {visibleCharacters.map((character) => (
                 <Link
-                  key={category.id}
-                  to={`/collections/${category.handle}`}
+                  key={character.id}
+                  to={`/collections/${character.handle}`}
                   className="group block"
                 >
                   <div
@@ -229,10 +229,10 @@ export function TopCategories({collections}: TopCategoriesProps) {
                       borderRadius: '12px',
                     }}
                   >
-                    {category.image?.url ? (
+                    {character.image?.url ? (
                       <Image
-                        data={category.image}
-                        alt={category.image.altText || category.title}
+                        data={character.image}
+                        alt={character.image.altText || character.title}
                         style={{
                           height: '200px',
                           width: '200px',
@@ -242,15 +242,15 @@ export function TopCategories({collections}: TopCategoriesProps) {
                         }}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                         sizes="200px"
-                        loading="eager"
+                        loading="lazy"
                       />
                     ) : (
                       <div
                         className="w-full h-full flex items-center justify-center"
                         style={{
                           backgroundColor:
-                            category.backgroundColor ||
-                            categoryColors[category.handle] ||
+                            character.backgroundColor ||
+                            characterColors[character.handle] ||
                             '#6B7280',
                         }}
                       >
@@ -264,12 +264,12 @@ export function TopCategories({collections}: TopCategoriesProps) {
                               "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
                           }}
                         >
-                          {category.title}
+                          {character.title}
                         </span>
                       </div>
                     )}
                   </div>
-                  {/* Category Name - Desktop */}
+                  {/* Character Name - Desktop */}
                   <div className="mt-3 text-center">
                     <h3
                       className="text-black font-medium group-hover:text-blue-600 transition-colors duration-200"
@@ -286,7 +286,7 @@ export function TopCategories({collections}: TopCategoriesProps) {
                         maxWidth: '200px',
                       }}
                     >
-                      {category.title}
+                      {character.title}
                     </h3>
                   </div>
                 </Link>
@@ -308,7 +308,7 @@ export function TopCategories({collections}: TopCategoriesProps) {
                 "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
             }}
           >
-            Populära kategorier
+            Handla efter karaktär
           </h2>
 
           {/* Mobile Horizontal Scroll - Left padding, right edge-to-edge */}
@@ -328,23 +328,23 @@ export function TopCategories({collections}: TopCategoriesProps) {
           >
             <style>
               {`
-                .mobile-category-scroll::-webkit-scrollbar {
+                .mobile-character-scroll::-webkit-scrollbar {
                   display: none;
                 }
               `}
             </style>
             <div
-              className="flex space-x-2 mobile-category-scroll"
+              className="flex space-x-2 mobile-character-scroll"
               style={{
                 paddingLeft: '12px',
                 paddingRight: '0px',
                 width: 'max-content',
               }}
             >
-              {displayCategories.map((category) => (
+              {displayCharacters.map((character) => (
                 <Link
-                  key={category.id}
-                  to={`/collections/${category.handle}`}
+                  key={character.id}
+                  to={`/collections/${character.handle}`}
                   className="group flex-shrink-0"
                   style={{
                     scrollSnapAlign: 'start',
@@ -359,21 +359,21 @@ export function TopCategories({collections}: TopCategoriesProps) {
                       borderRadius: '12px',
                     }}
                   >
-                    {category.image?.url ? (
+                    {character.image?.url ? (
                       <Image
-                        data={category.image}
-                        alt={category.image.altText || category.title}
+                        data={character.image}
+                        alt={character.image.altText || character.title}
                         className="w-full h-full object-cover"
                         sizes="144px"
-                        loading="eager"
+                        loading="lazy"
                       />
                     ) : (
                       <div
                         className="w-full h-full flex items-center justify-center"
                         style={{
                           backgroundColor:
-                            category.backgroundColor ||
-                            categoryColors[category.handle] ||
+                            character.backgroundColor ||
+                            characterColors[character.handle] ||
                             '#6B7280',
                         }}
                       >
@@ -387,12 +387,12 @@ export function TopCategories({collections}: TopCategoriesProps) {
                               "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
                           }}
                         >
-                          {category.title}
+                          {character.title}
                         </span>
                       </div>
                     )}
                   </div>
-                  {/* Category Name - Mobile */}
+                  {/* Character Name - Mobile */}
                   <div className="mt-2 text-center px-1">
                     <h3
                       className="text-black font-medium group-hover:text-blue-600 transition-colors duration-200"
@@ -409,7 +409,7 @@ export function TopCategories({collections}: TopCategoriesProps) {
                         maxWidth: '144px',
                       }}
                     >
-                      {category.title}
+                      {character.title}
                     </h3>
                   </div>
                 </Link>
@@ -417,10 +417,10 @@ export function TopCategories({collections}: TopCategoriesProps) {
             </div>
           </div>
 
-          {/* Mobile Shop All Categories Button - Slightly bigger with proper spacing */}
+          {/* Mobile Shop All Characters Button - Slightly bigger with proper spacing */}
           <div className="flex justify-center">
             <Link
-              to="/collections"
+              to="/collections/characters"
               className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-10 rounded-full transition-colors duration-200"
               style={{
                 fontSize: '16px',
@@ -430,7 +430,7 @@ export function TopCategories({collections}: TopCategoriesProps) {
                 color: 'white',
               }}
             >
-              Visa alla kategorier
+              Handla alla karaktärer
             </Link>
           </div>
         </div>

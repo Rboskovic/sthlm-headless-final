@@ -3,73 +3,73 @@ import {Image} from '@shopify/hydrogen';
 import {useState, useRef} from 'react';
 import type {Collection} from '@shopify/hydrogen/storefront-api-types';
 
-interface TopCategoriesProps {
-  collections?: Collection[] | null;
+interface ShopByBrandProps {
+  brands?: Collection[] | null;
 }
 
-interface CategoryWithColor extends Collection {
+interface BrandWithColor extends Collection {
   backgroundColor?: string;
 }
 
-// Category color mapping for fallbacks (matching popular categories)
-const categoryColors: Record<string, string> = {
-  lego: '#FFEB3B',
+// Brand color mapping for fallbacks (matching Smyths design)
+const brandColors: Record<string, string> = {
+  'toys-r-us': '#0066CC',
   barbie: '#E91E63',
-  cars: '#F44336',
-  dolls: '#E91E63',
-  puzzles: '#4CAF50',
-  games: '#2196F3',
-  outdoor: '#4CAF50',
-  crafts: '#FF9800',
+  lego: '#FFEB3B',
+  disney: '#1976D2',
+  'fisher-price': '#00BCD4',
+  crayola: '#FFC107',
+  minecraft: '#4CAF50',
+  sonic: '#2196F3',
 };
 
-// Fallback categories (popular toy categories)
-const fallbackCategories: CategoryWithColor[] = [
+// Fallback brands (matching Smyths exactly)
+const fallbackBrands: BrandWithColor[] = [
   {
-    id: 'lego',
-    title: 'LEGO',
-    handle: 'lego',
-    backgroundColor: '#FFEB3B',
+    id: 'toys-r-us',
+    title: 'Toys"R"Us',
+    handle: 'toys-r-us',
+    backgroundColor: '#4CAF50',
     image: null,
   },
   {
     id: 'barbie',
-    title: 'Dockor',
+    title: 'Barbie',
     handle: 'barbie',
     backgroundColor: '#E91E63',
     image: null,
   },
   {
-    id: 'cars',
-    title: 'Bilar',
-    handle: 'cars',
-    backgroundColor: '#F44336',
+    id: 'lego',
+    title: 'LEGO',
+    handle: 'lego',
+    backgroundColor: '#FFC107',
     image: null,
   },
   {
-    id: 'puzzles',
-    title: 'Pussel',
-    handle: 'puzzles',
-    backgroundColor: '#4CAF50',
+    id: 'disney',
+    title: 'Disney',
+    handle: 'disney',
+    backgroundColor: '#1976D2',
     image: null,
   },
   {
-    id: 'games',
-    title: 'Spel',
-    handle: 'games',
-    backgroundColor: '#2196F3',
+    id: 'fisher-price',
+    title: 'Fisher-Price',
+    handle: 'fisher-price',
+    backgroundColor: '#00BCD4',
     image: null,
   },
   {
-    id: 'crafts',
-    title: 'Pyssel',
-    handle: 'crafts',
-    backgroundColor: '#FF9800',
+    id: 'crayola',
+    title: 'Crayola',
+    handle: 'crayola',
+    backgroundColor: '#FFC107',
     image: null,
   },
 ];
 
-export function TopCategories({collections}: TopCategoriesProps) {
+export function ShopByBrand({brands}: ShopByBrandProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
@@ -93,24 +93,24 @@ export function TopCategories({collections}: TopCategoriesProps) {
     );
   };
 
-  // Filter featured categories from Shopify data
-  const featuredCategories =
-    collections && collections.length > 0
-      ? collections.filter((category) => {
-          const featuredCategoryValue =
-            getMetafieldValue(category.metafields, 'featured-category') ||
-            getMetafieldValue(category.metafields, 'featured_category');
-          const isFeatured = isTrueValue(featuredCategoryValue);
-          return isFeatured && category.image?.url;
+  // Filter featured brands from Shopify data
+  const featuredBrands =
+    brands && brands.length > 0
+      ? brands.filter((brand) => {
+          const featuredBrandValue =
+            getMetafieldValue(brand.metafields, 'featured-brand') ||
+            getMetafieldValue(brand.metafields, 'featured_brand');
+          const isFeatured = isTrueValue(featuredBrandValue);
+          return isFeatured && brand.image?.url;
         })
       : [];
 
-  // Use Shopify categories or fallback
-  const displayCategories: CategoryWithColor[] =
-    featuredCategories.length > 0 ? featuredCategories : fallbackCategories;
+  // Use Shopify brands or fallback
+  const displayBrands: BrandWithColor[] =
+    featuredBrands.length > 0 ? featuredBrands : fallbackBrands;
 
-  // Desktop: Show only first 6 categories (no scrolling/pagination)
-  const visibleCategories = displayCategories.slice(0, 6);
+  // Desktop: Show only first 6 brands (no scrolling/pagination)
+  const visibleBrands = displayBrands.slice(0, 6);
 
   // Mouse drag handlers for mobile scroll container
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -175,13 +175,13 @@ export function TopCategories({collections}: TopCategoriesProps) {
                   padding: '0px',
                 }}
               >
-                Populära kategorier
+                Handla efter märke
               </h2>
             </div>
 
             <div className="flex-1 flex justify-end items-center">
               <Link
-                to="/collections"
+                to="/collections/brands"
                 style={{
                   fontFamily:
                     'Buenos Aires, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, Cantarell, "Noto Sans", sans-serif',
@@ -199,7 +199,7 @@ export function TopCategories({collections}: TopCategoriesProps) {
                   whiteSpace: 'normal',
                   wordSpacing: '0px',
                   color: 'rgb(0, 78, 188)',
-                  border: '0px none rgb(0, 78, 188)',
+                  border: '0px none rgb(33, 36, 39)',
                   margin: '0px',
                   padding: '0px',
                   cursor: 'pointer',
@@ -207,18 +207,18 @@ export function TopCategories({collections}: TopCategoriesProps) {
                 }}
                 className="hover:opacity-80"
               >
-                Visa alla kategorier
+                Handla alla märken
               </Link>
             </div>
           </div>
 
-          {/* Desktop Categories Grid - No Navigation */}
+          {/* Desktop Brands Grid - No Navigation */}
           <div className="relative">
             <div className="grid grid-cols-6 gap-4 justify-center">
-              {visibleCategories.map((category) => (
+              {visibleBrands.map((brand) => (
                 <Link
-                  key={category.id}
-                  to={`/collections/${category.handle}`}
+                  key={brand.id}
+                  to={`/collections/${brand.handle}`}
                   className="group block"
                 >
                   <div
@@ -229,10 +229,10 @@ export function TopCategories({collections}: TopCategoriesProps) {
                       borderRadius: '12px',
                     }}
                   >
-                    {category.image?.url ? (
+                    {brand.image?.url ? (
                       <Image
-                        data={category.image}
-                        alt={category.image.altText || category.title}
+                        data={brand.image}
+                        alt={brand.image.altText || brand.title}
                         style={{
                           height: '200px',
                           width: '200px',
@@ -242,15 +242,15 @@ export function TopCategories({collections}: TopCategoriesProps) {
                         }}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                         sizes="200px"
-                        loading="eager"
+                        loading="lazy"
                       />
                     ) : (
                       <div
                         className="w-full h-full flex items-center justify-center"
                         style={{
                           backgroundColor:
-                            category.backgroundColor ||
-                            categoryColors[category.handle] ||
+                            brand.backgroundColor ||
+                            brandColors[brand.handle] ||
                             '#6B7280',
                         }}
                       >
@@ -264,12 +264,12 @@ export function TopCategories({collections}: TopCategoriesProps) {
                               "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
                           }}
                         >
-                          {category.title}
+                          {brand.title}
                         </span>
                       </div>
                     )}
                   </div>
-                  {/* Category Name - Desktop */}
+                  {/* Brand Name - Desktop */}
                   <div className="mt-3 text-center">
                     <h3
                       className="text-black font-medium group-hover:text-blue-600 transition-colors duration-200"
@@ -286,7 +286,7 @@ export function TopCategories({collections}: TopCategoriesProps) {
                         maxWidth: '200px',
                       }}
                     >
-                      {category.title}
+                      {brand.title}
                     </h3>
                   </div>
                 </Link>
@@ -308,7 +308,7 @@ export function TopCategories({collections}: TopCategoriesProps) {
                 "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
             }}
           >
-            Populära kategorier
+            Handla efter märke
           </h2>
 
           {/* Mobile Horizontal Scroll - Left padding, right edge-to-edge */}
@@ -328,23 +328,23 @@ export function TopCategories({collections}: TopCategoriesProps) {
           >
             <style>
               {`
-                .mobile-category-scroll::-webkit-scrollbar {
+                .mobile-brand-scroll::-webkit-scrollbar {
                   display: none;
                 }
               `}
             </style>
             <div
-              className="flex space-x-2 mobile-category-scroll"
+              className="flex space-x-2 mobile-brand-scroll"
               style={{
                 paddingLeft: '12px',
                 paddingRight: '0px',
                 width: 'max-content',
               }}
             >
-              {displayCategories.map((category) => (
+              {displayBrands.map((brand) => (
                 <Link
-                  key={category.id}
-                  to={`/collections/${category.handle}`}
+                  key={brand.id}
+                  to={`/collections/${brand.handle}`}
                   className="group flex-shrink-0"
                   style={{
                     scrollSnapAlign: 'start',
@@ -359,21 +359,21 @@ export function TopCategories({collections}: TopCategoriesProps) {
                       borderRadius: '12px',
                     }}
                   >
-                    {category.image?.url ? (
+                    {brand.image?.url ? (
                       <Image
-                        data={category.image}
-                        alt={category.image.altText || category.title}
+                        data={brand.image}
+                        alt={brand.image.altText || brand.title}
                         className="w-full h-full object-cover"
                         sizes="144px"
-                        loading="eager"
+                        loading="lazy"
                       />
                     ) : (
                       <div
                         className="w-full h-full flex items-center justify-center"
                         style={{
                           backgroundColor:
-                            category.backgroundColor ||
-                            categoryColors[category.handle] ||
+                            brand.backgroundColor ||
+                            brandColors[brand.handle] ||
                             '#6B7280',
                         }}
                       >
@@ -387,12 +387,12 @@ export function TopCategories({collections}: TopCategoriesProps) {
                               "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
                           }}
                         >
-                          {category.title}
+                          {brand.title}
                         </span>
                       </div>
                     )}
                   </div>
-                  {/* Category Name - Mobile */}
+                  {/* Brand Name - Mobile */}
                   <div className="mt-2 text-center px-1">
                     <h3
                       className="text-black font-medium group-hover:text-blue-600 transition-colors duration-200"
@@ -409,7 +409,7 @@ export function TopCategories({collections}: TopCategoriesProps) {
                         maxWidth: '144px',
                       }}
                     >
-                      {category.title}
+                      {brand.title}
                     </h3>
                   </div>
                 </Link>
@@ -417,10 +417,10 @@ export function TopCategories({collections}: TopCategoriesProps) {
             </div>
           </div>
 
-          {/* Mobile Shop All Categories Button - Slightly bigger with proper spacing */}
+          {/* Mobile Shop All Brands Button - Slightly bigger with proper spacing */}
           <div className="flex justify-center">
             <Link
-              to="/collections"
+              to="/collections/brands"
               className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-10 rounded-full transition-colors duration-200"
               style={{
                 fontSize: '16px',
@@ -430,7 +430,7 @@ export function TopCategories({collections}: TopCategoriesProps) {
                 color: 'white',
               }}
             >
-              Visa alla kategorier
+              Handla alla märken
             </Link>
           </div>
         </div>

@@ -6,11 +6,11 @@ import type {
   FeaturedCollectionFragment,
   RecommendedProductsQuery,
 } from 'storefrontapi.generated';
-import {ProductItem} from '~/components/ProductItem';
 import {HeroBanner} from '~/components/HeroBanner';
 import {TopCategories} from '~/components/TopCategories';
-import {ShopByAge} from '~/components/ShopByAge';
-import {FeaturedBrands} from '~/components/FeaturedBrands';
+import {FeaturedBanners} from '~/components/FeaturedBanners';
+import {ShopByBrand} from '~/components/ShopByBrand';
+import {ShopByCharacter} from '~/components/ShopByCharacter';
 
 export const meta: MetaFunction = () => {
   return [{title: 'STHLM Toys & Games | Home'}];
@@ -32,44 +32,44 @@ export async function loader(args: LoaderFunctionArgs) {
  */
 async function loadCriticalData({context}: LoaderFunctionArgs) {
   try {
-    const [featuredCollectionData, topCategoriesData, featuredBrandsData] =
-      await Promise.all([
-        context.storefront.query(FEATURED_COLLECTION_QUERY),
-        context.storefront.query(TOP_CATEGORIES_QUERY),
-        context.storefront.query(FEATURED_BRANDS_QUERY),
-      ]);
+    const [
+      featuredCollectionData,
+      topCategoriesData,
+      shopByBrandData,
+      featuredBannersData,
+      shopByCharacterData,
+    ] = await Promise.all([
+      context.storefront.query(FEATURED_COLLECTION_QUERY),
+      context.storefront.query(TOP_CATEGORIES_QUERY),
+      context.storefront.query(SHOP_BY_BRAND_QUERY),
+      context.storefront.query(FEATURED_BANNERS_QUERY),
+      context.storefront.query(SHOP_BY_CHARACTER_QUERY),
+    ]);
 
     return {
       featuredCollection: featuredCollectionData.collections.nodes[0],
       topCategories: topCategoriesData.collections.nodes || [],
-      featuredBrands: featuredBrandsData.collections.nodes || [],
+      shopByBrandData: shopByBrandData.collections.nodes || [],
+      featuredBanners: featuredBannersData.collections.nodes || [],
+      shopByCharacterData: shopByCharacterData.collections.nodes || [],
     };
   } catch (error) {
     console.error('Error loading collections:', error);
-    // Fallback to just featured collection if others fail
-    try {
-      const featuredCollectionData = await context.storefront.query(
-        FEATURED_COLLECTION_QUERY,
-      );
-      return {
-        featuredCollection: featuredCollectionData.collections.nodes[0],
-        topCategories: [],
-        featuredBrands: [],
-      };
-    } catch (fallbackError) {
-      console.error('Error loading fallback data:', fallbackError);
-      return {
-        featuredCollection: null,
-        topCategories: [],
-        featuredBrands: [],
-      };
-    }
+    // Fallback to empty arrays if queries fail
+    return {
+      featuredCollection: null,
+      topCategories: [],
+      shopByBrandData: [],
+      featuredBanners: [],
+      shopByCharacterData: [],
+    };
   }
 }
 
 /**
- * Load data for rendering content below the fold. This data is deferred and will be
- * fetched after the initial page load. If it's unavailable, the page should still 200.
+ * Load data for rendering content below the fold.
+ * This data is deferred and will be fetched after the initial page load.
+ * If it's unavailable, the page should still 200.
  * Make sure to not throw any errors here, as it will cause the page to 500.
  */
 function loadDeferredData({context}: LoaderFunctionArgs) {
@@ -97,201 +97,32 @@ export default function Homepage() {
         subtitle="Upptäck oändliga möjligheter med vår fantastiska LEGO-kollektion"
         buttonText="Handla nu"
         buttonLink="/collections/lego"
+        mobileBackgroundImage="https://cdn.shopify.com/s/files/1/0900/8811/2507/files/hero-mobile2.png?v=1753985948"
       />
 
       <div className="home">
-        {/* Top Categories Section */}
-        <div style={{paddingTop: '8px', paddingBottom: '48px'}}>
-          <TopCategories
-            title="Populära kategorier"
-            collections={data.topCategories}
-          />
-        </div>
+        {/* Top Categories Section - Updated to match ShopByBrand styling */}
+        <TopCategories collections={data.topCategories} />
 
-        {/* Featured Collection - Commented out to remove unwanted full-width image */}
-        {/* 
-        <FeaturedCollection collection={data.featuredCollection} /> 
-        */}
+        {/* Shop By Brand Section */}
+        <ShopByBrand brands={data.shopByBrandData} />
 
-        {/* Recommended Products - Smyths styling */}
-        <RecommendedProducts products={data.recommendedProducts} />
+        {/* Featured Banners Section - Square Banners */}
+        <FeaturedBanners collections={data.featuredBanners} />
 
-        {/* Shop by Age Section */}
-        <ShopByAge title="Handla efter ålder" />
-
-        {/* Featured Brands Section */}
-        <FeaturedBrands brands={data.featuredBrands} />
+        {/* Shop By Character Section */}
+        <ShopByCharacter characters={data.shopByCharacterData} />
       </div>
     </div>
   );
 }
 
-function FeaturedCollection({
-  collection,
-}: {
-  collection: FeaturedCollectionFragment;
-}) {
-  if (!collection) return null;
-  const image = collection?.image;
-  return (
-    <Link
-      className="featured-collection"
-      to={`/collections/${collection.handle}`}
-    >
-      {image && (
-        <div className="featured-collection-image">
-          <Image data={image} sizes="100vw" />
-        </div>
-      )}
-      <h1>{collection.title}</h1>
-    </Link>
-  );
-}
-
-// Updated RecommendedProducts with Smyths styling
-function RecommendedProducts({
-  products,
-}: {
-  products: Promise<RecommendedProductsQuery | null>;
-}) {
-  return (
-    <section
-      className="w-full"
-      style={{
-        backgroundColor: 'rgb(248, 249, 251)', // Smyths light gray background
-        padding: '20px 0px',
-      }}
-    >
-      {/* Container matching Smyths specs */}
-      <div
-        className="mx-auto"
-        style={{
-          maxWidth: '1400px',
-          padding: '0px 64px',
-          fontFamily:
-            "UniformRnd, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-        }}
-      >
-        {/* Section Title - Smyths styling */}
-        <h2
-          className="text-grey-900"
-          style={{
-            fontSize: '24px',
-            fontWeight: 500,
-            lineHeight: '32.4px',
-            marginBottom: '24px',
-            color: 'rgb(32, 34, 35)',
-            fontFamily:
-              "UniformRnd, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-          }}
-        >
-          Utvalt ur vårt sortiment
-        </h2>
-
-        {/* Products Grid - Flex layout like Smyths */}
-        <Suspense fallback={<LoadingSkeleton />}>
-          <Await resolve={products}>
-            {(response) => (
-              <div
-                className="flex flex-wrap gap-4"
-                style={{
-                  gap: '16px',
-                }}
-              >
-                {response?.products?.nodes
-                  ?.slice(0, 4)
-                  ?.map((product, index) => (
-                    <ProductItem
-                      key={product.id}
-                      product={product}
-                      loading={index < 4 ? 'eager' : 'lazy'}
-                    />
-                  )) || (
-                  <div className="w-full text-center py-8 text-gray-500">
-                    No recommended products available
-                  </div>
-                )}
-              </div>
-            )}
-          </Await>
-        </Suspense>
-      </div>
-    </section>
-  );
-}
-
-function LoadingSkeleton() {
-  return (
-    <div className="flex flex-wrap gap-4" style={{gap: '16px'}}>
-      {[...Array(4)].map((_, i) => (
-        <div
-          key={i}
-          className="animate-pulse cursor-pointer flex flex-col"
-          style={{
-            width: '298px',
-            height: '443.766px',
-            paddingBottom: '12px',
-          }}
-        >
-          {/* Image Skeleton */}
-          <div
-            className="bg-gray-200"
-            style={{
-              aspectRatio: '1/1',
-              marginBottom: '12px',
-            }}
-          ></div>
-
-          {/* Content Skeleton */}
-          <div className="flex-grow">
-            {/* Title lines */}
-            <div className="h-4 bg-gray-200 rounded mb-2"></div>
-            <div className="h-4 bg-gray-200 rounded w-3/4 mb-3"></div>
-
-            {/* Price */}
-            <div className="h-5 bg-gray-200 rounded w-1/2"></div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// UPDATED Top Categories Query with Metafield Filtering
-const TOP_CATEGORIES_QUERY = `#graphql
-  fragment TopCategory on Collection {
-    id
-    title
-    handle
-    image {
-      id
-      url
-      altText
-      width
-      height
-    }
-    metafields(identifiers: [
-      {namespace: "custom", key: "top_category"},
-      {namespace: "custom", key: "featured_category"}
-    ]) {
-      key
-      value
-    }
-  }
-  query TopCategories($country: CountryCode, $language: LanguageCode)
-    @inContext(country: $country, language: $language) {
-    collections(first: 50, sortKey: TITLE) {
-      nodes {
-        ...TopCategory
-      }
-    }
-  }
-` as const;
-
+// GraphQL Queries
 const FEATURED_COLLECTION_QUERY = `#graphql
   fragment FeaturedCollection on Collection {
     id
     title
+    handle
     image {
       id
       url
@@ -299,7 +130,6 @@ const FEATURED_COLLECTION_QUERY = `#graphql
       width
       height
     }
-    handle
   }
   query FeaturedCollection($country: CountryCode, $language: LanguageCode)
     @inContext(country: $country, language: $language) {
@@ -330,7 +160,7 @@ const RECOMMENDED_PRODUCTS_QUERY = `#graphql
       height
     }
   }
-  query RecommendedProducts ($country: CountryCode, $language: LanguageCode)
+  query RecommendedProducts($country: CountryCode, $language: LanguageCode)
     @inContext(country: $country, language: $language) {
     products(first: 4, sortKey: UPDATED_AT, reverse: true) {
       nodes {
@@ -340,9 +170,111 @@ const RECOMMENDED_PRODUCTS_QUERY = `#graphql
   }
 ` as const;
 
-// Featured Brands Query - Try different namespace possibilities
-const FEATURED_BRANDS_QUERY = `#graphql
-  fragment FeaturedBrand on Collection {
+// Top Categories Query - Updated to use featured-category metafield
+const TOP_CATEGORIES_QUERY = `#graphql
+  fragment TopCategory on Collection {
+    id
+    title
+    handle
+    image {
+      id
+      url
+      altText
+      width
+      height
+    }
+    metafields(identifiers: [
+      {namespace: "custom", key: "featured-category"},
+      {namespace: "custom", key: "featured_category"},
+      {namespace: "app", key: "featured-category"},
+      {namespace: "app", key: "featured_category"}
+    ]) {
+      key
+      value
+      namespace
+    }
+  }
+  query TopCategories($country: CountryCode, $language: LanguageCode)
+    @inContext(country: $country, language: $language) {
+    collections(first: 50, sortKey: TITLE) {
+      nodes {
+        ...TopCategory
+      }
+    }
+  }
+` as const;
+
+// Shop By Brand Query
+const SHOP_BY_BRAND_QUERY = `#graphql
+  fragment ShopByBrand on Collection {
+    id
+    title
+    handle
+    image {
+      id
+      url
+      altText
+      width
+      height
+    }
+    metafields(identifiers: [
+      {namespace: "custom", key: "featured-brand"},
+      {namespace: "custom", key: "featured_brand"},
+      {namespace: "app", key: "featured-brand"},
+      {namespace: "app", key: "featured_brand"}
+    ]) {
+      key
+      value
+      namespace
+    }
+  }
+  query ShopByBrand($country: CountryCode, $language: LanguageCode)
+    @inContext(country: $country, language: $language) {
+    collections(first: 50, sortKey: TITLE) {
+      nodes {
+        ...ShopByBrand
+      }
+    }
+  }
+` as const;
+
+// Shop By Character Query - New query for characters
+const SHOP_BY_CHARACTER_QUERY = `#graphql
+  fragment ShopByCharacter on Collection {
+    id
+    title
+    handle
+    image {
+      id
+      url
+      altText
+      width
+      height
+    }
+    metafields(identifiers: [
+      {namespace: "custom", key: "featured-character"},
+      {namespace: "custom", key: "featured_character"},
+      {namespace: "app", key: "featured-character"},
+      {namespace: "app", key: "featured_character"}
+    ]) {
+      key
+      value
+      namespace
+    }
+  }
+  query ShopByCharacter($country: CountryCode, $language: LanguageCode)
+    @inContext(country: $country, language: $language) {
+    collections(first: 50, sortKey: TITLE) {
+      nodes {
+        ...ShopByCharacter
+      }
+    }
+  }
+` as const;
+
+// Featured Banners Query
+const FEATURED_BANNERS_QUERY = `#graphql
+  fragment FeaturedBanner on Collection {
     id
     title
     handle
@@ -355,23 +287,21 @@ const FEATURED_BRANDS_QUERY = `#graphql
       height
     }
     metafields(identifiers: [
-      {namespace: "custom", key: "featured-brand"},
-      {namespace: "custom", key: "featured_brand"},
-      {namespace: "custom", key: "new-brand"},
-      {namespace: "custom", key: "new_brand"},
-      {namespace: "app", key: "featured-brand"},
-      {namespace: "app", key: "featured_brand"}
+      {namespace: "custom", key: "featured-banner"},
+      {namespace: "custom", key: "featured_banner"},
+      {namespace: "app", key: "featured-banner"},
+      {namespace: "app", key: "featured_banner"}
     ]) {
       key
       value
       namespace
     }
   }
-  query FeaturedBrands($country: CountryCode, $language: LanguageCode)
+  query FeaturedBanners($country: CountryCode, $language: LanguageCode)
     @inContext(country: $country, language: $language) {
     collections(first: 50, sortKey: UPDATED_AT, reverse: true) {
       nodes {
-        ...FeaturedBrand
+        ...FeaturedBanner
       }
     }
   }

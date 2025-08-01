@@ -1,3 +1,5 @@
+// app/lib/fragments.ts - Fixed to use STRING queries for Hydrogen
+
 // Fragment for money fields
 const MONEY_FRAGMENT = `#graphql
   fragment Money on MoneyV2 {
@@ -6,7 +8,7 @@ const MONEY_FRAGMENT = `#graphql
   }
 ` as const;
 
-// Cart-related fragments
+// Cart fragment
 const CART_FRAGMENT = `#graphql
   fragment CartApiQuery on Cart {
     updatedAt
@@ -25,55 +27,53 @@ const CART_FRAGMENT = `#graphql
       email
       phone
     }
-    lines(first: 100) {
-      edges {
-        node {
-          id
-          quantity
-          attributes {
-            key
-            value
+    lines(first: $numCartLines) {
+      nodes {
+        id
+        quantity
+        attributes {
+          key
+          value
+        }
+        cost {
+          totalAmount {
+            ...Money
           }
-          cost {
-            totalAmount {
-              ...Money
-            }
-            amountPerQuantity {
-              ...Money
-            }
-            compareAtAmountPerQuantity {
-              ...Money
-            }
+          amountPerQuantity {
+            ...Money
           }
-          merchandise {
-            ... on ProductVariant {
+          compareAtAmountPerQuantity {
+            ...Money
+          }
+        }
+        merchandise {
+          ... on ProductVariant {
+            id
+            availableForSale
+            compareAtPrice {
+              ...Money
+            }
+            price {
+              ...Money
+            }
+            requiresShipping
+            title
+            image {
               id
-              availableForSale
-              compareAtPrice {
-                ...Money
-              }
-              price {
-                ...Money
-              }
-              requiresShipping
+              url
+              altText
+              width
+              height
+            }
+            product {
+              handle
               title
-              image {
-                id
-                url
-                altText
-                width
-                height
-              }
-              product {
-                handle
-                title
-                id
-                vendor
-              }
-              selectedOptions {
-                name
-                value
-              }
+              id
+              vendor
+            }
+            selectedOptions {
+              name
+              value
             }
           }
         }
@@ -106,7 +106,7 @@ const CART_FRAGMENT = `#graphql
   ${MONEY_FRAGMENT}
 ` as const;
 
-// Fixed MENU_FRAGMENT without circular references
+// Menu fragment
 const MENU_FRAGMENT = `#graphql
   fragment MenuItem on MenuItem {
     id
@@ -159,7 +159,7 @@ const SHOP_FRAGMENT = `#graphql
   }
 ` as const;
 
-// Header query with fixed fragments
+// Header query - STRING format for Hydrogen
 export const HEADER_QUERY = `#graphql
   query Header(
     $country: CountryCode
@@ -177,7 +177,7 @@ export const HEADER_QUERY = `#graphql
   ${MENU_FRAGMENT}
 ` as const;
 
-// Footer query
+// Footer query - STRING format for Hydrogen
 export const FOOTER_QUERY = `#graphql
   query Footer(
     $country: CountryCode
@@ -191,6 +191,8 @@ export const FOOTER_QUERY = `#graphql
   ${MENU_FRAGMENT}
 ` as const;
 
-// Export the cart fragment for use elsewhere
-export { CART_FRAGMENT, MONEY_FRAGMENT };
+// Export for compatibility with existing context.ts
 export const CART_QUERY_FRAGMENT = CART_FRAGMENT;
+
+// Export fragments for reuse
+export {MONEY_FRAGMENT, CART_FRAGMENT, MENU_FRAGMENT, SHOP_FRAGMENT};
