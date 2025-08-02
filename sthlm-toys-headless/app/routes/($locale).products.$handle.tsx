@@ -1,5 +1,5 @@
-import {redirect, type LoaderFunctionArgs} from '@shopify/remix-oxygen';
-import {useLoaderData, type MetaFunction} from 'react-router';
+import { redirect, type LoaderFunctionArgs } from "@shopify/remix-oxygen";
+import { useLoaderData, type MetaFunction } from "react-router";
 import {
   getSelectedProductOptions,
   Analytics,
@@ -7,19 +7,22 @@ import {
   getProductOptions,
   getAdjacentAndFirstAvailableVariants,
   useSelectedOptionInUrlParam,
-} from '@shopify/hydrogen';
-import {ProductPrice} from '~/components/ProductPrice';
-import {ProductImageGallery} from '~/components/ProductImageGallery';
-import {ProductForm} from '~/components/ProductForm';
-import {redirectIfHandleIsLocalized} from '~/lib/redirect';
-import {useState} from 'react';
+} from "@shopify/hydrogen";
+import { ProductPrice } from "~/components/ProductPrice";
+import { ProductImageGallery } from "~/components/ProductImageGallery";
+import { ProductForm } from "~/components/ProductForm";
+import { redirectIfHandleIsLocalized } from "~/lib/redirect";
+import { useState } from "react";
+// ✅ ONLY ADDITIONS: Import wishlist functionality
+import { CUSTOMER_WISHLIST_QUERY } from "~/graphql/customer-account/CustomerWishlistQuery";
+import { WishlistManager } from "~/lib/wishlist";
 
-export const meta: MetaFunction<typeof loader> = ({data}) => {
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [
-    {title: `${data?.product.title ?? ''} | Stockholm Toys`},
-    {name: 'description', content: data?.product.description ?? ''},
+    { title: `${data?.product.title ?? ""} | Stockholm Toys` },
+    { name: "description", content: data?.product.description ?? "" },
     {
-      rel: 'canonical',
+      rel: "canonical",
       href: `/products/${data?.product.handle}`,
     },
   ];
@@ -32,7 +35,7 @@ export async function loader(args: LoaderFunctionArgs) {
   // Await the critical data required to render initial state of the page
   const criticalData = await loadCriticalData(args);
 
-  return {...deferredData, ...criticalData};
+  return { ...deferredData, ...criticalData };
 }
 
 /**
@@ -44,29 +47,49 @@ async function loadCriticalData({
   params,
   request,
 }: LoaderFunctionArgs) {
-  const {handle} = params;
-  const {storefront} = context;
+  const { handle } = params;
+  const { storefront, customerAccount } = context; // ✅ UPDATED: Add customerAccount to existing destructure
 
   if (!handle) {
-    throw new Error('Expected product handle to be defined');
+    throw new Error("Expected product handle to be defined");
   }
 
-  const [{product}] = await Promise.all([
+  const [{ product }] = await Promise.all([
     storefront.query(PRODUCT_QUERY, {
-      variables: {handle, selectedOptions: getSelectedProductOptions(request)},
+      variables: {
+        handle,
+        selectedOptions: getSelectedProductOptions(request),
+      },
     }),
     // Add other queries here, so that they are loaded in parallel
   ]);
 
   if (!product?.id) {
-    throw new Response(null, {status: 404});
+    throw new Response(null, { status: 404 });
   }
 
   // The API handle might be localized, so redirect to the localized handle
-  redirectIfHandleIsLocalized(request, {handle, data: product});
+  redirectIfHandleIsLocalized(request, { handle, data: product });
+
+  // ✅ ONLY ADDITION: Get customer wishlist if authenticated
+  let wishlistProductIds: string[] = [];
+  try {
+    const isLoggedIn = await customerAccount.isLoggedIn();
+    if (isLoggedIn) {
+      const { data: customerData } = await customerAccount.query(
+        CUSTOMER_WISHLIST_QUERY
+      );
+      const metafield = customerData?.customer?.metafields?.nodes?.[0];
+      const wishlistItems = WishlistManager.parseWishlist(metafield?.value);
+      wishlistProductIds = wishlistItems.map((item) => item.productId);
+    }
+  } catch (error) {
+    console.error("Error loading wishlist:", error);
+  }
 
   return {
     product,
+    wishlistProductIds, // ✅ ONLY ADDITION: Return wishlist data
   };
 }
 
@@ -75,20 +98,20 @@ async function loadCriticalData({
  * fetched after the initial page load. If it's unavailable, the page should still 200.
  * Make sure to not throw any errors here, as it will cause the page to 500.
  */
-function loadDeferredData({context, params}: LoaderFunctionArgs) {
+function loadDeferredData({ context, params }: LoaderFunctionArgs) {
   // Put any API calls that is not critical to be available on first page render
   // For example: product reviews, product recommendations, social feeds.
   return {};
 }
 
 export default function Product() {
-  const {product} = useLoaderData<typeof loader>();
+  const { product, wishlistProductIds } = useLoaderData<typeof loader>(); // ✅ UPDATED: Add wishlistProductIds to existing destructure
   const [quantity, setQuantity] = useState(1);
 
   // Optimistically selects a variant with given available variant information
   const selectedVariant = useOptimisticVariant(
     product.selectedOrFirstAvailableVariant,
-    getAdjacentAndFirstAvailableVariants(product),
+    getAdjacentAndFirstAvailableVariants(product)
   );
 
   // Sets the search param to the selected variant without navigation
@@ -101,7 +124,7 @@ export default function Product() {
     selectedOrFirstAvailableVariant: selectedVariant,
   });
 
-  const {title, descriptionHtml, vendor} = product;
+  const { title, descriptionHtml, vendor } = product;
 
   // Get all product images - if multiple variants have different images, collect them
   const productImages = [
@@ -116,7 +139,7 @@ export default function Product() {
       <div
         className="mx-auto px-4 lg:px-16"
         style={{
-          maxWidth: '1400px',
+          maxWidth: "1400px",
         }}
       >
         {/* Breadcrumb Navigation */}
@@ -224,7 +247,7 @@ export default function Product() {
               {selectedVariant?.compareAtPrice && (
                 <div className="mt-1">
                   <span className="text-red-600 text-sm font-medium">
-                    Spara{' '}
+                    Spara{" "}
                     {(
                       parseFloat(selectedVariant.compareAtPrice.amount) -
                       parseFloat(selectedVariant.price.amount)
@@ -241,6 +264,7 @@ export default function Product() {
                 selectedVariant={selectedVariant}
                 quantity={quantity}
                 onQuantityChange={setQuantity}
+                wishlistProductIds={wishlistProductIds} // ✅ ONLY ADDITION: Pass wishlist data
               />
             </div>
 
@@ -292,7 +316,7 @@ export default function Product() {
                 fontFamily:
                   "UniformRnd, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
               }}
-              dangerouslySetInnerHTML={{__html: descriptionHtml}}
+              dangerouslySetInnerHTML={{ __html: descriptionHtml }}
             />
           </div>
         )}
@@ -310,10 +334,10 @@ export default function Product() {
             {
               id: product.id,
               title: product.title,
-              price: selectedVariant?.price.amount || '0',
+              price: selectedVariant?.price.amount || "0",
               vendor: product.vendor,
-              variantId: selectedVariant?.id || '',
-              variantTitle: selectedVariant?.title || '',
+              variantId: selectedVariant?.id || "",
+              variantTitle: selectedVariant?.title || "",
               quantity: 1,
             },
           ],

@@ -1,26 +1,42 @@
-import {Link, useNavigate} from 'react-router';
-import {type MappedProductOptions} from '@shopify/hydrogen';
+import { Link, useNavigate } from "react-router";
+import { type MappedProductOptions } from "@shopify/hydrogen";
 import type {
   Maybe,
   ProductOptionValueSwatch,
-} from '@shopify/hydrogen/storefront-api-types';
-import {AddToCartButton} from './AddToCartButton';
-import {useAside} from './Aside';
-import type {ProductFragment} from 'storefrontapi.generated';
+} from "@shopify/hydrogen/storefront-api-types";
+import { AddToCartButton } from "./AddToCartButton";
+import { useAside } from "./Aside";
+import type { ProductFragment } from "storefrontapi.generated";
+import { useWishlist } from "~/lib/wishlist"; // ✅ ONLY ADDITION: Import wishlist hook
+import { Heart } from "lucide-react"; // ✅ ONLY ADDITION: Import Heart icon
+import { useState, useEffect } from "react"; // ✅ UPDATED: Add useEffect to existing import
 
 export function ProductForm({
   productOptions,
   selectedVariant,
   quantity = 1,
   onQuantityChange,
+  wishlistProductIds = [], // ✅ ONLY ADDITION: Add wishlist prop
 }: {
   productOptions: MappedProductOptions[];
-  selectedVariant: ProductFragment['selectedOrFirstAvailableVariant'];
+  selectedVariant: ProductFragment["selectedOrFirstAvailableVariant"];
   quantity?: number;
   onQuantityChange?: (quantity: number) => void;
+  wishlistProductIds?: string[]; // ✅ ONLY ADDITION: Add wishlist prop type
 }) {
   const navigate = useNavigate();
-  const {open} = useAside();
+  const { open } = useAside();
+
+  // ✅ ONLY ADDITION: Add wishlist functionality
+  const { addToWishlist, removeFromWishlist, isUpdating } = useWishlist();
+  const [isWishlisted, setIsWishlisted] = useState(false);
+
+  // ✅ ONLY ADDITION: Update wishlist state when product changes
+  useEffect(() => {
+    if (selectedVariant?.product?.id) {
+      setIsWishlisted(wishlistProductIds.includes(selectedVariant.product.id));
+    }
+  }, [selectedVariant?.product?.id, wishlistProductIds]);
 
   const handleQuantityDecrease = () => {
     if (quantity > 1 && onQuantityChange) {
@@ -34,9 +50,22 @@ export function ProductForm({
     }
   };
 
+  // ✅ ONLY ADDITION: Add wishlist click handler
+  const handleWishlistClick = () => {
+    if (!selectedVariant?.product?.id) return;
+
+    if (isWishlisted) {
+      removeFromWishlist(selectedVariant.product.id);
+      setIsWishlisted(false);
+    } else {
+      addToWishlist(selectedVariant.product.id);
+      setIsWishlisted(true);
+    }
+  };
+
   // Debug logs - remove these after testing
-  console.log('🐛 ProductForm - selectedVariant:', selectedVariant);
-  console.log('🐛 ProductForm - quantity:', quantity);
+  console.log("🐛 ProductForm - selectedVariant:", selectedVariant);
+  console.log("🐛 ProductForm - quantity:", quantity);
 
   return (
     <div className="product-form space-y-6">
@@ -76,10 +105,10 @@ export function ProductForm({
                 `;
 
                 const stateClasses = selected
-                  ? 'border-gray-900 bg-gray-900 text-white'
+                  ? "border-gray-900 bg-gray-900 text-white"
                   : available
-                    ? 'bg-white text-gray-700 hover:border-gray-400'
-                    : 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200';
+                  ? "bg-white text-gray-700 hover:border-gray-400"
+                  : "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200";
 
                 if (isDifferentProduct) {
                   // SEO: When the variant is a combined listing child product
@@ -209,8 +238,8 @@ export function ProductForm({
           <AddToCartButton
             disabled={!selectedVariant || !selectedVariant.availableForSale}
             onClick={() => {
-              console.log('🐛 Opening cart aside');
-              open('cart');
+              console.log("🐛 Opening cart aside");
+              open("cart");
             }}
             lines={
               selectedVariant
@@ -237,30 +266,28 @@ export function ProductForm({
             }}
           >
             {selectedVariant?.availableForSale
-              ? 'LÄGG I VARUKORGEN'
-              : 'Slutsåld'}
+              ? "LÄGG I VARUKORGEN"
+              : "Slutsåld"}
           </AddToCartButton>
         </div>
 
-        {/* Wishlist/Heart Icon */}
+        {/* ✅ UPDATED: Replace placeholder with functional wishlist button */}
         <button
           type="button"
-          className="w-10 h-10 flex items-center justify-center border border-gray-300 rounded-lg hover:border-gray-400 transition-colors"
-          title="Add to Wishlist"
+          onClick={handleWishlistClick}
+          disabled={isUpdating}
+          className="w-10 h-10 flex items-center justify-center border border-gray-300 rounded-lg hover:border-gray-400 transition-colors disabled:opacity-50"
+          title={
+            isWishlisted ? "Ta bort från önskelista" : "Lägg till i önskelista"
+          }
         >
-          <svg
-            className="w-5 h-5 text-gray-600 hover:text-red-500 transition-colors"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-            />
-          </svg>
+          <Heart
+            className={`w-5 h-5 transition-colors ${
+              isWishlisted
+                ? "text-red-500 fill-red-500"
+                : "text-gray-600 hover:text-red-500"
+            }`}
+          />
         </button>
       </div>
     </div>
@@ -279,7 +306,7 @@ function ProductOptionSwatch({
       <div className="flex items-center gap-2">
         <div
           className="w-3 h-3 rounded-full border border-gray-300"
-          style={{backgroundColor: swatch.color}}
+          style={{ backgroundColor: swatch.color }}
         />
         <span>{name}</span>
       </div>

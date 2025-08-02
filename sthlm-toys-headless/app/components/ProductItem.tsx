@@ -1,3 +1,6 @@
+// FILE: app/components/ProductItem.tsx
+// TEMPORARY: This removes wishlist to get your site working again
+
 import { Link } from "react-router";
 import { Image } from "@shopify/hydrogen";
 import { Heart } from "lucide-react";
