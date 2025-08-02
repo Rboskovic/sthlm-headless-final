@@ -1,3 +1,6 @@
+// FILE: app/components/ProductForm.tsx
+// ✅ REVERTED: Back to original layout + working wishlist button
+
 import {Link, useNavigate} from 'react-router';
 import {type MappedProductOptions} from '@shopify/hydrogen';
 import type {
@@ -6,14 +9,17 @@ import type {
 } from '@shopify/hydrogen/storefront-api-types';
 import {AddToCartButton} from './AddToCartButton';
 import {useAside} from './Aside';
+import {WishlistButton} from './WishlistButton';
 import type {ProductFragment} from 'storefrontapi.generated';
 
 export function ProductForm({
+  product,
   productOptions,
   selectedVariant,
   quantity = 1,
   onQuantityChange,
 }: {
+  product?: ProductFragment;
   productOptions: MappedProductOptions[];
   selectedVariant: ProductFragment['selectedOrFirstAvailableVariant'];
   quantity?: number;
@@ -78,77 +84,67 @@ export function ProductForm({
                 const stateClasses = selected
                   ? 'border-gray-900 bg-gray-900 text-white'
                   : available
-                    ? 'bg-white text-gray-700 hover:border-gray-400'
-                    : 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200';
+                    ? 'hover:border-gray-400 hover:bg-gray-50'
+                    : 'opacity-50 cursor-not-allowed';
+
+                const linkClasses = `${baseClasses} ${stateClasses}`;
 
                 if (isDifferentProduct) {
-                  // SEO: When the variant is a combined listing child product
-                  // that leads to a different url, render as anchor tag
                   return (
                     <Link
-                      className={`${baseClasses} ${stateClasses}`}
-                      key={option.name + name}
-                      prefetch="intent"
-                      preventScrollReset
-                      replace
-                      to={`/products/${handle}?${variantUriQuery}`}
+                      key={name}
+                      to={`/products/${handle}${variantUriQuery}`}
+                      className={linkClasses}
                       style={{
                         fontFamily:
                           "UniformRnd, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
                       }}
                     >
-                      <ProductOptionSwatch swatch={swatch} name={name} />
+                      {swatch?.color && (
+                        <div
+                          className="w-4 h-4 rounded-full mr-2 border border-gray-300"
+                          style={{backgroundColor: swatch.color}}
+                        />
+                      )}
+                      {name}
                     </Link>
                   );
-                } else {
-                  // SEO: When the variant is an update to the search param,
-                  // render as button with javascript navigation
-                  return (
-                    <button
-                      type="button"
-                      className={`${baseClasses} ${stateClasses}`}
-                      key={option.name + name}
-                      style={{
-                        fontFamily:
-                          "UniformRnd, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                      }}
-                      disabled={!available}
-                      onClick={() => {
-                        if (!exists) return;
-                        navigate(`?${variantUriQuery}`, {
-                          replace: true,
-                          preventScrollReset: true,
-                        });
-                      }}
-                    >
-                      <ProductOptionSwatch swatch={swatch} name={name} />
-                    </button>
-                  );
                 }
+
+                return (
+                  <Link
+                    key={name}
+                    to={`?${variantUriQuery}`}
+                    className={linkClasses}
+                    style={{
+                      fontFamily:
+                        "UniformRnd, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                    }}
+                  >
+                    {swatch?.color && (
+                      <div
+                        className="w-4 h-4 rounded-full mr-2 border border-gray-300"
+                        style={{backgroundColor: swatch.color}}
+                      />
+                    )}
+                    {name}
+                  </Link>
+                );
               })}
             </div>
           </div>
         );
       })}
 
-      {/* Shop Pay Payment Options */}
-      <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
-        <div className="text-sm text-gray-600 mb-2">
-          Betala senare för beställningar över 350,00 kr med
-          <span className="font-medium text-purple-600 ml-1">Shop Pay</span>
-        </div>
-        <div className="text-xs text-gray-500">Läs mer</div>
-      </div>
-
-      {/* Quantity Selector and Add to Cart */}
-      <div className="flex items-center gap-3">
-        {/* Quantity Selector */}
-        <div className="flex items-center border border-gray-300 rounded-lg">
+      {/* ✅ REVERTED: Original Quantity and Add to Cart Layout */}
+      <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
+        {/* Quantity Controls */}
+        <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden w-fit">
           <button
             type="button"
             onClick={handleQuantityDecrease}
             disabled={quantity <= 1}
-            className="w-10 h-10 flex items-center justify-center text-gray-600 hover:text-gray-800 disabled:text-gray-300 disabled:cursor-not-allowed transition-colors"
+            className="w-10 h-10 flex items-center justify-center text-gray-600 hover:text-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             style={{
               fontFamily:
                 "UniformRnd, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
@@ -204,7 +200,7 @@ export function ProductForm({
           </button>
         </div>
 
-        {/* Add to Cart Button */}
+        {/* ✅ REVERTED: Original Add to Cart Button Layout */}
         <div className="flex-1">
           <AddToCartButton
             disabled={!selectedVariant || !selectedVariant.availableForSale}
@@ -241,64 +237,28 @@ export function ProductForm({
               : 'Slutsåld'}
           </AddToCartButton>
         </div>
-
-        {/* Wishlist/Heart Icon - Simple placeholder for now */}
-        <button
-          type="button"
-          className="w-10 h-10 flex items-center justify-center border border-gray-300 rounded-lg hover:border-gray-400 transition-colors"
-          title="Add to Wishlist"
-          onClick={() => console.log('Wishlist clicked - will be implemented')}
-        >
-          <svg
-            className="w-5 h-5 text-gray-600 hover:text-red-500 transition-colors"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-            />
-          </svg>
-        </button>
       </div>
+
+      {/* ✅ REVERTED: Original Separate Wishlist Button (but now working) */}
+      {product && (
+        <WishlistButton
+          productId={product.id}
+          productTitle={product.title}
+          size="lg"
+          className="w-10 h-10 border border-gray-300 rounded-lg hover:border-gray-400"
+        />
+      )}
+
+      {/* Availability Status */}
+      {selectedVariant && (
+        <div className="text-sm">
+          {selectedVariant.availableForSale ? (
+            <p className="text-green-600 font-medium">✓ In stock</p>
+          ) : (
+            <p className="text-red-600 font-medium">✗ Out of stock</p>
+          )}
+        </div>
+      )}
     </div>
   );
-}
-
-function ProductOptionSwatch({
-  swatch,
-  name,
-}: {
-  swatch?: Maybe<ProductOptionValueSwatch>;
-  name: string;
-}) {
-  if (swatch?.color) {
-    return (
-      <div className="flex items-center gap-2">
-        <div
-          className="w-3 h-3 rounded-full border border-gray-300"
-          style={{backgroundColor: swatch.color}}
-        />
-        <span>{name}</span>
-      </div>
-    );
-  }
-
-  if (swatch?.image?.previewImage?.url) {
-    return (
-      <div className="flex items-center gap-2">
-        <img
-          src={swatch.image.previewImage.url}
-          alt={name}
-          className="w-3 h-3 rounded-full border border-gray-300 object-cover"
-        />
-        <span>{name}</span>
-      </div>
-    );
-  }
-
-  return <span>{name}</span>;
 }

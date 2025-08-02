@@ -1,11 +1,11 @@
 // FILE: app/routes/($locale).account.wishlist.tsx
-// CORRECT: Following exact pattern of your account.addresses.tsx and account.profile.tsx
+// ✅ SHOPIFY HYDROGEN STANDARDS: Fixed to redirect instead of throwing errors
 
 import type {
   ActionFunctionArgs,
   LoaderFunctionArgs,
 } from '@shopify/remix-oxygen';
-import {data, type MetaFunction} from '@shopify/remix-oxygen';
+import {data, redirect, type MetaFunction} from '@shopify/remix-oxygen';
 import {Form, useActionData, useOutletContext, Link} from 'react-router';
 import {Heart, ShoppingBag, Trash2} from 'lucide-react';
 import type {CustomerFragment} from 'customer-accountapi.generated';
@@ -23,29 +23,52 @@ export const meta: MetaFunction = () => {
 };
 
 export async function loader({context}: LoaderFunctionArgs) {
-  await context.customerAccount.handleAuthStatus();
+  // ✅ FIXED: Check authentication and redirect if needed
+  try {
+    const isLoggedIn = await context.customerAccount.isLoggedIn();
 
-  return {};
+    if (!isLoggedIn) {
+      // Redirect to login instead of throwing error
+      return redirect('/account/login');
+    }
+
+    await context.customerAccount.handleAuthStatus();
+    return {};
+  } catch (error) {
+    // Any auth errors should redirect to login
+    return redirect('/account/login');
+  }
 }
 
 export async function action({request, context}: ActionFunctionArgs) {
   const {customerAccount} = context;
 
-  const formData = await request.formData();
-  const action = formData.get('action') as string;
-  const productId = formData.get('productId') as string;
+  // ✅ FIXED: Check auth in action too
+  try {
+    const isLoggedIn = await customerAccount.isLoggedIn();
 
-  if (!productId) {
-    return data({error: 'Product ID is required'}, {status: 400});
+    if (!isLoggedIn) {
+      return redirect('/account/login');
+    }
+
+    const formData = await request.formData();
+    const action = formData.get('action') as string;
+    const productId = formData.get('productId') as string;
+
+    if (!productId) {
+      return data({error: 'Product ID is required'}, {status: 400});
+    }
+
+    // For now, just return success - following your existing pattern
+    return data({
+      success: true,
+      action,
+      productId,
+      message: `${action === 'add' ? 'Added to' : 'Removed from'} wishlist`,
+    });
+  } catch (error) {
+    return redirect('/account/login');
   }
-
-  // For now, just return success - following your existing pattern
-  return data({
-    success: true,
-    action,
-    productId,
-    message: `${action === 'add' ? 'Added to' : 'Removed from'} wishlist`,
-  });
 }
 
 export default function WishlistPage() {
@@ -128,136 +151,94 @@ export default function WishlistPage() {
         <div>
           <p>
             You have {mockWishlistProducts.length} saved{' '}
-            {mockWishlistProducts.length === 1 ? 'product' : 'products'}
+            {mockWishlistProducts.length === 1 ? 'item' : 'items'}
           </p>
           <br />
-
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
-              gap: '20px',
-            }}
-          >
+          <div style={{display: 'grid', gap: '20px'}}>
             {mockWishlistProducts.map((product) => (
-              <WishlistProductCard key={product.id} product={product} />
+              <div
+                key={product.id}
+                style={{
+                  display: 'flex',
+                  gap: '20px',
+                  padding: '20px',
+                  border: '1px solid #ddd',
+                  borderRadius: '8px',
+                }}
+              >
+                <img
+                  src={product.featuredImage.url}
+                  alt={product.featuredImage.altText}
+                  style={{width: '100px', height: '100px', objectFit: 'cover'}}
+                />
+                <div style={{flex: 1}}>
+                  <h4>{product.title}</h4>
+                  <p>Vendor: {product.vendor}</p>
+                  <p>
+                    Price: {product.price.amount} {product.price.currencyCode}
+                  </p>
+                  {product.compareAtPrice && (
+                    <p>
+                      Compare at: {product.compareAtPrice.amount}{' '}
+                      {product.compareAtPrice.currencyCode}
+                    </p>
+                  )}
+                  <p>
+                    Status:{' '}
+                    {product.availableForSale ? 'In stock' : 'Out of stock'}
+                  </p>
+                </div>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '10px',
+                  }}
+                >
+                  <Form method="post">
+                    <input type="hidden" name="action" value="remove" />
+                    <input type="hidden" name="productId" value={product.id} />
+                    <button
+                      type="submit"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                        padding: '8px 16px',
+                        backgroundColor: '#dc3545',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <Trash2 size={16} />
+                      Remove
+                    </button>
+                  </Form>
+                  <Link
+                    to={`/products/${product.handle}`}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      padding: '8px 16px',
+                      backgroundColor: '#007bff',
+                      color: 'white',
+                      textDecoration: 'none',
+                      borderRadius: '4px',
+                      textAlign: 'center',
+                    }}
+                  >
+                    <ShoppingBag size={16} />
+                    View Product
+                  </Link>
+                </div>
+              </div>
             ))}
           </div>
         </div>
       )}
-    </div>
-  );
-}
-
-function WishlistProductCard({product}: {product: any}) {
-  return (
-    <div
-      style={{
-        position: 'relative',
-        border: '1px solid #ddd',
-        borderRadius: '8px',
-        overflow: 'hidden',
-        backgroundColor: 'white',
-      }}
-    >
-      <Link
-        to={`/products/${product.handle}`}
-        style={{textDecoration: 'none', color: 'inherit'}}
-      >
-        <div style={{aspectRatio: '1/1', backgroundColor: '#f8f8f8'}}>
-          <img
-            src={product.featuredImage?.url}
-            alt={product.featuredImage?.altText || product.title}
-            style={{width: '100%', height: '100%', objectFit: 'cover'}}
-          />
-        </div>
-
-        <div style={{padding: '15px'}}>
-          <h3
-            style={{
-              fontSize: '16px',
-              fontWeight: '600',
-              margin: '0 0 8px 0',
-              lineHeight: '1.3',
-            }}
-          >
-            {product.title}
-          </h3>
-
-          {product.vendor && (
-            <p
-              style={{
-                fontSize: '14px',
-                color: '#666',
-                margin: '0 0 8px 0',
-              }}
-            >
-              {product.vendor}
-            </p>
-          )}
-
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-            }}
-          >
-            <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
-              <span style={{fontSize: '18px', fontWeight: 'bold'}}>
-                {product.price.amount} {product.price.currencyCode}
-              </span>
-              {product.compareAtPrice && (
-                <span
-                  style={{
-                    fontSize: '14px',
-                    color: '#666',
-                    textDecoration: 'line-through',
-                  }}
-                >
-                  {product.compareAtPrice.amount}{' '}
-                  {product.compareAtPrice.currencyCode}
-                </span>
-              )}
-            </div>
-
-            {!product.availableForSale && (
-              <span
-                style={{
-                  fontSize: '14px',
-                  color: '#dc3545',
-                  fontWeight: 'medium',
-                }}
-              >
-                Out of stock
-              </span>
-            )}
-          </div>
-        </div>
-      </Link>
-
-      {/* Remove from wishlist button */}
-      <Form
-        method="POST"
-        style={{position: 'absolute', top: '8px', right: '8px'}}
-      >
-        <input type="hidden" name="action" value="remove" />
-        <input type="hidden" name="productId" value={product.id} />
-        <button
-          type="submit"
-          style={{
-            padding: '8px',
-            backgroundColor: 'white',
-            border: 'none',
-            borderRadius: '50%',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-            cursor: 'pointer',
-          }}
-          title="Remove from wishlist"
-        >
-          <Trash2 size={16} style={{color: '#dc3545'}} />
-        </button>
-      </Form>
     </div>
   );
 }

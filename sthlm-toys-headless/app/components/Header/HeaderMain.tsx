@@ -1,10 +1,13 @@
-// app/components/Header/HeaderMain.tsx - Updated for fullscreen mobile menu
+// FILE: app/components/Header/HeaderMain.tsx
+// ✅ FIXED: Uses smart WishlistsLink component instead of hardcoded links
+
 import {Suspense} from 'react';
 import {Link, Await} from 'react-router';
 import {Heart, Menu, User, FileText, HelpCircle} from 'lucide-react';
 import {SearchBar} from './SearchBar';
 import {CartToggle} from './CartToggle';
 import {Logo} from './Logo';
+import {WishlistsLink} from '../WishlistsLink';
 import type {HeaderMainProps} from './types';
 
 // Updated interface to include mobile menu toggle
@@ -46,12 +49,13 @@ export function HeaderMain({
                   >
                     <User size={16} className="text-white" />
                     <span className="text-white">
-                      {isLoggedIn ? 'Konto' : 'Logga in'}
+                      {isLoggedIn ? 'Mitt konto' : 'Logga in / Registrera'}
                     </span>
                   </Link>
                 )}
               </Await>
             </Suspense>
+
             <Link
               to="/account/orders"
               className="flex items-center rounded-full text-white hover:bg-white/10 transition-colors px-3 py-2"
@@ -66,6 +70,7 @@ export function HeaderMain({
               <FileText size={16} className="text-white" />
               <span className="text-white">Mina beställningar</span>
             </Link>
+
             <Link
               to="/hjalp"
               className="flex items-center rounded-full text-white hover:bg-white/10 transition-colors px-3 py-2"
@@ -85,9 +90,9 @@ export function HeaderMain({
       </div>
 
       {/* Main Header - Desktop */}
-      <div className="hidden lg:flex lg:items-center">
+      <div className="hidden lg:block">
         <div
-          className="mx-auto flex items-center"
+          className="flex items-center"
           style={{
             width: '1272px',
             height: '68px',
@@ -109,9 +114,10 @@ export function HeaderMain({
 
           {/* Right Actions */}
           <div className="flex items-center" style={{gap: '16px'}}>
-            {/* Wishlist */}
-            <Link
-              to="/account/wishlist"
+            {/* ✅ FIXED: Smart Wishlist Link */}
+            <WishlistsLink
+              isLoggedIn={isLoggedIn}
+              variant="desktop"
               className="flex items-center rounded-full text-white hover:bg-white/10 transition-colors"
               style={{
                 minHeight: '48px',
@@ -128,7 +134,7 @@ export function HeaderMain({
             >
               <Heart size={32} className="text-white" />
               <span className="text-white">Önskelista</span>
-            </Link>
+            </WishlistsLink>
 
             {/* Cart */}
             <CartToggle cart={cart} />
@@ -162,12 +168,14 @@ export function HeaderMain({
 
           {/* Right: Wishlist and Cart */}
           <div className="flex items-center gap-2">
-            <Link
-              to="/account/wishlist"
+            {/* ✅ FIXED: Smart Wishlist Link for Mobile */}
+            <WishlistsLink
+              isLoggedIn={isLoggedIn}
+              variant="mobile"
               className="text-white p-2 hover:bg-white/10 rounded-lg transition-colors"
             >
               <Heart size={24} />
-            </Link>
+            </WishlistsLink>
             <CartToggle cart={cart} />
           </div>
         </div>

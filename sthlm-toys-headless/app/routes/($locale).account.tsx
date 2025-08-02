@@ -1,8 +1,9 @@
 // FILE: app/routes/($locale).account.tsx
-// CORRECT: Exact copy of your existing file + add wishlist to navigation
+// ✅ SHOPIFY HYDROGEN STANDARDS: Fixed to redirect instead of throwing errors
 
 import {
   data as remixData,
+  redirect,
   type LoaderFunctionArgs,
 } from '@shopify/remix-oxygen';
 import {Form, NavLink, Outlet, useLoaderData} from 'react-router';
@@ -12,23 +13,37 @@ export function shouldRevalidate() {
   return true;
 }
 
-export async function loader({context}: LoaderFunctionArgs) {
-  const {data, errors} = await context.customerAccount.query(
-    CUSTOMER_DETAILS_QUERY,
-  );
+export async function loader({context, request}: LoaderFunctionArgs) {
+  // ✅ FIXED: Check if logged in first, redirect if not
+  try {
+    const isLoggedIn = await context.customerAccount.isLoggedIn();
 
-  if (errors?.length || !data?.customer) {
-    throw new Error('Customer not found');
-  }
+    if (!isLoggedIn) {
+      // Redirect to login page instead of throwing error
+      return redirect('/account/login');
+    }
 
-  return remixData(
-    {customer: data.customer},
-    {
-      headers: {
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
+    const {data, errors} = await context.customerAccount.query(
+      CUSTOMER_DETAILS_QUERY,
+    );
+
+    if (errors?.length || !data?.customer) {
+      // Redirect to login instead of throwing error
+      return redirect('/account/login');
+    }
+
+    return remixData(
+      {customer: data.customer},
+      {
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+        },
       },
-    },
-  );
+    );
+  } catch (error) {
+    // Any auth errors should redirect to login
+    return redirect('/account/login');
+  }
 }
 
 export default function AccountLayout() {
