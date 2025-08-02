@@ -1,3 +1,6 @@
+// FILE: app/routes/($locale).account.tsx
+// CORRECT: Exact copy of your existing file + add wishlist to navigation
+
 import {
   data as remixData,
   type LoaderFunctionArgs,
@@ -67,6 +70,10 @@ function AccountMenu() {
     <nav role="navigation">
       <NavLink to="/account/orders" style={isActiveStyle}>
         Orders &nbsp;
+      </NavLink>
+      &nbsp;|&nbsp;
+      <NavLink to="/account/wishlist" style={isActiveStyle}>
+        &nbsp; Wishlist &nbsp;
       </NavLink>
       &nbsp;|&nbsp;
       <NavLink to="/account/profile" style={isActiveStyle}>
