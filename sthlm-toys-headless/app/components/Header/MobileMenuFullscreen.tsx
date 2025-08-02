@@ -1,6 +1,6 @@
-// app/components/Header/MobileMenuFullscreen.tsx
-import {Suspense, useState} from 'react';
-import {Link, Await} from 'react-router';
+// app/components/Header/MobileMenuFullscreen.tsx - Fixed with better image import and larger sizes
+import { Suspense, useState } from "react";
+import { Link, Await } from "react-router";
 import {
   X,
   ChevronRight,
@@ -11,9 +11,10 @@ import {
   Package,
   Heart,
   HelpCircle,
-} from 'lucide-react';
-import {Image} from '@shopify/hydrogen';
-import type {Collection} from '@shopify/hydrogen/storefront-api-types';
+  LogIn, // Better login icon
+} from "lucide-react";
+import { Image } from "@shopify/hydrogen";
+import type { Collection } from "@shopify/hydrogen/storefront-api-types";
 
 interface MobileMenuFullscreenProps {
   isOpen: boolean;
@@ -72,7 +73,7 @@ export function MobileMenuFullscreen({
 
         {/* Popular section */}
         <div className="px-4 py-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Popular</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Populära</h3>
           <PopularGrid collections={popularCollections} onClose={onClose} />
         </div>
 
@@ -85,9 +86,9 @@ export function MobileMenuFullscreen({
   );
 }
 
-function MobileLogo({shop}: {shop: any}) {
+function MobileLogo({ shop }: { shop: any }) {
   const logoUrl = shop?.brand?.logo?.image?.url;
-  const shopName = shop?.name || 'STHLM TOYS & GAMES';
+  const shopName = shop?.name || "STHLM TOYS & GAMES";
 
   if (logoUrl) {
     return (
@@ -124,16 +125,16 @@ function UserGreetingFallback() {
     <div className="flex items-center justify-between p-4">
       <div className="flex items-center gap-3">
         <div className="w-6 h-6 bg-blue-100 rounded-full animate-pulse"></div>
-        <span className="text-gray-400">Loading...</span>
+        <span className="text-gray-400">Laddar...</span>
       </div>
       <ChevronRight size={20} className="text-gray-400" />
     </div>
   );
 }
 
-function UserGreeting({isLoggedIn}: {isLoggedIn: boolean}) {
+function UserGreeting({ isLoggedIn }: { isLoggedIn: boolean }) {
   // TODO: Get actual customer name from customer account query
-  const customerName = 'Vale'; // This should come from customer data
+  const customerName = "Vale"; // This should come from customer data
 
   if (isLoggedIn) {
     return (
@@ -160,45 +161,46 @@ function UserGreeting({isLoggedIn}: {isLoggedIn: boolean}) {
       className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
     >
       <div className="flex items-center gap-3">
-        <div className="w-6 h-6 bg-gray-300 rounded-full flex items-center justify-center">
-          <span className="text-white text-sm">?</span>
+        {/* Improved login icon */}
+        <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+          <LogIn size={14} className="text-white" />
         </div>
-        <span className="text-gray-900 font-medium">Log in</span>
+        <span className="text-gray-900 font-medium">Logga in</span>
       </div>
       <ChevronRight size={20} className="text-gray-400" />
     </Link>
   );
 }
 
-function MainNavigation({onClose}: {onClose: () => void}) {
+function MainNavigation({ onClose }: { onClose: () => void }) {
   const mainNavItems = [
     {
-      id: 'toys',
-      title: 'Toys',
+      id: "toys",
+      title: "Leksaker",
       icon: ShoppingBag,
-      color: 'bg-red-500',
-      href: '/collections', // Will lead to all categories later
+      color: "bg-red-500",
+      href: "/collections", // Will lead to all categories later
     },
     {
-      id: 'shop-by-age',
-      title: 'Shop by age',
+      id: "shop-by-age",
+      title: "Handla efter ålder",
       icon: Baby,
-      color: 'bg-blue-500',
-      href: '/collections/age', // Will be specific results later
+      color: "bg-blue-500",
+      href: "/collections/age", // Will be specific results later
     },
     {
-      id: 'shop-by-brand',
-      title: 'Shop by brand',
+      id: "shop-by-brand",
+      title: "Handla efter märke",
       icon: Shirt,
-      color: 'bg-green-500',
-      href: '/collections/brands', // Will be specific results later
+      color: "bg-green-500",
+      href: "/collections/brands", // Will be specific results later
     },
     {
-      id: 'shop-by-character',
-      title: 'Shop by character',
+      id: "shop-by-character",
+      title: "Handla efter karaktär",
       icon: Gamepad2,
-      color: 'bg-orange-500',
-      href: '/collections/characters', // Will be specific results later
+      color: "bg-orange-500",
+      href: "/collections/characters", // Will be specific results later
     },
   ];
 
@@ -233,7 +235,14 @@ function PopularGrid({
   collections: Collection[];
   onClose: () => void;
 }) {
-  // Filter collections with mobile_menu_featured metafield and limit to 8
+  // Debug logging to see what we're getting from Shopify
+  console.log("PopularGrid - Collections received:", collections?.length || 0);
+  console.log("PopularGrid - Collections data:", collections);
+  if (collections?.length > 0) {
+    console.log("PopularGrid - First collection sample:", collections[0]);
+  }
+
+  // Filter collections with mobile_menu_featured metafield and limit to 9 (updated from 8)
   const getMetafieldValue = (metafields: any, key: string): string | null => {
     if (!metafields || !Array.isArray(metafields)) return null;
     const metafield = metafields.find((field: any) => field?.key === key);
@@ -244,63 +253,109 @@ function PopularGrid({
     if (!value) return false;
     const normalizedValue = value.toLowerCase().trim();
     return (
-      normalizedValue === 'true' ||
-      normalizedValue === '1' ||
-      normalizedValue === 'yes'
+      normalizedValue === "true" ||
+      normalizedValue === "1" ||
+      normalizedValue === "yes"
     );
   };
 
-  const featuredCollections = collections
-    .filter((collection) => {
-      const featuredValue = getMetafieldValue(
-        collection.metafields,
-        'mobile_menu_featured',
-      );
-      return isTrueValue(featuredValue) && collection.image?.url;
-    })
-    .slice(0, 8); // Limit to 8 items
+  const featuredCollections =
+    collections
+      ?.filter((collection) => {
+        const featuredValue = getMetafieldValue(
+          collection.metafields,
+          "mobile_menu_featured"
+        );
+        const hasImage = collection.image?.url;
 
-  // Fallback data if no collections available
+        console.log(`Collection: ${collection.title}`, {
+          featuredValue,
+          hasImage,
+          imageUrl: collection.image?.url,
+          metafields: collection.metafields,
+        });
+
+        return isTrueValue(featuredValue);
+      })
+      ?.slice(0, 9) || []; // Updated from 8 to 9 items for 3x3 grid
+
+  console.log(
+    "PopularGrid - Featured collections:",
+    featuredCollections.length
+  );
+
+  // Fallback data with 9 items for perfect 3x3 grid
   const fallbackItems = [
-    {id: 'deals', title: 'Deals', image: null, handle: 'deals'},
-    {id: 'new', title: 'New & Trending', image: null, handle: 'new'},
-    {id: 'all-toys', title: 'All Toys', image: null, handle: 'all-toys'},
-    {id: 'lego', title: 'LEGO', image: null, handle: 'lego'},
-    {id: 'minecraft', title: 'Minecraft', image: null, handle: 'minecraft'},
-    {id: 'sonic', title: 'Sonic', image: null, handle: 'sonic'},
-    {id: 'spiderman', title: 'Spiderman', image: null, handle: 'spiderman'},
-    {id: 'disney', title: 'Disney', image: null, handle: 'disney'},
+    { id: "deals", title: "Erbjudanden", image: null, handle: "deals" },
+    { id: "new", title: "Nytt & Populärt", image: null, handle: "new" },
+    { id: "all-toys", title: "Alla Leksaker", image: null, handle: "all-toys" },
+    { id: "lego", title: "LEGO", image: null, handle: "lego" },
+    { id: "minecraft", title: "Minecraft", image: null, handle: "minecraft" },
+    { id: "sonic", title: "Sonic", image: null, handle: "sonic" },
+    { id: "spiderman", title: "Spiderman", image: null, handle: "spiderman" },
+    { id: "disney", title: "Disney", image: null, handle: "disney" },
+    { id: "outdoor", title: "Utomhus", image: null, handle: "outdoor" }, // Added 9th item
   ];
 
   const displayItems =
     featuredCollections.length > 0 ? featuredCollections : fallbackItems;
 
+  console.log(
+    "PopularGrid - Display items:",
+    displayItems.length,
+    displayItems
+  );
+
   return (
-    <div className="grid grid-cols-4 gap-4">
+    <div className="grid grid-cols-3 gap-4 mobile-menu-popular-grid">
       {displayItems.map((item) => (
         <Link
           key={item.id}
           to={`/collections/${item.handle}`}
           onClick={onClose}
-          className="flex flex-col items-center gap-2 p-2 hover:bg-gray-50 rounded-lg transition-colors"
+          className="flex flex-col items-center mobile-menu-popular-item"
         >
-          <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
+          <div
+            className="w-20 h-20 bg-gray-200 rounded-xl flex items-center justify-center overflow-hidden"
+            style={{
+              width: "5rem", // Increased from 4rem to 5rem
+              height: "5rem", // Increased from 4rem to 5rem
+              backgroundColor: item.image?.url ? "transparent" : "#f3f4f6",
+            }}
+          >
             {item.image?.url ? (
               <Image
                 data={{
                   url: item.image.url,
                   altText: item.image.altText || item.title,
-                  width: 64,
-                  height: 64,
+                  width: 80, // Increased from 64 to 80
+                  height: 80, // Increased from 64 to 80
                 }}
-                sizes="64px"
-                className="w-full h-full object-cover"
+                sizes="80px" // Increased from 64px to 80px
+                className="w-full h-full object-cover rounded-xl"
               />
             ) : (
-              <Package size={24} className="text-gray-400" />
+              <div
+                className="w-full h-full rounded-xl flex items-center justify-center text-gray-500"
+                style={{
+                  backgroundColor: "#e5e7eb",
+                  fontSize: "2rem", // Increased icon size
+                }}
+              >
+                📦
+              </div>
             )}
           </div>
-          <span className="text-xs font-medium text-gray-900 text-center leading-tight">
+          <span
+            className="text-xs font-medium text-gray-700 text-center mt-2 mobile-popular-text"
+            style={{
+              fontSize: "0.75rem",
+              lineHeight: "1rem",
+              maxWidth: "5rem", // Increased from 4rem to 5rem
+              wordWrap: "break-word",
+              hyphens: "auto",
+            }}
+          >
             {item.title}
           </span>
         </Link>
@@ -309,28 +364,28 @@ function PopularGrid({
   );
 }
 
-function BottomLinks({onClose}: {onClose: () => void}) {
+function BottomLinks({ onClose }: { onClose: () => void }) {
   const bottomLinks = [
     {
-      id: 'orders',
-      title: 'My orders',
+      id: "orders",
+      title: "Mina beställningar",
       icon: Package,
-      href: '/account/orders',
-      color: 'text-blue-600',
+      href: "/account/orders",
+      color: "text-blue-600",
     },
     {
-      id: 'wishlist',
-      title: 'Wishlist',
+      id: "wishlist",
+      title: "Önskelista",
       icon: Heart,
-      href: '/account/wishlist',
-      color: 'text-blue-600',
+      href: "/account/wishlist",
+      color: "text-blue-600",
     },
     {
-      id: 'help',
-      title: 'Help',
+      id: "help",
+      title: "Hjälp",
       icon: HelpCircle,
-      href: '/hjalp',
-      color: 'text-blue-600',
+      href: "/hjalp",
+      color: "text-blue-600",
     },
   ];
 

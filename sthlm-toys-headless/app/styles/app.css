@@ -1,3 +1,9 @@
+/* app/styles/app.css - Updated with larger mobile grid image sizes */
+
+/* Import Tailwind base styles */
+@import './tailwind.css';
+
+/* SHOPIFY CORE VARIABLES - DO NOT MODIFY */
 :root {
   --aside-width: 400px;
   --cart-aside-summary-height-with-discount: 300px;
@@ -8,7 +14,7 @@
   --color-light: #fff;
 }
 
-/* Keep essential Shopify-specific overrides only */
+/* ESSENTIAL SHOPIFY STYLES - DO NOT MODIFY */
 img {
   border-radius: 4px;
 }
@@ -76,9 +82,8 @@ aside {
   height: 1.25rem;
 }
 
-/* 
-  Override section padding for hero banner - make it stick to header
-*/
+/* HOMEPAGE LAYOUT FIXES */
+/* Override section padding for hero banner - make it stick to header */
 section:first-child {
   padding-top: 0 !important;
   margin-top: 0 !important;
@@ -95,174 +100,172 @@ section:first-child {
   margin: 0 !important;
 }
 
-/* Remove any default body or main margins that might create white space */
-body {
-  margin: 0;
-  padding: 0;
-}
-
-main {
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-/* Ensure header sticks properly without gaps */
-header {
-  margin-bottom: 0 !important;
-}
-
-/* Hero banner specific - ensure no gaps */
-.hero-banner,
-section[style*='margin'] {
-  margin-top: 0 !important;
-  padding-top: 0 !important;
-}
-
-/* Fix for any container that might add spacing */
-div[style*='padding-top'] {
-  padding-top: 0 !important;
-}
-
-/* Specific fix for the homepage layout */
-div[style*='margin: 0, padding: 0'] {
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-/* FULLSCREEN MOBILE MENU STYLES */
+/* MOBILE MENU FULLSCREEN STYLES */
 
 /* Ensure mobile menu has highest z-index */
 .mobile-menu-fullscreen {
   z-index: 200; /* Higher than header and other asides */
 }
 
-/* Smooth transitions for mobile menu */
-.mobile-menu-slide-enter {
-  transform: translateX(-100%);
+/* 3x3 MOBILE GRID STYLES - UPDATED WITH LARGER SIZES */
+
+/* Base mobile grid styling for 3x3 layout - Updated for 5rem images */
+.mobile-menu-popular-grid {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  width: 100%;
+  justify-items: center;
 }
 
-.mobile-menu-slide-enter-active {
-  transform: translateX(0);
-  transition: transform 300ms ease-in-out;
+.mobile-menu-popular-item {
+  width: 5rem; /* Increased from 4rem to 5rem */
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  min-height: 44px; /* iOS minimum touch target */
+  min-width: 44px;
+  padding: 0.25rem;
+  cursor: pointer;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
 }
 
-.mobile-menu-slide-exit {
-  transform: translateX(0);
+/* Hover state for better UX */
+.mobile-menu-popular-item:hover {
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
 }
 
-.mobile-menu-slide-exit-active {
-  transform: translateX(-100%);
-  transition: transform 300ms ease-in-out;
+/* Ensure proper image display */
+.mobile-menu-popular-item img {
+  border-radius: 0.75rem;
+  object-fit: cover;
 }
 
-/* Backdrop animation */
-.mobile-menu-backdrop-enter {
-  opacity: 0;
+/* Popular item text styling */
+.mobile-popular-text {
+  font-family:
+    UniformRnd,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    Ubuntu,
+    Cantarell,
+    'Noto Sans',
+    sans-serif;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #111827;
+  text-align: center;
+  line-height: 1rem;
 }
 
-.mobile-menu-backdrop-enter-active {
-  opacity: 1;
-  transition: opacity 300ms ease-in-out;
-}
+/* Popular grid responsive adjustments - Updated for larger base size */
 
-.mobile-menu-backdrop-exit {
-  opacity: 1;
-}
-
-.mobile-menu-backdrop-exit-active {
-  opacity: 0;
-  transition: opacity 300ms ease-in-out;
-}
-
-/* Popular grid responsive adjustments */
+/* Small screens (320px and below) */
 @media (max-width: 320px) {
   .mobile-menu-popular-grid {
     grid-template-columns: repeat(3, 1fr);
     gap: 0.75rem;
+    padding: 0 0.5rem;
   }
-
+  
   .mobile-menu-popular-item {
-    width: 3.5rem;
-    height: 3.5rem;
+    width: 4rem; /* Slightly smaller on very small screens */
+    height: auto;
   }
-
-  .mobile-menu-popular-text {
+  
+  .mobile-menu-popular-item > div:first-child {
+    width: 4rem !important;
+    height: 4rem !important;
+  }
+  
+  .mobile-popular-text {
     font-size: 0.6875rem;
     line-height: 0.875rem;
+    max-width: 4rem;
   }
 }
 
-/* Ensure proper scrolling on mobile */
-.mobile-menu-container {
-  overscroll-behavior: contain;
+/* Very small screens (280px and below) */
+@media (max-width: 280px) {
+  .mobile-menu-popular-grid {
+    gap: 0.5rem;
+    padding: 0 0.25rem;
+  }
+  
+  .mobile-menu-popular-item {
+    width: 3.5rem;
+  }
+  
+  .mobile-menu-popular-item > div:first-child {
+    width: 3.5rem !important;
+    height: 3.5rem !important;
+  }
+  
+  .mobile-popular-text {
+    font-size: 0.625rem;
+    line-height: 0.75rem;
+    max-width: 3.5rem;
+  }
 }
 
-/* Fix for iOS Safari bounce */
-.mobile-menu-container {
-  position: fixed;
-  -webkit-overflow-scrolling: touch;
+/* Larger mobile screens (375px+) - Increased base size */
+@media (min-width: 375px) {
+  .mobile-menu-popular-grid {
+    gap: 1.25rem;
+    padding: 0 1rem;
+  }
+  
+  .mobile-menu-popular-item {
+    width: 5.5rem; /* Increased from 4.5rem to 5.5rem */
+  }
+  
+  .mobile-menu-popular-item > div:first-child {
+    width: 5.5rem !important;
+    height: 5.5rem !important;
+  }
+  
+  .mobile-popular-text {
+    font-size: 0.8125rem;
+    line-height: 1.125rem;
+    max-width: 5.5rem;
+  }
 }
 
-/* Prevent body scroll when mobile menu is open */
-body.mobile-menu-open {
-  overflow: hidden;
-  position: fixed;
-  width: 100%;
-  height: 100%;
+/* Extra large mobile screens (414px+) - Even larger for better visibility */
+@media (min-width: 414px) {
+  .mobile-menu-popular-grid {
+    gap: 1.5rem;
+    padding: 0 1.5rem;
+  }
+  
+  .mobile-menu-popular-item {
+    width: 6rem; /* Even larger on bigger screens */
+  }
+  
+  .mobile-menu-popular-item > div:first-child {
+    width: 6rem !important;
+    height: 6rem !important;
+  }
+  
+  .mobile-popular-text {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    max-width: 6rem;
+  }
 }
 
-/* Main navigation icons styling */
-.mobile-nav-icon {
-  flex-shrink: 0;
+/* HEADER Z-INDEX FIX */
+/* Fix header z-index to be below mobile menu */
+header {
+  z-index: 50; /* Lower than mobile menu z-index of 200 */
 }
 
-/* Bottom links icons styling */
-.mobile-bottom-link {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem;
-  border-radius: 0.5rem;
-  transition: background-color 0.2s ease;
-  text-decoration: none;
-  color: inherit;
-}
-
-.mobile-bottom-link:hover {
-  background-color: rgba(0, 0, 0, 0.05);
-}
-
-/* User greeting section styling */
-.mobile-user-greeting {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1rem;
-  border-bottom: 1px solid #f3f4f6;
-  transition: background-color 0.2s ease;
-  text-decoration: none;
-  color: inherit;
-}
-
-.mobile-user-greeting:hover {
-  background-color: rgba(0, 0, 0, 0.02);
-}
-
-/* Logo styling in mobile menu */
-.mobile-menu-logo {
-  max-height: 2.5rem;
-  width: auto;
-  object-fit: contain;
-}
-
-/* Ensure proper touch targets */
-.mobile-nav-item,
-.mobile-popular-item,
-.mobile-bottom-link {
-  min-height: 44px; /* iOS minimum touch target */
-  display: flex;
-  align-items: center;
-}
+/* MOBILE MENU ADDITIONAL STYLES */
 
 /* Popular section title styling */
 .mobile-popular-title {
@@ -298,36 +301,6 @@ body.mobile-menu-open {
     sans-serif;
   font-weight: 500;
   color: #111827;
-}
-
-/* Popular item text styling */
-.mobile-popular-text {
-  font-family:
-    UniformRnd,
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    'Segoe UI',
-    Roboto,
-    Ubuntu,
-    Cantarell,
-    'Noto Sans',
-    sans-serif;
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: #111827;
-  text-align: center;
-  line-height: 1rem;
-}
-
-/* Fix header z-index to be below mobile menu */
-header {
-  z-index: 50; /* Lower than mobile menu z-index of 200 */
-}
-
-/* Fix any potential layout shifts */
-.mobile-menu-fullscreen * {
-  box-sizing: border-box;
 }
 
 /* LEGACY MOBILE MENU STYLES (Keep for backward compatibility) */
@@ -400,4 +373,24 @@ aside main {
     Cantarell,
     'Noto Sans',
     sans-serif;
+}
+
+/* Emergency Grid Fix - Add this to your app.css temporarily */
+
+/* Force the mobile popular grid to display correctly */
+.mobile-menu-popular-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 1rem !important;
+  width: 100% !important;
+  justify-items: center !important;
+}
+
+/* Ensure each item takes proper space */
+.mobile-menu-popular-item {
+  width: 5rem !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  text-align: center !important;
 }

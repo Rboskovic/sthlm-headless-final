@@ -1,3 +1,5 @@
+// app/lib/fragments.ts - Fixed with mobile menu collections query
+
 // Fragment for money fields
 const MONEY_FRAGMENT = `#graphql
   fragment Money on MoneyV2 {
@@ -189,9 +191,7 @@ export const FOOTER_QUERY = `#graphql
   ${MENU_FRAGMENT}
 ` as const;
 
-// MOBILE MENU QUERY - TEMPORARILY COMMENTED OUT TO FIX CODEGEN
-// TODO: Add back after fixing syntax
-/*
+// MOBILE MENU COLLECTIONS QUERY - FIXED AND WORKING
 const MOBILE_MENU_COLLECTION_FRAGMENT = `#graphql
   fragment MobileMenuCollection on Collection {
     id
@@ -205,10 +205,7 @@ const MOBILE_MENU_COLLECTION_FRAGMENT = `#graphql
       height
     }
     metafields(identifiers: [
-      {namespace: "custom", key: "mobile_menu_featured"},
-      {namespace: "custom", key: "mobile-menu-featured"},
-      {namespace: "app", key: "mobile_menu_featured"},
-      {namespace: "app", key: "mobile-menu-featured"}
+      {namespace: "custom", key: "mobile_menu_featured"}
     ]) {
       key
       value
@@ -228,7 +225,6 @@ export const MOBILE_MENU_COLLECTIONS_QUERY = `#graphql
   }
   ${MOBILE_MENU_COLLECTION_FRAGMENT}
 ` as const;
-*/
 
 // Export for compatibility with existing context.ts
 export const CART_QUERY_FRAGMENT = CART_FRAGMENT;
@@ -239,5 +235,5 @@ export {
   CART_FRAGMENT,
   MENU_FRAGMENT,
   SHOP_FRAGMENT,
-  // MOBILE_MENU_COLLECTION_FRAGMENT - TODO: Add back when fixed
+  MOBILE_MENU_COLLECTION_FRAGMENT,
 };
