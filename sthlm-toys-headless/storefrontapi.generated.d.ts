@@ -464,6 +464,45 @@ export type ShopByCharacterQuery = {
   };
 };
 
+export type ShopByDiscountFragment = Pick<
+  StorefrontAPI.Collection,
+  'id' | 'title' | 'handle'
+> & {
+  image?: StorefrontAPI.Maybe<
+    Pick<StorefrontAPI.Image, 'id' | 'url' | 'altText' | 'width' | 'height'>
+  >;
+  metafields: Array<
+    StorefrontAPI.Maybe<
+      Pick<StorefrontAPI.Metafield, 'key' | 'value' | 'namespace'>
+    >
+  >;
+};
+
+export type ShopByDiscountQueryVariables = StorefrontAPI.Exact<{
+  country?: StorefrontAPI.InputMaybe<StorefrontAPI.CountryCode>;
+  language?: StorefrontAPI.InputMaybe<StorefrontAPI.LanguageCode>;
+}>;
+
+export type ShopByDiscountQuery = {
+  collections: {
+    nodes: Array<
+      Pick<StorefrontAPI.Collection, 'id' | 'title' | 'handle'> & {
+        image?: StorefrontAPI.Maybe<
+          Pick<
+            StorefrontAPI.Image,
+            'id' | 'url' | 'altText' | 'width' | 'height'
+          >
+        >;
+        metafields: Array<
+          StorefrontAPI.Maybe<
+            Pick<StorefrontAPI.Metafield, 'key' | 'value' | 'namespace'>
+          >
+        >;
+      }
+    >;
+  };
+};
+
 export type FeaturedBannerFragment = Pick<
   StorefrontAPI.Collection,
   'id' | 'title' | 'handle' | 'description'
@@ -805,6 +844,163 @@ export type CatalogQuery = {
     pageInfo: Pick<
       StorefrontAPI.PageInfo,
       'hasPreviousPage' | 'hasNextPage' | 'startCursor' | 'endCursor'
+    >;
+  };
+};
+
+export type BrandCollectionsQueryVariables = StorefrontAPI.Exact<{
+  country?: StorefrontAPI.InputMaybe<StorefrontAPI.CountryCode>;
+  language?: StorefrontAPI.InputMaybe<StorefrontAPI.LanguageCode>;
+}>;
+
+export type BrandCollectionsQuery = {
+  collections: {
+    nodes: Array<
+      Pick<StorefrontAPI.Collection, 'id' | 'title' | 'handle'> & {
+        image?: StorefrontAPI.Maybe<
+          Pick<
+            StorefrontAPI.Image,
+            'id' | 'url' | 'altText' | 'width' | 'height'
+          >
+        >;
+        metafields: Array<
+          StorefrontAPI.Maybe<
+            Pick<StorefrontAPI.Metafield, 'key' | 'value' | 'namespace'>
+          >
+        >;
+      }
+    >;
+  };
+};
+
+export type BrandProductItemFragment = Pick<
+  StorefrontAPI.Product,
+  'id' | 'handle' | 'title'
+> & {
+  featuredImage?: StorefrontAPI.Maybe<
+    Pick<StorefrontAPI.Image, 'id' | 'altText' | 'url' | 'width' | 'height'>
+  >;
+  priceRange: {
+    minVariantPrice: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+    maxVariantPrice: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+  };
+};
+
+export type BrandsCollectionProductsQueryVariables = StorefrontAPI.Exact<{
+  country?: StorefrontAPI.InputMaybe<StorefrontAPI.CountryCode>;
+  language?: StorefrontAPI.InputMaybe<StorefrontAPI.LanguageCode>;
+  first?: StorefrontAPI.InputMaybe<StorefrontAPI.Scalars['Int']['input']>;
+  last?: StorefrontAPI.InputMaybe<StorefrontAPI.Scalars['Int']['input']>;
+  startCursor?: StorefrontAPI.InputMaybe<
+    StorefrontAPI.Scalars['String']['input']
+  >;
+  endCursor?: StorefrontAPI.InputMaybe<
+    StorefrontAPI.Scalars['String']['input']
+  >;
+}>;
+
+export type BrandsCollectionProductsQuery = {
+  collection?: StorefrontAPI.Maybe<{
+    products: {
+      nodes: Array<
+        Pick<StorefrontAPI.Product, 'id' | 'handle' | 'title'> & {
+          featuredImage?: StorefrontAPI.Maybe<
+            Pick<
+              StorefrontAPI.Image,
+              'id' | 'altText' | 'url' | 'width' | 'height'
+            >
+          >;
+          priceRange: {
+            minVariantPrice: Pick<
+              StorefrontAPI.MoneyV2,
+              'amount' | 'currencyCode'
+            >;
+            maxVariantPrice: Pick<
+              StorefrontAPI.MoneyV2,
+              'amount' | 'currencyCode'
+            >;
+          };
+        }
+      >;
+      pageInfo: Pick<
+        StorefrontAPI.PageInfo,
+        'hasPreviousPage' | 'hasNextPage' | 'startCursor' | 'endCursor'
+      >;
+    };
+  }>;
+};
+
+export type CharacterCollectionsQueryVariables = StorefrontAPI.Exact<{
+  country?: StorefrontAPI.InputMaybe<StorefrontAPI.CountryCode>;
+  language?: StorefrontAPI.InputMaybe<StorefrontAPI.LanguageCode>;
+}>;
+
+export type CharacterCollectionsQuery = {
+  collections: {
+    nodes: Array<
+      Pick<StorefrontAPI.Collection, 'id' | 'title' | 'handle'> & {
+        image?: StorefrontAPI.Maybe<
+          Pick<
+            StorefrontAPI.Image,
+            'id' | 'url' | 'altText' | 'width' | 'height'
+          >
+        >;
+        metafields: Array<
+          StorefrontAPI.Maybe<
+            Pick<StorefrontAPI.Metafield, 'key' | 'value' | 'namespace'>
+          >
+        >;
+      }
+    >;
+  };
+};
+
+export type DiscountCollectionsQueryVariables = StorefrontAPI.Exact<{
+  country?: StorefrontAPI.InputMaybe<StorefrontAPI.CountryCode>;
+  language?: StorefrontAPI.InputMaybe<StorefrontAPI.LanguageCode>;
+}>;
+
+export type DiscountCollectionsQuery = {
+  collections: {
+    nodes: Array<
+      Pick<StorefrontAPI.Collection, 'id' | 'title' | 'handle'> & {
+        image?: StorefrontAPI.Maybe<
+          Pick<
+            StorefrontAPI.Image,
+            'id' | 'url' | 'altText' | 'width' | 'height'
+          >
+        >;
+        metafields: Array<
+          StorefrontAPI.Maybe<
+            Pick<StorefrontAPI.Metafield, 'key' | 'value' | 'namespace'>
+          >
+        >;
+      }
+    >;
+  };
+};
+
+export type ToyCategoriesQueryVariables = StorefrontAPI.Exact<{
+  country?: StorefrontAPI.InputMaybe<StorefrontAPI.CountryCode>;
+  language?: StorefrontAPI.InputMaybe<StorefrontAPI.LanguageCode>;
+}>;
+
+export type ToyCategoriesQuery = {
+  collections: {
+    nodes: Array<
+      Pick<StorefrontAPI.Collection, 'id' | 'title' | 'handle'> & {
+        image?: StorefrontAPI.Maybe<
+          Pick<
+            StorefrontAPI.Image,
+            'id' | 'url' | 'altText' | 'width' | 'height'
+          >
+        >;
+        metafields: Array<
+          StorefrontAPI.Maybe<
+            Pick<StorefrontAPI.Metafield, 'key' | 'value' | 'namespace'>
+          >
+        >;
+      }
     >;
   };
 };
@@ -1414,6 +1610,10 @@ interface GeneratedQueryTypes {
     return: ShopByCharacterQuery;
     variables: ShopByCharacterQueryVariables;
   };
+  '#graphql\n  fragment ShopByDiscount on Collection {\n    id\n    title\n    handle\n    image {\n      id\n      url\n      altText\n      width\n      height\n    }\n    metafields(identifiers: [\n      {namespace: "custom", key: "featured-discount"},\n      {namespace: "custom", key: "featured_discount"},\n      {namespace: "app", key: "featured-discount"},\n      {namespace: "app", key: "featured_discount"}\n    ]) {\n      key\n      value\n      namespace\n    }\n  }\n  query ShopByDiscount($country: CountryCode, $language: LanguageCode)\n    @inContext(country: $country, language: $language) {\n    collections(first: 50, sortKey: TITLE) {\n      nodes {\n        ...ShopByDiscount\n      }\n    }\n  }\n': {
+    return: ShopByDiscountQuery;
+    variables: ShopByDiscountQueryVariables;
+  };
   '#graphql\n  fragment FeaturedBanner on Collection {\n    id\n    title\n    handle\n    description\n    image {\n      id\n      url\n      altText\n      width\n      height\n    }\n    metafields(identifiers: [\n      {namespace: "custom", key: "featured-banner"},\n      {namespace: "custom", key: "featured_banner"},\n      {namespace: "app", key: "featured-banner"},\n      {namespace: "app", key: "featured_banner"}\n    ]) {\n      key\n      value\n      namespace\n    }\n  }\n  query FeaturedBanners($country: CountryCode, $language: LanguageCode)\n    @inContext(country: $country, language: $language) {\n    collections(first: 50, sortKey: UPDATED_AT, reverse: true) {\n      nodes {\n        ...FeaturedBanner\n      }\n    }\n  }\n': {
     return: FeaturedBannersQuery;
     variables: FeaturedBannersQueryVariables;
@@ -1441,6 +1641,26 @@ interface GeneratedQueryTypes {
   '#graphql\n  query Catalog(\n    $country: CountryCode\n    $language: LanguageCode\n    $first: Int\n    $last: Int\n    $startCursor: String\n    $endCursor: String\n  ) @inContext(country: $country, language: $language) {\n    products(first: $first, last: $last, before: $startCursor, after: $endCursor) {\n      nodes {\n        ...CollectionItem\n      }\n      pageInfo {\n        hasPreviousPage\n        hasNextPage\n        startCursor\n        endCursor\n      }\n    }\n  }\n  #graphql\n  fragment MoneyCollectionItem on MoneyV2 {\n    amount\n    currencyCode\n  }\n  fragment CollectionItem on Product {\n    id\n    handle\n    title\n    featuredImage {\n      id\n      altText\n      url\n      width\n      height\n    }\n    priceRange {\n      minVariantPrice {\n        ...MoneyCollectionItem\n      }\n      maxVariantPrice {\n        ...MoneyCollectionItem\n      }\n    }\n  }\n\n': {
     return: CatalogQuery;
     variables: CatalogQueryVariables;
+  };
+  '#graphql\n      query BrandCollections($country: CountryCode, $language: LanguageCode)\n        @inContext(country: $country, language: $language) {\n        collections(first: 50, sortKey: TITLE) {\n          nodes {\n            id\n            title\n            handle\n            image { id url altText width height }\n            metafields(identifiers: [\n              {namespace: "custom", key: "featured-brand"},\n              {namespace: "custom", key: "featured_brand"},\n              {namespace: "app", key: "featured-brand"},\n              {namespace: "app", key: "featured_brand"}\n            ]) { key value namespace }\n          }\n        }\n      }\n    ': {
+    return: BrandCollectionsQuery;
+    variables: BrandCollectionsQueryVariables;
+  };
+  '#graphql\n      fragment BrandProductItem on Product {\n        id\n        handle\n        title\n        featuredImage { id altText url width height }\n        priceRange {\n          minVariantPrice { amount currencyCode }\n          maxVariantPrice { amount currencyCode }\n        }\n      }\n      query BrandsCollectionProducts(\n        $country: CountryCode\n        $language: LanguageCode\n        $first: Int\n        $last: Int\n        $startCursor: String\n        $endCursor: String\n      ) @inContext(country: $country, language: $language) {\n        collection(handle: "brands") {\n          products(\n            first: $first,\n            last: $last,\n            before: $startCursor,\n            after: $endCursor\n          ) {\n            nodes { ...BrandProductItem }\n            pageInfo { hasPreviousPage hasNextPage startCursor endCursor }\n          }\n        }\n      }\n    ': {
+    return: BrandsCollectionProductsQuery;
+    variables: BrandsCollectionProductsQueryVariables;
+  };
+  '#graphql\n    query CharacterCollections($country: CountryCode, $language: LanguageCode)\n      @inContext(country: $country, language: $language) {\n      collections(first: 50, sortKey: TITLE) {\n        nodes {\n          id\n          title\n          handle\n          image { id url altText width height }\n          metafields(identifiers: [\n            {namespace: "custom", key: "featured-character"},\n            {namespace: "custom", key: "featured_character"},\n            {namespace: "app", key: "featured-character"},\n            {namespace: "app", key: "featured_character"}\n          ]) { key value namespace }\n        }\n      }\n    }\n  ': {
+    return: CharacterCollectionsQuery;
+    variables: CharacterCollectionsQueryVariables;
+  };
+  '#graphql\n    query DiscountCollections($country: CountryCode, $language: LanguageCode)\n      @inContext(country: $country, language: $language) {\n      collections(first: 50, sortKey: TITLE) {\n        nodes {\n          id\n          title\n          handle\n          image { id url altText width height }\n          metafields(identifiers: [\n            {namespace: "custom", key: "featured-discount"},\n            {namespace: "custom", key: "featured_discount"},\n            {namespace: "app", key: "featured-discount"},\n            {namespace: "app", key: "featured_discount"}\n          ]) { key value namespace }\n        }\n      }\n    }\n  ': {
+    return: DiscountCollectionsQuery;
+    variables: DiscountCollectionsQueryVariables;
+  };
+  '#graphql\n    query ToyCategories($country: CountryCode, $language: LanguageCode)\n      @inContext(country: $country, language: $language) {\n      collections(first: 50, sortKey: TITLE) {\n        nodes {\n          id\n          title\n          handle\n          image { id url altText width height }\n          metafields(identifiers: [\n            {namespace: "custom", key: "featured-category"},\n            {namespace: "custom", key: "featured_category"},\n            {namespace: "app", key: "featured-category"},\n            {namespace: "app", key: "featured_category"}\n          ]) { key value namespace }\n        }\n      }\n    }\n  ': {
+    return: ToyCategoriesQuery;
+    variables: ToyCategoriesQueryVariables;
   };
   '#graphql\n  query HelpPage($country: CountryCode, $language: LanguageCode)\n    @inContext(country: $country, language: $language) {\n    page(handle: "hjalp") {\n      id\n      title\n      body\n      handle\n      metafields(identifiers: [\n        {namespace: "custom", key: "faq_items"}\n      ]) {\n        key\n        value\n        type\n      }\n    }\n  }\n': {
     return: HelpPageQuery;

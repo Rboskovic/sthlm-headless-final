@@ -1,19 +1,20 @@
-import {type LoaderFunctionArgs} from '@shopify/remix-oxygen';
-import {Await, useLoaderData, Link, type MetaFunction} from 'react-router';
-import {Suspense} from 'react';
-import {Image, Money} from '@shopify/hydrogen';
+import { type LoaderFunctionArgs } from "@shopify/remix-oxygen";
+import { Await, useLoaderData, Link, type MetaFunction } from "react-router";
+import { Suspense } from "react";
+import { Image, Money } from "@shopify/hydrogen";
 import type {
   FeaturedCollectionFragment,
   RecommendedProductsQuery,
-} from 'storefrontapi.generated';
-import {HeroBanner} from '~/components/HeroBanner';
-import {TopCategories} from '~/components/TopCategories';
-import {FeaturedBanners} from '~/components/FeaturedBanners';
-import {ShopByBrand} from '~/components/ShopByBrand';
-import {ShopByCharacter} from '~/components/ShopByCharacter';
+} from "storefrontapi.generated";
+import { HeroBanner } from "~/components/HeroBanner";
+import { TopCategories } from "~/components/TopCategories";
+import { ShopByDiscount } from "~/components/ShopByDiscount";
+import { FeaturedBanners } from "~/components/FeaturedBanners";
+import { ShopByBrand } from "~/components/ShopByBrand";
+import { ShopByCharacter } from "~/components/ShopByCharacter";
 
 export const meta: MetaFunction = () => {
-  return [{title: 'STHLM Toys & Games | Home'}];
+  return [{ title: "STHLM Toys & Games | Home" }];
 };
 
 export async function loader(args: LoaderFunctionArgs) {
@@ -23,14 +24,14 @@ export async function loader(args: LoaderFunctionArgs) {
   // Await the critical data required to render initial state of the page
   const criticalData = await loadCriticalData(args);
 
-  return {...deferredData, ...criticalData};
+  return { ...deferredData, ...criticalData };
 }
 
 /**
  * Load data necessary for rendering content above the fold. This is the critical data
  * needed to render the page. If it's unavailable, the whole page should 400 or 500 error.
  */
-async function loadCriticalData({context}: LoaderFunctionArgs) {
+async function loadCriticalData({ context }: LoaderFunctionArgs) {
   try {
     const [
       featuredCollectionData,
@@ -38,12 +39,14 @@ async function loadCriticalData({context}: LoaderFunctionArgs) {
       shopByBrandData,
       featuredBannersData,
       shopByCharacterData,
+      shopByDiscountData,
     ] = await Promise.all([
       context.storefront.query(FEATURED_COLLECTION_QUERY),
       context.storefront.query(TOP_CATEGORIES_QUERY),
       context.storefront.query(SHOP_BY_BRAND_QUERY),
       context.storefront.query(FEATURED_BANNERS_QUERY),
       context.storefront.query(SHOP_BY_CHARACTER_QUERY),
+      context.storefront.query(SHOP_BY_DISCOUNT_QUERY),
     ]);
 
     return {
@@ -52,9 +55,10 @@ async function loadCriticalData({context}: LoaderFunctionArgs) {
       shopByBrandData: shopByBrandData.collections.nodes || [],
       featuredBanners: featuredBannersData.collections.nodes || [],
       shopByCharacterData: shopByCharacterData.collections.nodes || [],
+      shopByDiscountData: shopByDiscountData.collections.nodes || [],
     };
   } catch (error) {
-    console.error('Error loading collections:', error);
+    console.error("Error loading collections:", error);
     // Fallback to empty arrays if queries fail
     return {
       featuredCollection: null,
@@ -62,6 +66,7 @@ async function loadCriticalData({context}: LoaderFunctionArgs) {
       shopByBrandData: [],
       featuredBanners: [],
       shopByCharacterData: [],
+      shopByDiscountData: [],
     };
   }
 }
@@ -72,7 +77,7 @@ async function loadCriticalData({context}: LoaderFunctionArgs) {
  * If it's unavailable, the page should still 200.
  * Make sure to not throw any errors here, as it will cause the page to 500.
  */
-function loadDeferredData({context}: LoaderFunctionArgs) {
+function loadDeferredData({ context }: LoaderFunctionArgs) {
   const recommendedProducts = context.storefront
     .query(RECOMMENDED_PRODUCTS_QUERY)
     .catch((error) => {
@@ -90,7 +95,7 @@ export default function Homepage() {
   const data = useLoaderData<typeof loader>();
 
   return (
-    <div style={{margin: 0, padding: 0}}>
+    <div style={{ margin: 0, padding: 0 }}>
       {/* Hero Banner - Immediately after header with no gap */}
       <HeroBanner
         title="Bygg, skapa & föreställ dig"
@@ -112,6 +117,9 @@ export default function Homepage() {
 
         {/* Shop By Character Section */}
         <ShopByCharacter characters={data.shopByCharacterData} />
+
+        {/* Shop By Discount Section */}
+        <ShopByDiscount discounts={data.shopByDiscountData} />
       </div>
     </div>
   );
@@ -267,6 +275,40 @@ const SHOP_BY_CHARACTER_QUERY = `#graphql
     collections(first: 50, sortKey: TITLE) {
       nodes {
         ...ShopByCharacter
+      }
+    }
+  }
+` as const;
+
+// Shop By Discount Query
+const SHOP_BY_DISCOUNT_QUERY = `#graphql
+  fragment ShopByDiscount on Collection {
+    id
+    title
+    handle
+    image {
+      id
+      url
+      altText
+      width
+      height
+    }
+    metafields(identifiers: [
+      {namespace: "custom", key: "featured-discount"},
+      {namespace: "custom", key: "featured_discount"},
+      {namespace: "app", key: "featured-discount"},
+      {namespace: "app", key: "featured_discount"}
+    ]) {
+      key
+      value
+      namespace
+    }
+  }
+  query ShopByDiscount($country: CountryCode, $language: LanguageCode)
+    @inContext(country: $country, language: $language) {
+    collections(first: 50, sortKey: TITLE) {
+      nodes {
+        ...ShopByDiscount
       }
     }
   }
