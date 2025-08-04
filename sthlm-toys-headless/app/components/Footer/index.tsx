@@ -20,8 +20,8 @@ export function Footer({
       <div className="hidden lg:block">
         <div className="max-w-[1272px] mx-auto px-3 py-12">
           <div className="grid grid-cols-12 gap-8">
-            {/* Left side - Footer Links (8 columns) */}
-            <div className="col-span-8">
+            {/* Left side - Footer Links (7 columns) - adjusted for 2 column layout */}
+            <div className="col-span-7">
               <Suspense fallback={<FooterLinksFallback />}>
                 <Await resolve={footerPromise}>
                   {(footer) => (
@@ -35,8 +35,8 @@ export function Footer({
               </Suspense>
             </div>
 
-            {/* Right side - Newsletter (4 columns) */}
-            <div className="col-span-4">
+            {/* Right side - Newsletter (5 columns) */}
+            <div className="col-span-5">
               <NewsletterSignup />
             </div>
           </div>
@@ -67,7 +67,7 @@ export function Footer({
             <NewsletterSignup isMobile />
           </div>
 
-          {/* Footer links with custom mobile layout */}
+          {/* Footer links with custom mobile layout - both columns side by side */}
           <Suspense fallback={<FooterLinksFallback />}>
             <Await resolve={footerPromise}>
               {(footer) => (
@@ -102,16 +102,17 @@ export function Footer({
 }
 
 function FooterLinksFallback() {
-  const fallbackSections = [
-    {id: 'loading-1'},
-    {id: 'loading-2'},
-    {id: 'loading-3'},
+  const fallbackSections = [{id: 'loading-1'}, {id: 'loading-2'}];
+
+  const fallbackItems = [
+    {id: 'item-1'},
+    {id: 'item-2'},
+    {id: 'item-3'},
+    {id: 'item-4'},
   ];
 
-  const fallbackItems = [{id: 'item-1'}, {id: 'item-2'}, {id: 'item-3'}];
-
   return (
-    <div className="grid grid-cols-3 gap-8">
+    <div className="grid grid-cols-2 gap-8">
       {fallbackSections.map((section) => (
         <div key={section.id} className="space-y-3">
           <div className="h-6 bg-white/20 rounded w-20 animate-pulse"></div>

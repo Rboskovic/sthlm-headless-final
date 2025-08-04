@@ -1,4 +1,5 @@
 import {useState} from 'react';
+import {Link} from 'react-router';
 
 interface NewsletterSignupProps {
   isMobile?: boolean;
@@ -51,21 +52,21 @@ export function NewsletterSignup({isMobile = false}: NewsletterSignupProps) {
 
       <p className="text-white text-xs mt-3 leading-relaxed">
         Genom att registrera dig för vårt nyhetsbrev godkänner du våra{' '}
-        <a
-          href="/terms"
+        <Link
+          to="/pages/kopvillkor"
           className="text-white underline hover:text-yellow-300"
           style={{color: 'white', textDecoration: 'underline'}}
         >
           villkor
-        </a>{' '}
+        </Link>{' '}
         &{' '}
-        <a
-          href="/privacy"
+        <Link
+          to="/pages/privacy-policy"
           className="text-white underline hover:text-yellow-300"
           style={{color: 'white', textDecoration: 'underline'}}
         >
           integritetspolicy
-        </a>
+        </Link>
         .
       </p>
     </div>
