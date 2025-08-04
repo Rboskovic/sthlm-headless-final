@@ -4,6 +4,7 @@ import {useState, useRef} from 'react';
 import type {Collection} from '@shopify/hydrogen/storefront-api-types';
 
 interface ShopByDiscountProps {
+  variant?: 'homepage' | 'collection';
   discounts?: Collection[] | null;
 }
 
@@ -15,7 +16,7 @@ interface DiscountWithColor extends Collection {
 const discountColors: Record<string, string> = {
   'summer-sale': '#FF5722',
   'under-20': '#4CAF50',
-  'clearance': '#E91E63',
+  clearance: '#E91E63',
   'black-friday': '#212121',
   'holiday-deals': '#F44336',
   'weekly-offers': '#2196F3',
@@ -67,7 +68,10 @@ const fallbackDiscounts: DiscountWithColor[] = [
   },
 ];
 
-export function ShopByDiscount({discounts}: ShopByDiscountProps) {
+export function ShopByDiscount({
+  discounts,
+  variant = 'homepage',
+}: ShopByDiscountProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
@@ -140,56 +144,59 @@ export function ShopByDiscount({discounts}: ShopByDiscountProps) {
           maxWidth: '100%',
           paddingLeft: '12px',
           paddingRight: '12px',
-          paddingTop: '64px',
-          paddingBottom: '32px',
+          ...(variant === 'collection'
+            ? {paddingTop: '32px', paddingBottom: '32px'}
+            : {paddingTop: '64px', paddingBottom: '32px'}),
         }}
       >
         {/* Desktop Layout */}
         <div className="hidden md:block">
-          {/* Header with centered title and right-aligned Shop All link */}
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex-1"></div>
-            <div className="flex-1 flex justify-center">
-              <h2
-                className="text-black font-bold text-center"
-                style={{
-                  fontSize: '28px',
-                  fontWeight: 700,
-                  lineHeight: '36px',
-                  fontFamily:
-                    "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                }}
-              >
-                Handla på rea
-              </h2>
+          {/* Header with centered title and right-aligned Shop All link - Only show on homepage */}
+          {variant === 'homepage' && (
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex-1"></div>
+              <div className="flex-1 flex justify-center">
+                <h2
+                  className="text-black font-bold text-center"
+                  style={{
+                    fontSize: '28px',
+                    fontWeight: 700,
+                    lineHeight: '36px',
+                    fontFamily:
+                      "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                  }}
+                >
+                  Handla på rea
+                </h2>
+              </div>
+              <div className="flex-1 flex justify-end">
+                <Link
+                  to="/collections/rea"
+                  style={{
+                    fontSize: '16px',
+                    fontWeight: 500,
+                    lineHeight: 'normal',
+                    textDecoration: 'underline solid rgb(0, 78, 188)',
+                    textAlign: 'right',
+                    textIndent: '0px',
+                    textTransform: 'none',
+                    verticalAlign: 'baseline',
+                    whiteSpace: 'normal',
+                    wordSpacing: '0px',
+                    color: 'rgb(0, 78, 188)',
+                    border: '0px none rgb(0, 78, 188)',
+                    margin: '0px',
+                    padding: '0px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                  }}
+                  className="hover:opacity-80"
+                >
+                  Handla alla erbjudanden
+                </Link>
+              </div>
             </div>
-            <div className="flex-1 flex justify-end">
-              <Link
-                to="/collections/rea"
-                style={{
-                  fontSize: '16px',
-                  fontWeight: 500,
-                  lineHeight: 'normal',
-                  textDecoration: 'underline solid rgb(0, 78, 188)',
-                  textAlign: 'right',
-                  textIndent: '0px',
-                  textTransform: 'none',
-                  verticalAlign: 'baseline',
-                  whiteSpace: 'normal',
-                  wordSpacing: '0px',
-                  color: 'rgb(0, 78, 188)',
-                  border: '0px none rgb(0, 78, 188)',
-                  margin: '0px',
-                  padding: '0px',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                }}
-                className="hover:opacity-80"
-              >
-                Handla alla erbjudanden
-              </Link>
-            </div>
-          </div>
+          )}
 
           {/* Desktop Discounts Grid - No Navigation */}
           <div className="relative">
@@ -256,21 +263,23 @@ export function ShopByDiscount({discounts}: ShopByDiscountProps) {
 
         {/* Mobile Layout */}
         <div className="block md:hidden">
-          {/* Mobile Header */}
-          <div className="text-center mb-6">
-            <h2
-              className="text-black font-bold"
-              style={{
-                fontSize: '24px',
-                fontWeight: 700,
-                lineHeight: '32.4px',
-                fontFamily:
-                  "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-              }}
-            >
-              Handla på rea
-            </h2>
-          </div>
+          {/* Mobile Header - Only show on homepage */}
+          {variant === 'homepage' && (
+            <div className="text-center mb-6">
+              <h2
+                className="text-black font-bold"
+                style={{
+                  fontSize: '24px',
+                  fontWeight: 700,
+                  lineHeight: '32.4px',
+                  fontFamily:
+                    "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                }}
+              >
+                Handla på rea
+              </h2>
+            </div>
+          )}
 
           {/* Mobile Scrollable Container */}
           <div
@@ -365,22 +374,24 @@ export function ShopByDiscount({discounts}: ShopByDiscountProps) {
             ))}
           </div>
 
-          {/* Mobile Shop All Discounts Button */}
-          <div className="flex justify-center mt-6">
-            <Link
-              to="/collections/rea"
-              className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-10 rounded-full transition-colors duration-200"
-              style={{
-                fontSize: '16px',
-                fontWeight: 500,
-                fontFamily:
-                  "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                color: 'white',
-              }}
-            >
-              Handla alla erbjudanden
-            </Link>
-          </div>
+          {/* Mobile Shop All Discounts Button - Only show on homepage */}
+          {variant === 'homepage' && (
+            <div className="flex justify-center mt-6">
+              <Link
+                to="/collections/rea"
+                className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-10 rounded-full transition-colors duration-200"
+                style={{
+                  fontSize: '16px',
+                  fontWeight: 500,
+                  fontFamily:
+                    "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                  color: 'white',
+                }}
+              >
+                Handla alla erbjudanden
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </section>

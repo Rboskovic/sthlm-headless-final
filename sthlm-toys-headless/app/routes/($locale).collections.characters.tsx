@@ -1,17 +1,24 @@
-import { type LoaderFunctionArgs, type MetaFunction } from '@shopify/remix-oxygen';
-import { useLoaderData } from 'react-router';
-import { CategoryLevel1 } from '~/components/CategoryLevel1';
+import {
+  type LoaderFunctionArgs,
+  type MetaFunction,
+} from '@shopify/remix-oxygen';
+import {useLoaderData} from 'react-router';
+import {CategoryLevel1} from '~/components/CategoryLevel1';
 
 export const meta: MetaFunction = () => [
-  { title: 'Karaktärer | STHLM Toys & Games' },
-  { name: 'description', content: 'Upptäck leksaker med dina favoritkaraktärer.' }
+  {title: 'Karaktärer | STHLM Toys & Games'},
+  {
+    name: 'description',
+    content: 'Upptäck leksaker med dina favoritkaraktärer.',
+  },
 ];
 
-export async function loader({ context }: LoaderFunctionArgs) {
-  const { storefront } = context;
-  
-  // Use EXACT same query as homepage ShopByCharacter
-  const { collections } = await storefront.query(`#graphql
+export async function loader({context}: LoaderFunctionArgs) {
+  const {storefront} = context;
+
+  // Only query collections for category cards - Search & Discovery handles products
+  const {collections} = await storefront.query(
+    `#graphql
     query CharacterCollections($country: CountryCode, $language: LanguageCode)
       @inContext(country: $country, language: $language) {
       collections(first: 50, sortKey: TITLE) {
@@ -29,18 +36,20 @@ export async function loader({ context }: LoaderFunctionArgs) {
         }
       }
     }
-  `, {
-    variables: {
-      country: storefront.i18n?.country,
-      language: storefront.i18n?.language,
+  `,
+    {
+      variables: {
+        country: storefront.i18n?.country,
+        language: storefront.i18n?.language,
+      },
     },
-  });
+  );
 
-  return { collections: collections.nodes };
+  return {collections: collections.nodes};
 }
 
 export default function CharactersCategory() {
-  const { collections } = useLoaderData<typeof loader>();
+  const {collections} = useLoaderData<typeof loader>();
 
   return (
     <CategoryLevel1
@@ -50,7 +59,7 @@ export default function CharactersCategory() {
       categoriesData={collections}
       seoTitle="Om våra karaktärer"
       seoContent={`<p>Låt dina barn utforska världar fulla av äventyr tillsammans med sina favoritkaraktärer.</p>`}
-      analyticsData={{ id: 'characters-category', handle: 'characters' }}
+      analyticsData={{id: 'characters-category', handle: 'characters'}}
     />
   );
 }

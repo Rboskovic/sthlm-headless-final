@@ -36,13 +36,13 @@ export function CategoryLevel1({
   const renderCategorySection = () => {
     switch (categoryType) {
       case 'toys':
-        return <TopCategories collections={categoriesData} />;
+        return <TopCategories collections={categoriesData} variant="collection" />;
       case 'brands':
-        return <ShopByBrand brands={categoriesData} />;
+        return <ShopByBrand brands={categoriesData} variant="collection" />;
       case 'characters':
-        return <ShopByCharacter characters={categoriesData} />;
+        return <ShopByCharacter characters={categoriesData} variant="collection" />;
       case 'discounts':
-        return <ShopByDiscount discounts={categoriesData} />;
+        return <ShopByDiscount discounts={categoriesData} variant="collection" />;
       default:
         return null;
     }

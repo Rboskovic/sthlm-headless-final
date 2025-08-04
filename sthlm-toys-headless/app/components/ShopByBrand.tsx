@@ -4,6 +4,7 @@ import {useState, useRef} from 'react';
 import type {Collection} from '@shopify/hydrogen/storefront-api-types';
 
 interface ShopByBrandProps {
+  variant?: 'homepage' | 'collection';
   brands?: Collection[] | null;
 }
 
@@ -69,7 +70,7 @@ const fallbackBrands: BrandWithColor[] = [
   },
 ];
 
-export function ShopByBrand({brands}: ShopByBrandProps) {
+export function ShopByBrand({brands, variant = 'homepage'}: ShopByBrandProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
@@ -142,75 +143,78 @@ export function ShopByBrand({brands}: ShopByBrandProps) {
           maxWidth: '100%',
           paddingLeft: '12px',
           paddingRight: '12px',
-          paddingTop: '64px',
-          paddingBottom: '32px',
+          ...(variant === 'collection'
+            ? {paddingTop: '32px', paddingBottom: '32px'}
+            : {paddingTop: '64px', paddingBottom: '32px'}),
         }}
       >
         {/* Desktop Layout */}
         <div className="hidden md:block">
-          {/* Header with centered title and right-aligned Shop All link */}
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex-1"></div>
-            <div className="flex-1 flex justify-center">
-              <h2
-                style={{
-                  fontFamily:
-                    'Buenos Aires, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, Cantarell, "Noto Sans", sans-serif',
-                  fontSize: '35px',
-                  fontStyle: 'normal',
-                  fontVariant: 'normal',
-                  fontWeight: 600,
-                  letterSpacing: 'normal',
-                  lineHeight: 'normal',
-                  textDecoration: 'none solid rgb(33, 36, 39)',
-                  textAlign: 'center',
-                  textIndent: '0px',
-                  textTransform: 'none',
-                  verticalAlign: 'baseline',
-                  whiteSpace: 'normal',
-                  wordSpacing: '0px',
-                  color: 'rgb(33, 36, 39)',
-                  border: '0px none rgb(33, 36, 39)',
-                  margin: '0px',
-                  padding: '0px',
-                }}
-              >
-                Handla efter märke
-              </h2>
-            </div>
+          {/* Header with centered title and right-aligned Shop All link - Only show on homepage */}
+          {variant === 'homepage' && (
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex-1"></div>
+              <div className="flex-1 flex justify-center">
+                <h2
+                  style={{
+                    fontFamily:
+                      'Buenos Aires, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, Cantarell, "Noto Sans", sans-serif',
+                    fontSize: '35px',
+                    fontStyle: 'normal',
+                    fontVariant: 'normal',
+                    fontWeight: 600,
+                    letterSpacing: 'normal',
+                    lineHeight: 'normal',
+                    textDecoration: 'none solid rgb(33, 36, 39)',
+                    textAlign: 'center',
+                    textIndent: '0px',
+                    textTransform: 'none',
+                    verticalAlign: 'baseline',
+                    whiteSpace: 'normal',
+                    wordSpacing: '0px',
+                    color: 'rgb(33, 36, 39)',
+                    border: '0px none rgb(33, 36, 39)',
+                    margin: '0px',
+                    padding: '0px',
+                  }}
+                >
+                  Handla efter märke
+                </h2>
+              </div>
 
-            <div className="flex-1 flex justify-end items-center">
-              <Link
-                to="/collections/brands"
-                style={{
-                  fontFamily:
-                    'Buenos Aires, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, Cantarell, "Noto Sans", sans-serif',
-                  fontSize: '18px',
-                  fontStyle: 'normal',
-                  fontVariant: 'normal',
-                  fontWeight: 600,
-                  letterSpacing: 'normal',
-                  lineHeight: 'normal',
-                  textDecoration: 'underline solid rgb(0, 78, 188)',
-                  textAlign: 'right',
-                  textIndent: '0px',
-                  textTransform: 'none',
-                  verticalAlign: 'baseline',
-                  whiteSpace: 'normal',
-                  wordSpacing: '0px',
-                  color: 'rgb(0, 78, 188)',
-                  border: '0px none rgb(33, 36, 39)',
-                  margin: '0px',
-                  padding: '0px',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                }}
-                className="hover:opacity-80"
-              >
-                Handla alla märken
-              </Link>
+              <div className="flex-1 flex justify-end items-center">
+                <Link
+                  to="/collections/brands"
+                  style={{
+                    fontFamily:
+                      'Buenos Aires, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, Cantarell, "Noto Sans", sans-serif',
+                    fontSize: '18px',
+                    fontStyle: 'normal',
+                    fontVariant: 'normal',
+                    fontWeight: 600,
+                    letterSpacing: 'normal',
+                    lineHeight: 'normal',
+                    textDecoration: 'underline solid rgb(0, 78, 188)',
+                    textAlign: 'right',
+                    textIndent: '0px',
+                    textTransform: 'none',
+                    verticalAlign: 'baseline',
+                    whiteSpace: 'normal',
+                    wordSpacing: '0px',
+                    color: 'rgb(0, 78, 188)',
+                    border: '0px none rgb(33, 36, 39)',
+                    margin: '0px',
+                    padding: '0px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                  }}
+                  className="hover:opacity-80"
+                >
+                  Handla alla märken
+                </Link>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Desktop Brands Grid - No Navigation */}
           <div className="relative">
@@ -297,19 +301,21 @@ export function ShopByBrand({brands}: ShopByBrandProps) {
 
         {/* Mobile Layout */}
         <div className="block md:hidden">
-          {/* Mobile Title */}
-          <h2
-            className="text-black font-semibold text-center mb-8"
-            style={{
-              fontSize: '30px',
-              fontWeight: 600,
-              lineHeight: 'normal',
-              fontFamily:
-                "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-            }}
-          >
-            Handla efter märke
-          </h2>
+          {/* Mobile Title - Only show on homepage */}
+          {variant === 'homepage' && (
+            <h2
+              className="text-black font-semibold text-center mb-8"
+              style={{
+                fontSize: '30px',
+                fontWeight: 600,
+                lineHeight: 'normal',
+                fontFamily:
+                  "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+              }}
+            >
+              Handla efter märke
+            </h2>
+          )}
 
           {/* Mobile Horizontal Scroll - Left padding, right edge-to-edge */}
           <div
@@ -417,22 +423,24 @@ export function ShopByBrand({brands}: ShopByBrandProps) {
             </div>
           </div>
 
-          {/* Mobile Shop All Brands Button - Slightly bigger with proper spacing */}
-          <div className="flex justify-center">
-            <Link
-              to="/collections/brands"
-              className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-10 rounded-full transition-colors duration-200"
-              style={{
-                fontSize: '16px',
-                fontWeight: 500,
-                fontFamily:
-                  "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                color: 'white',
-              }}
-            >
-              Handla alla märken
-            </Link>
-          </div>
+          {/* Mobile Shop All Brands Button - Only show on homepage */}
+          {variant === 'homepage' && (
+            <div className="flex justify-center">
+              <Link
+                to="/collections/brands"
+                className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-10 rounded-full transition-colors duration-200"
+                style={{
+                  fontSize: '16px',
+                  fontWeight: 500,
+                  fontFamily:
+                    "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                  color: 'white',
+                }}
+              >
+                Handla alla märken
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </section>

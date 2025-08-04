@@ -1,21 +1,28 @@
-import { type LoaderFunctionArgs, type MetaFunction } from '@shopify/remix-oxygen';
-import { useLoaderData } from 'react-router';
-import { getPaginationVariables } from '@shopify/hydrogen';
-import { CategoryLevel1 } from '~/components/CategoryLevel1';
+import {
+  type LoaderFunctionArgs,
+  type MetaFunction,
+} from '@shopify/remix-oxygen';
+import {useLoaderData} from 'react-router';
+import {getPaginationVariables} from '@shopify/hydrogen';
+import {CategoryLevel1} from '~/components/CategoryLevel1';
 
 export const meta: MetaFunction = () => [
-  { title: 'Märken | STHLM Toys & Games' },
-  { name: 'description', content: 'Utforska produkter från alla dina favoritmärken.' }
+  {title: 'Märken | STHLM Toys & Games'},
+  {
+    name: 'description',
+    content: 'Utforska produkter från alla dina favoritmärken.',
+  },
 ];
 
-export async function loader({ context, request }: LoaderFunctionArgs) {
-  const { storefront } = context;
-  const pagination = getPaginationVariables(request, { pageBy: 24 });
-  
-  // Get both brand collections AND products from the main "Brands" collection
-  const [brandCollectionsResult, productsResult] = await Promise.all([
+export async function loader({context, request}: LoaderFunctionArgs) {
+  const {storefront} = context;
+  const pagination = getPaginationVariables(request, {pageBy: 24});
+
+  // Get both brand collections AND ALL products
+  const [brandCollectionsResult, allProductsResult] = await Promise.all([
     // Brand collections for cards
-    storefront.query(`#graphql
+    storefront.query(
+      `#graphql
       query BrandCollections($country: CountryCode, $language: LanguageCode)
         @inContext(country: $country, language: $language) {
         collections(first: 50, sortKey: TITLE) {
@@ -33,12 +40,18 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
           }
         }
       }
-    `, {
-      variables: { country: storefront.i18n?.country, language: storefront.i18n?.language },
-    }),
-    
-    // Products from the main "Brands" collection
-    storefront.query(`#graphql
+    `,
+      {
+        variables: {
+          country: storefront.i18n?.country,
+          language: storefront.i18n?.language,
+        },
+      },
+    ),
+
+    // ALL PRODUCTS - No filtering, show everything
+    storefront.query(
+      `#graphql
       fragment BrandProductItem on Product {
         id
         handle
@@ -48,8 +61,10 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
           minVariantPrice { amount currencyCode }
           maxVariantPrice { amount currencyCode }
         }
+        vendor
+        productType
       }
-      query BrandsCollectionProducts(
+      query AllProducts(
         $country: CountryCode
         $language: LanguageCode
         $first: Int
@@ -57,35 +72,35 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
         $startCursor: String
         $endCursor: String
       ) @inContext(country: $country, language: $language) {
-        collection(handle: "brands") {
-          products(
-            first: $first,
-            last: $last,
-            before: $startCursor,
-            after: $endCursor
-          ) {
-            nodes { ...BrandProductItem }
-            pageInfo { hasPreviousPage hasNextPage startCursor endCursor }
-          }
+        products(
+          first: $first,
+          last: $last,
+          before: $startCursor,
+          after: $endCursor
+        ) {
+          nodes { ...BrandProductItem }
+          pageInfo { hasPreviousPage hasNextPage startCursor endCursor }
         }
       }
-    `, {
-      variables: {
-        country: storefront.i18n?.country,
-        language: storefront.i18n?.language,
-        ...pagination,
+    `,
+      {
+        variables: {
+          country: storefront.i18n?.country,
+          language: storefront.i18n?.language,
+          ...pagination,
+        },
       },
-    }),
+    ),
   ]);
 
-  return { 
+  return {
     collections: brandCollectionsResult.collections.nodes,
-    products: productsResult.collection?.products || null
+    products: allProductsResult.products || null,
   };
 }
 
 export default function BrandsCategory() {
-  const { collections, products } = useLoaderData<typeof loader>();
+  const {collections, products} = useLoaderData<typeof loader>();
 
   return (
     <CategoryLevel1
@@ -96,7 +111,7 @@ export default function BrandsCategory() {
       productsData={products}
       seoTitle="Om våra märken"
       seoContent={`<p>Vi erbjuder produkter från världens mest älskade leksaksmärken.</p>`}
-      analyticsData={{ id: 'brands-category', handle: 'brands' }}
+      analyticsData={{id: 'brands-category', handle: 'brands'}}
     />
   );
 }
