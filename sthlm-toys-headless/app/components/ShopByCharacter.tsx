@@ -4,7 +4,6 @@ import {useState, useRef} from 'react';
 import type {Collection} from '@shopify/hydrogen/storefront-api-types';
 
 interface ShopByCharacterProps {
-  variant?: 'homepage' | 'collection';
   characters?: Collection[] | null;
 }
 
@@ -70,10 +69,7 @@ const fallbackCharacters: CharacterWithColor[] = [
   },
 ];
 
-export function ShopByCharacter({
-  characters,
-  variant = 'homepage',
-}: ShopByCharacterProps) {
+export function ShopByCharacter({characters}: ShopByCharacterProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
@@ -146,82 +142,79 @@ export function ShopByCharacter({
           maxWidth: '100%',
           paddingLeft: '12px',
           paddingRight: '12px',
-          ...(variant === 'collection'
-            ? {paddingTop: '32px', paddingBottom: '32px'}
-            : {paddingTop: '64px', paddingBottom: '32px'}),
+          paddingTop: '64px',
+          paddingBottom: '32px',
         }}
       >
         {/* Desktop Layout */}
         <div className="hidden md:block">
-          {/* Header with centered title and right-aligned Shop All link - Only show on homepage */}
-          {variant === 'homepage' && (
-            <div className="flex items-center justify-between mb-8">
-              <div className="flex-1"></div>
-              <div className="flex-1 flex justify-center">
-                <h2
-                  style={{
-                    fontFamily:
-                      'Buenos Aires, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, Cantarell, "Noto Sans", sans-serif',
-                    fontSize: '35px',
-                    fontStyle: 'normal',
-                    fontVariant: 'normal',
-                    fontWeight: 600,
-                    letterSpacing: 'normal',
-                    lineHeight: 'normal',
-                    textDecoration: 'none solid rgb(33, 36, 39)',
-                    textAlign: 'center',
-                    textIndent: '0px',
-                    textTransform: 'none',
-                    verticalAlign: 'baseline',
-                    whiteSpace: 'normal',
-                    wordSpacing: '0px',
-                    color: 'rgb(33, 36, 39)',
-                    border: '0px none rgb(33, 36, 39)',
-                    margin: '0px',
-                    padding: '0px',
-                  }}
-                >
-                  Handla efter karaktär
-                </h2>
-              </div>
-
-              <div className="flex-1 flex justify-end items-center">
-                <Link
-                  to="/collections/characters"
-                  style={{
-                    fontFamily:
-                      'Buenos Aires, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, Cantarell, "Noto Sans", sans-serif',
-                    fontSize: '18px',
-                    fontStyle: 'normal',
-                    fontVariant: 'normal',
-                    fontWeight: 600,
-                    letterSpacing: 'normal',
-                    lineHeight: 'normal',
-                    textDecoration: 'underline solid rgb(0, 78, 188)',
-                    textAlign: 'right',
-                    textIndent: '0px',
-                    textTransform: 'none',
-                    verticalAlign: 'baseline',
-                    whiteSpace: 'normal',
-                    wordSpacing: '0px',
-                    color: 'rgb(0, 78, 188)',
-                    border: '0px none rgb(0, 78, 188)',
-                    margin: '0px',
-                    padding: '0px',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                  }}
-                  className="hover:opacity-80"
-                >
-                  Handla alla karaktärer
-                </Link>
-              </div>
+          {/* Header with centered title and right-aligned Shop All link */}
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex-1"></div>
+            <div className="flex-1 flex justify-center">
+              <h2
+                style={{
+                  fontFamily:
+                    'Buenos Aires, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, Cantarell, "Noto Sans", sans-serif',
+                  fontSize: '35px',
+                  fontStyle: 'normal',
+                  fontVariant: 'normal',
+                  fontWeight: 600,
+                  letterSpacing: 'normal',
+                  lineHeight: 'normal',
+                  textDecoration: 'none solid rgb(33, 36, 39)',
+                  textAlign: 'center',
+                  textIndent: '0px',
+                  textTransform: 'none',
+                  verticalAlign: 'baseline',
+                  whiteSpace: 'normal',
+                  wordSpacing: '0px',
+                  color: 'rgb(33, 36, 39)',
+                  border: '0px none rgb(33, 36, 39)',
+                  margin: '0px',
+                  padding: '0px',
+                }}
+              >
+                Handla efter karaktär
+              </h2>
             </div>
-          )}
+
+            <div className="flex-1 flex justify-end items-center">
+              <Link
+                to="/collections/characters"
+                style={{
+                  fontFamily:
+                    'Buenos Aires, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, Cantarell, "Noto Sans", sans-serif',
+                  fontSize: 'clamp(14px, 1.5vw, 18px)',
+                  fontStyle: 'normal',
+                  fontVariant: 'normal',
+                  fontWeight: 600,
+                  letterSpacing: 'normal',
+                  lineHeight: 'normal',
+                  textDecoration: 'underline solid rgb(0, 78, 188)',
+                  textAlign: 'right',
+                  textIndent: '0px',
+                  textTransform: 'none',
+                  verticalAlign: 'baseline',
+                  whiteSpace: 'normal',
+                  wordSpacing: '0px',
+                  color: 'rgb(0, 78, 188)',
+                  border: '0px none rgb(0, 78, 188)',
+                  margin: '0px',
+                  padding: '0px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                }}
+                className="hover:opacity-80"
+              >
+                Handla alla karaktärer
+              </Link>
+            </div>
+          </div>
 
           {/* Desktop Characters Grid - No Navigation */}
           <div className="relative">
-            <div className="grid grid-cols-6 gap-4 justify-center">
+            <div className="grid grid-cols-6 gap-2 md:gap-3 lg:gap-4 justify-center">
               {visibleCharacters.map((character) => (
                 <Link
                   key={character.id}
@@ -264,7 +257,7 @@ export function ShopByCharacter({
                         <span
                           className="text-white font-bold text-center px-2"
                           style={{
-                            fontSize: '18px',
+                            fontSize: 'clamp(14px, 1.5vw, 18px)',
                             fontWeight: 700,
                             lineHeight: '24px',
                             fontFamily:
@@ -304,21 +297,19 @@ export function ShopByCharacter({
 
         {/* Mobile Layout */}
         <div className="block md:hidden">
-          {/* Mobile Title - Only show on homepage */}
-          {variant === 'homepage' && (
-            <h2
-              className="text-black font-semibold text-center mb-8"
-              style={{
-                fontSize: '30px',
-                fontWeight: 600,
-                lineHeight: 'normal',
-                fontFamily:
-                  "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-              }}
-            >
-              Handla efter karaktär
-            </h2>
-          )}
+          {/* Mobile Title */}
+          <h2
+            className="text-black font-semibold text-center mb-8"
+            style={{
+              fontSize: '30px',
+              fontWeight: 600,
+              lineHeight: 'normal',
+              fontFamily:
+                "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+            }}
+          >
+            Handla efter karaktär
+          </h2>
 
           {/* Mobile Horizontal Scroll - Left padding, right edge-to-edge */}
           <div
@@ -426,24 +417,22 @@ export function ShopByCharacter({
             </div>
           </div>
 
-          {/* Mobile Shop All Characters Button - Only show on homepage */}
-          {variant === 'homepage' && (
-            <div className="flex justify-center">
-              <Link
-                to="/collections/characters"
-                className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-10 rounded-full transition-colors duration-200"
-                style={{
-                  fontSize: '16px',
-                  fontWeight: 500,
-                  fontFamily:
-                    "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                  color: 'white',
-                }}
-              >
-                Handla alla karaktärer
-              </Link>
-            </div>
-          )}
+          {/* Mobile Shop All Characters Button - Slightly bigger with proper spacing */}
+          <div className="flex justify-center">
+            <Link
+              to="/collections/characters"
+              className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-10 rounded-full transition-colors duration-200"
+              style={{
+                fontSize: '16px',
+                fontWeight: 500,
+                fontFamily:
+                  "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                color: 'white',
+              }}
+            >
+              Handla alla karaktärer
+            </Link>
+          </div>
         </div>
       </div>
     </section>

@@ -5,7 +5,6 @@ import type {Collection} from '@shopify/hydrogen/storefront-api-types';
 
 interface TopCategoriesProps {
   collections?: Collection[] | null;
-  variant?: 'homepage' | 'collection';
 }
 
 interface CategoryWithColor extends Collection {
@@ -70,10 +69,7 @@ const fallbackCategories: CategoryWithColor[] = [
   },
 ];
 
-export function TopCategories({
-  collections,
-  variant = 'homepage',
-}: TopCategoriesProps) {
+export function TopCategories({collections}: TopCategoriesProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
@@ -111,15 +107,12 @@ export function TopCategories({
 
   // Use Shopify categories or fallback
   const displayCategories: CategoryWithColor[] =
-    featuredCategories.length > 0
-      ? featuredCategories.map((category) => ({
-          ...category,
-          backgroundColor:
-            categoryColors[category.handle.toLowerCase()] || '#6B7280',
-        }))
-      : fallbackCategories;
+    featuredCategories.length > 0 ? featuredCategories : fallbackCategories;
 
-  // Mobile drag handlers
+  // Desktop: Show only first 6 categories (no scrolling/pagination)
+  const visibleCategories = displayCategories.slice(0, 6);
+
+  // Mouse drag handlers for mobile scroll container
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!mobileScrollRef.current) return;
     setIsDragging(true);
@@ -127,25 +120,21 @@ export function TopCategories({
     setScrollLeft(mobileScrollRef.current.scrollLeft);
   };
 
-  const handleMouseLeave = () => {
-    setIsDragging(false);
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
-
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!isDragging || !mobileScrollRef.current) return;
     e.preventDefault();
     const x = e.pageX - mobileScrollRef.current.offsetLeft;
-    const walk = (x - startX) * 2;
+    const walk = (x - startX) * 2; // Scroll speed multiplier
     mobileScrollRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  const handleMouseUpOrLeave = () => {
+    setIsDragging(false);
   };
 
   return (
     <section className="w-full bg-white">
-      {/* Container matching header width */}
+      {/* Container matching Smyths layout */}
       <div
         className="mx-auto relative"
         style={{
@@ -153,19 +142,15 @@ export function TopCategories({
           maxWidth: '100%',
           paddingLeft: '12px',
           paddingRight: '12px',
-          ...(variant === 'collection'
-            ? {paddingTop: '32px', paddingBottom: '32px'}
-            : {paddingTop: '64px', paddingBottom: '64px'}),
+          paddingTop: '64px',
+          paddingBottom: '32px',
         }}
       >
-        {/* Title and View All - Only show on homepage */}
-        {variant === 'homepage' && (
-          <div
-            className="flex justify-between items-center mb-6"
-            style={{
-              marginBottom: '24px',
-            }}
-          >
+        {/* Desktop Layout */}
+        <div className="hidden md:block">
+          {/* Header with centered title and right-aligned Shop All link */}
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex-1"></div>
             <div className="flex-1 flex justify-center">
               <h2
                 style={{
@@ -196,229 +181,258 @@ export function TopCategories({
 
             <div className="flex-1 flex justify-end items-center">
               <Link
-                to="/collections/toys"
+                to="/collections"
                 style={{
                   fontFamily:
                     'Buenos Aires, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, Cantarell, "Noto Sans", sans-serif',
-                  fontSize: '18px',
+                  fontSize: 'clamp(14px, 1.5vw, 18px)',
                   fontStyle: 'normal',
                   fontVariant: 'normal',
                   fontWeight: 600,
                   letterSpacing: 'normal',
                   lineHeight: 'normal',
-                  textDecoration: 'underline solid rgb(33, 36, 39)',
-                  textAlign: 'center',
+                  textDecoration: 'underline solid rgb(0, 78, 188)',
+                  textAlign: 'right',
                   textIndent: '0px',
                   textTransform: 'none',
                   verticalAlign: 'baseline',
                   whiteSpace: 'normal',
                   wordSpacing: '0px',
-                  color: 'rgb(33, 36, 39)',
-                  border: '0px none rgb(33, 36, 39)',
-                  margin: '0px 0px 0px 12px',
+                  color: 'rgb(0, 78, 188)',
+                  border: '0px none rgb(0, 78, 188)',
+                  margin: '0px',
                   padding: '0px',
                   cursor: 'pointer',
+                  transition: 'all 0.2s ease',
                 }}
+                className="hover:opacity-80"
               >
                 Visa alla kategorier
               </Link>
             </div>
           </div>
-        )}
 
-        {/* Desktop Categories Grid */}
-        <div className="hidden md:block">
-          <div
-            className="grid grid-cols-6 gap-6"
-            style={{
-              gap: '24px',
-            }}
-          >
-            {displayCategories.slice(0, 6).map((category) => (
-              <Link
-                key={category.id}
-                to={`/collections/${category.handle}`}
-                className="group block"
-              >
-                <div
-                  className="relative rounded-lg overflow-hidden transition-transform duration-300 group-hover:scale-105"
-                  style={{
-                    width: '192px',
-                    height: '144px',
-                    borderRadius: '12px',
-                  }}
+          {/* Desktop Categories Grid - No Navigation */}
+          <div className="relative">
+            <div className="grid grid-cols-6 gap-2 md:gap-3 lg:gap-4 justify-center">
+              {visibleCategories.map((category) => (
+                <Link
+                  key={category.id}
+                  to={`/collections/${category.handle}`}
+                  className="group block"
                 >
-                  {/* Category Image or Colored Background */}
-                  {category.image?.url ? (
-                    <Image
-                      data={category.image}
-                      className="w-full h-full object-cover"
-                      sizes="(max-width: 768px) 100vw, 192px"
-                    />
-                  ) : (
-                    <div
-                      className="w-full h-full flex items-center justify-center"
+                  <div
+                    className="relative overflow-hidden group-hover:shadow-lg transition-shadow duration-200"
+                    style={{
+                      width: '200px',
+                      height: '200px',
+                      borderRadius: '12px',
+                    }}
+                  >
+                    {category.image?.url ? (
+                      <Image
+                        data={category.image}
+                        alt={category.image.altText || category.title}
+                        style={{
+                          height: '200px',
+                          width: '200px',
+                          overflow: 'clip',
+                          cursor: 'pointer',
+                          boxSizing: 'content-box',
+                        }}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                        sizes="180px"
+                        loading="eager"
+                      />
+                    ) : (
+                      <div
+                        className="w-full h-full flex items-center justify-center"
+                        style={{
+                          backgroundColor:
+                            category.backgroundColor ||
+                            categoryColors[category.handle] ||
+                            '#6B7280',
+                        }}
+                      >
+                        <span
+                          className="text-white font-bold text-center px-2"
+                          style={{
+                            fontSize: 'clamp(14px, 1.5vw, 18px)',
+                            fontWeight: 700,
+                            lineHeight: '24px',
+                            fontFamily:
+                              "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                          }}
+                        >
+                          {category.title}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  {/* Category Name - Desktop */}
+                  <div className="mt-3 text-center">
+                    <h3
+                      className="text-black font-medium group-hover:text-blue-600 transition-colors duration-200"
                       style={{
-                        backgroundColor: category.backgroundColor || '#6B7280',
+                        fontSize: '14px',
+                        fontWeight: 500,
+                        lineHeight: '18.9px',
+                        fontFamily:
+                          "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                        wordWrap: 'break-word',
+                        hyphens: 'auto',
+                        whiteSpace: 'normal',
+                        textAlign: 'center',
+                        maxWidth: '180px',
                       }}
                     >
-                      <span
-                        className="text-white text-center font-medium px-2"
-                        style={{
-                          fontSize: '16px',
-                          fontWeight: 500,
-                          lineHeight: '20px',
-                          fontFamily:
-                            "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                        }}
-                      >
-                        {category.title}
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Category Name Overlay for Images */}
-                  {category.image?.url && (
-                    <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
-                      <span
-                        className="text-white text-center font-medium px-2"
-                        style={{
-                          fontSize: '16px',
-                          fontWeight: 500,
-                          lineHeight: '20px',
-                          fontFamily:
-                            "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                        }}
-                      >
-                        {category.title}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </Link>
-            ))}
+                      {category.title}
+                    </h3>
+                  </div>
+                </Link>
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* Mobile Categories - Horizontal Scroll */}
-        <div className="md:hidden">
+        {/* Mobile Layout */}
+        <div className="block md:hidden">
+          {/* Mobile Title */}
+          <h2
+            className="text-black font-semibold text-center mb-8"
+            style={{
+              fontSize: '30px',
+              fontWeight: 600,
+              lineHeight: 'normal',
+              fontFamily:
+                "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+            }}
+          >
+            Populära kategorier
+          </h2>
+
+          {/* Mobile Horizontal Scroll - Left padding, right edge-to-edge */}
           <div
             ref={mobileScrollRef}
-            className="flex gap-3 overflow-x-auto scrollbar-hide pb-4 cursor-grab"
+            className="overflow-x-auto mb-8 pb-2 -ml-3"
             style={{
-              gap: '12px',
+              scrollSnapType: 'x mandatory',
               scrollbarWidth: 'none',
               msOverflowStyle: 'none',
+              cursor: isDragging ? 'grabbing' : 'grab',
             }}
             onMouseDown={handleMouseDown}
-            onMouseLeave={handleMouseLeave}
-            onMouseUp={handleMouseUp}
             onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUpOrLeave}
+            onMouseLeave={handleMouseUpOrLeave}
           >
-            {displayCategories.map((category) => (
-              <Link
-                key={category.id}
-                to={`/collections/${category.handle}`}
-                className="group flex-shrink-0"
-                style={{minWidth: '144px'}}
-              >
-                <div
-                  className="relative rounded-lg overflow-hidden transition-transform duration-300 group-hover:scale-105"
+            <style>
+              {`
+                .mobile-category-scroll::-webkit-scrollbar {
+                  display: none;
+                }
+              `}
+            </style>
+            <div
+              className="flex space-x-2 mobile-category-scroll"
+              style={{
+                paddingLeft: '12px',
+                paddingRight: '0px',
+                width: 'max-content',
+              }}
+            >
+              {displayCategories.map((category) => (
+                <Link
+                  key={category.id}
+                  to={`/collections/${category.handle}`}
+                  className="group flex-shrink-0"
                   style={{
-                    width: '144px',
-                    height: '108px',
-                    borderRadius: '12px',
+                    scrollSnapAlign: 'start',
+                    pointerEvents: isDragging ? 'none' : 'auto',
                   }}
                 >
-                  {/* Category Image or Colored Background */}
-                  {category.image?.url ? (
-                    <Image
-                      data={category.image}
-                      className="w-full h-full object-cover"
-                      sizes="144px"
-                    />
-                  ) : (
-                    <div
-                      className="w-full h-full flex items-center justify-center"
-                      style={{
-                        backgroundColor: category.backgroundColor || '#6B7280',
-                      }}
-                    >
-                      <span
-                        className="text-white text-center font-medium px-2"
-                        style={{
-                          fontSize: '14px',
-                          fontWeight: 500,
-                          lineHeight: '18px',
-                          fontFamily:
-                            "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                        }}
-                      >
-                        {category.title}
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Category Name Overlay for Images */}
-                  {category.image?.url && (
-                    <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
-                      <span
-                        className="text-white text-center font-medium px-2"
-                        style={{
-                          fontSize: '14px',
-                          fontWeight: 500,
-                          lineHeight: '18px',
-                          fontFamily:
-                            "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                        }}
-                      >
-                        {category.title}
-                      </span>
-                    </div>
-                  )}
-                </div>
-                {/* Category Name - Mobile */}
-                <div className="mt-2 text-center px-1">
-                  <h3
-                    className="text-black font-medium group-hover:text-blue-600 transition-colors duration-200"
+                  <div
+                    className="relative overflow-hidden group-hover:shadow-lg transition-shadow duration-200"
                     style={{
-                      fontSize: '12px',
-                      fontWeight: 500,
-                      lineHeight: '16.2px',
-                      fontFamily:
-                        "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                      wordWrap: 'break-word',
-                      hyphens: 'auto',
-                      whiteSpace: 'normal',
-                      textAlign: 'center',
-                      maxWidth: '144px',
+                      width: '144px',
+                      height: '144px',
+                      borderRadius: '12px',
                     }}
                   >
-                    {category.title}
-                  </h3>
-                </div>
-              </Link>
-            ))}
+                    {category.image?.url ? (
+                      <Image
+                        data={category.image}
+                        alt={category.image.altText || category.title}
+                        className="w-full h-full object-cover"
+                        sizes="144px"
+                        loading="eager"
+                      />
+                    ) : (
+                      <div
+                        className="w-full h-full flex items-center justify-center"
+                        style={{
+                          backgroundColor:
+                            category.backgroundColor ||
+                            categoryColors[category.handle] ||
+                            '#6B7280',
+                        }}
+                      >
+                        <span
+                          className="text-white font-bold text-center px-2"
+                          style={{
+                            fontSize: '15px',
+                            fontWeight: 700,
+                            lineHeight: '19px',
+                            fontFamily:
+                              "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                          }}
+                        >
+                          {category.title}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  {/* Category Name - Mobile */}
+                  <div className="mt-2 text-center px-1">
+                    <h3
+                      className="text-black font-medium group-hover:text-blue-600 transition-colors duration-200"
+                      style={{
+                        fontSize: '12px',
+                        fontWeight: 500,
+                        lineHeight: '16.2px',
+                        fontFamily:
+                          "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                        wordWrap: 'break-word',
+                        hyphens: 'auto',
+                        whiteSpace: 'normal',
+                        textAlign: 'center',
+                        maxWidth: '144px',
+                      }}
+                    >
+                      {category.title}
+                    </h3>
+                  </div>
+                </Link>
+              ))}
+            </div>
           </div>
 
-          {/* Mobile Shop All Categories Button - Only show on homepage */}
-          {variant === 'homepage' && (
-            <div className="flex justify-center">
-              <Link
-                to="/collections/toys"
-                className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-10 rounded-full transition-colors duration-200"
-                style={{
-                  fontSize: '16px',
-                  fontWeight: 500,
-                  fontFamily:
-                    "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                  color: 'white',
-                }}
-              >
-                Visa alla kategorier
-              </Link>
-            </div>
-          )}
+          {/* Mobile Shop All Categories Button - Slightly bigger with proper spacing */}
+          <div className="flex justify-center">
+            <Link
+              to="/collections"
+              className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-10 rounded-full transition-colors duration-200"
+              style={{
+                fontSize: '16px',
+                fontWeight: 500,
+                fontFamily:
+                  "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                color: 'white',
+              }}
+            >
+              Visa alla kategorier
+            </Link>
+          </div>
         </div>
       </div>
     </section>
