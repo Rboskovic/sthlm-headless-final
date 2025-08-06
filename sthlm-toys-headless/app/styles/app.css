@@ -1,10 +1,16 @@
-/* app/styles/app.css - Updated with larger mobile grid image sizes */
+/* 
+ * STHLM Toys & Games - Main Application Styles
+ * ✅ CLEAN VERSION: No CSS bandaids, only necessary styles
+ */
 
 /* Import Tailwind base styles */
 @import './tailwind.css';
 
-/* SHOPIFY CORE VARIABLES - DO NOT MODIFY */
+/* ========================================
+   SHOPIFY CORE VARIABLES
+   ======================================== */
 :root {
+  /* Shopify System Variables */
   --aside-width: 400px;
   --cart-aside-summary-height-with-discount: 300px;
   --cart-aside-summary-height: 250px;
@@ -12,20 +18,18 @@
   --header-height: 64px;
   --color-dark: #000;
   --color-light: #fff;
+  
+  /* Design System Variables */
+  --font-primary: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
 }
 
-/* ESSENTIAL SHOPIFY STYLES - DO NOT MODIFY */
-img {
-  border-radius: 4px;
-}
+/* ========================================
+   SHOPIFY REQUIRED STYLES
+   ======================================== */
 
-/* Aside/Cart specific overrides that can't be easily done with Tailwind */
-@media (max-width: 45em) {
-  html:has(.overlay.expanded) {
-    overflow: hidden;
-  }
-}
-
+/* Aside/Cart Drawer */
 aside {
   background: var(--color-light);
   box-shadow: 0 0 50px rgba(0, 0, 0, 0.3);
@@ -38,6 +42,7 @@ aside {
   z-index: 100;
 }
 
+/* Overlay for modals/aside */
 .overlay {
   background: rgba(0, 0, 0, 0.2);
   bottom: 0;
@@ -62,15 +67,77 @@ aside {
   transform: translateX(calc(var(--aside-width) * -1));
 }
 
-/* Essential component states that require specific CSS */
-.predictive-search-result-item a {
-  align-items: center;
-  display: flex;
+/* Prevent scroll when modal is open */
+@media (max-width: 45em) {
+  html:has(.overlay.expanded) {
+    overflow: hidden;
+  }
 }
 
-/* Product options that need specific styling for Shopify integration */
-.product-options-item,
-.product-options-item:disabled {
+/* ========================================
+   HEADER STYLES
+   ======================================== */
+
+header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: linear-gradient(to bottom, #1f96f4, #2171e1);
+}
+
+/* ========================================
+   MOBILE MENU STYLES
+   ======================================== */
+
+.mobile-menu-fullscreen {
+  z-index: 60; /* Above header but below cart */
+}
+
+/* Mobile menu popular grid - 3x3 layout */
+.mobile-menu-popular-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  padding: 0 1rem;
+  justify-items: center;
+}
+
+.mobile-menu-popular-item {
+  width: 5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  cursor: pointer;
+}
+
+/* Responsive adjustments */
+@media (max-width: 320px) {
+  .mobile-menu-popular-item {
+    width: 4rem;
+  }
+  .mobile-menu-popular-grid {
+    gap: 0.75rem;
+  }
+}
+
+@media (min-width: 375px) {
+  .mobile-menu-popular-item {
+    width: 5.5rem;
+  }
+}
+
+@media (min-width: 414px) {
+  .mobile-menu-popular-item {
+    width: 6rem;
+  }
+}
+
+/* ========================================
+   PRODUCT STYLES
+   ======================================== */
+
+.product-options-item {
   padding: 0.25rem 0.5rem;
   background-color: transparent;
   font-size: 1rem;
@@ -82,315 +149,83 @@ aside {
   height: 1.25rem;
 }
 
-/* HOMEPAGE LAYOUT FIXES */
-/* Override section padding for hero banner - make it stick to header */
-section:first-child {
-  padding-top: 0 !important;
-  margin-top: 0 !important;
-}
+/* ========================================
+   SEARCH STYLES
+   ======================================== */
 
-/* Ensure no spacing on homepage */
-.home {
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-.home section:first-child {
-  padding: 0 !important;
-  margin: 0 !important;
-}
-
-/* MOBILE MENU FULLSCREEN STYLES */
-
-/* Ensure mobile menu has highest z-index */
-.mobile-menu-fullscreen {
-  z-index: 200; /* Higher than header and other asides */
-}
-
-/* 3x3 MOBILE GRID STYLES - UPDATED WITH LARGER SIZES */
-
-/* Base mobile grid styling for 3x3 layout - Updated for 5rem images */
-.mobile-menu-popular-grid {
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
-  width: 100%;
-  justify-items: center;
-}
-
-.mobile-menu-popular-item {
-  width: 5rem; /* Increased from 4rem to 5rem */
-  height: auto;
-  display: flex;
-  flex-direction: column;
+.predictive-search-result-item a {
   align-items: center;
-  text-align: center;
-  min-height: 44px; /* iOS minimum touch target */
-  min-width: 44px;
-  padding: 0.25rem;
-  cursor: pointer;
-  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+  display: flex;
 }
 
-/* Hover state for better UX */
-.mobile-menu-popular-item:hover {
-  opacity: 0.8;
-  transition: opacity 0.2s ease;
+/* ========================================
+   UTILITY CLASSES
+   ======================================== */
+
+/* Hide scrollbar but keep functionality */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
-/* Ensure proper image display */
-.mobile-menu-popular-item img {
-  border-radius: 0.75rem;
-  object-fit: cover;
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
-/* Popular item text styling */
-.mobile-popular-text {
-  font-family:
-    UniformRnd,
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    'Segoe UI',
-    Roboto,
-    Ubuntu,
-    Cantarell,
-    'Noto Sans',
-    sans-serif;
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: #111827;
-  text-align: center;
-  line-height: 1rem;
-}
-
-/* Popular grid responsive adjustments - Updated for larger base size */
-
-/* Small screens (320px and below) */
-@media (max-width: 320px) {
-  .mobile-menu-popular-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.75rem;
-    padding: 0 0.5rem;
-  }
-  
-  .mobile-menu-popular-item {
-    width: 4rem; /* Slightly smaller on very small screens */
-    height: auto;
-  }
-  
-  .mobile-menu-popular-item > div:first-child {
-    width: 4rem !important;
-    height: 4rem !important;
-  }
-  
-  .mobile-popular-text {
-    font-size: 0.6875rem;
-    line-height: 0.875rem;
-    max-width: 4rem;
-  }
-}
-
-/* Very small screens (280px and below) */
-@media (max-width: 280px) {
-  .mobile-menu-popular-grid {
-    gap: 0.5rem;
-    padding: 0 0.25rem;
-  }
-  
-  .mobile-menu-popular-item {
-    width: 3.5rem;
-  }
-  
-  .mobile-menu-popular-item > div:first-child {
-    width: 3.5rem !important;
-    height: 3.5rem !important;
-  }
-  
-  .mobile-popular-text {
-    font-size: 0.625rem;
-    line-height: 0.75rem;
-    max-width: 3.5rem;
-  }
-}
-
-/* Larger mobile screens (375px+) - Increased base size */
-@media (min-width: 375px) {
-  .mobile-menu-popular-grid {
-    gap: 1.25rem;
-    padding: 0 1rem;
-  }
-  
-  .mobile-menu-popular-item {
-    width: 5.5rem; /* Increased from 4.5rem to 5.5rem */
-  }
-  
-  .mobile-menu-popular-item > div:first-child {
-    width: 5.5rem !important;
-    height: 5.5rem !important;
-  }
-  
-  .mobile-popular-text {
-    font-size: 0.8125rem;
-    line-height: 1.125rem;
-    max-width: 5.5rem;
-  }
-}
-
-/* Extra large mobile screens (414px+) - Even larger for better visibility */
-@media (min-width: 414px) {
-  .mobile-menu-popular-grid {
-    gap: 1.5rem;
-    padding: 0 1.5rem;
-  }
-  
-  .mobile-menu-popular-item {
-    width: 6rem; /* Even larger on bigger screens */
-  }
-  
-  .mobile-menu-popular-item > div:first-child {
-    width: 6rem !important;
-    height: 6rem !important;
-  }
-  
-  .mobile-popular-text {
-    font-size: 0.875rem;
-    line-height: 1.25rem;
-    max-width: 6rem;
-  }
-}
-
-/* HEADER Z-INDEX FIX */
-/* Fix header z-index to be below mobile menu */
-header {
-  z-index: 50; /* Lower than mobile menu z-index of 200 */
-}
-
-/* MOBILE MENU ADDITIONAL STYLES */
-
-/* Popular section title styling */
-.mobile-popular-title {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: #111827;
-  margin-bottom: 1rem;
-  font-family:
-    UniformRnd,
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    'Segoe UI',
-    Roboto,
-    Ubuntu,
-    Cantarell,
-    'Noto Sans',
-    sans-serif;
-}
-
-/* Navigation item text styling */
-.mobile-nav-text {
-  font-family:
-    UniformRnd,
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    'Segoe UI',
-    Roboto,
-    Ubuntu,
-    Cantarell,
-    'Noto Sans',
-    sans-serif;
-  font-weight: 500;
-  color: #111827;
-}
-
-/* LEGACY MOBILE MENU STYLES (Keep for backward compatibility) */
-
-/* Mobile menu specific styling */
-.mobile-menu {
-  padding: 0;
-  margin: 0;
-}
-
-/* Ensure mobile aside appears above header */
-aside[data-type='mobile'] {
-  z-index: 100;
-}
-
-/* Mobile menu styling within aside */
-aside .mobile-menu {
-  height: 100%;
-  overflow-y: auto;
-}
-
-/* Fix for mobile menu links */
-.mobile-menu a {
-  display: block;
-  text-decoration: none;
+/* Images */
+img {
   border-radius: 4px;
 }
 
-.mobile-menu a:hover {
-  background-color: #f3f4f6;
+/* Line clamp utilities */
+.line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
-/* Ensure aside is properly sized for mobile */
-@media (max-width: 1024px) {
-  aside {
-    width: min(320px, 85vw);
-    right: calc(-1 * min(320px, 85vw));
-  }
+/* ========================================
+   CART STYLES
+   ======================================== */
 
-  .overlay.expanded aside {
-    transform: translateX(calc(min(320px, 85vw) * -1));
-  }
+.cart-main {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 1rem;
 }
 
-/* Ensure mobile menu is scrollable if content overflows */
-aside main {
-  height: calc(100vh - 64px); /* Subtract header height */
-  overflow-y: auto;
+.cart-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 2rem;
 }
 
-/* Additional mobile menu item styling */
-.mobile-menu .space-y-2 > div {
-  margin-bottom: 0;
+.cart-empty-text {
+  color: #6b7280;
+  margin-bottom: 1.5rem;
+  font-size: 1rem;
 }
 
-.mobile-menu .space-y-2 > div + div {
-  margin-top: 0;
+.cart-empty-link {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
 }
 
-/* Mobile menu text styling */
-.mobile-menu a {
-  font-family:
-    UniformRnd,
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    'Segoe UI',
-    Roboto,
-    Ubuntu,
-    Cantarell,
-    'Noto Sans',
-    sans-serif;
+.cart-empty-link:hover {
+  color: var(--color-primary-hover);
+  text-decoration: underline;
 }
 
-/* Emergency Grid Fix - Add this to your app.css temporarily */
-
-/* Force the mobile popular grid to display correctly */
-.mobile-menu-popular-grid {
-  display: grid !important;
-  grid-template-columns: repeat(3, 1fr) !important;
-  gap: 1rem !important;
-  width: 100% !important;
-  justify-items: center !important;
-}
-
-/* Ensure each item takes proper space */
-.mobile-menu-popular-item {
-  width: 5rem !important;
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  text-align: center !important;
+.cart-lines-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
