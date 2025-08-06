@@ -27,7 +27,12 @@ export function HeaderMain({
     >
       {/* Top Utility Bar */}
       <div className="hidden lg:flex justify-end items-center">
-        <div className="mx-auto w-full max-w-[1272px]" style={{paddingLeft: '12px', paddingRight: '40px'}}> {/* Increased right padding */}
+        <div
+          className="mx-auto w-full max-w-[1272px]"
+          style={{paddingLeft: '12px', paddingRight: '40px'}}
+        >
+          {' '}
+          {/* Increased right padding */}
           <div
             className="flex justify-end items-center"
             style={{
@@ -54,7 +59,9 @@ export function HeaderMain({
                   >
                     <User size={15} className="text-white" />
                     <span className="text-white">
-                      {isLoggedIn ? 'Logga in / Registrera' : 'Logga in / Registrera'}
+                      {isLoggedIn
+                        ? 'Logga in / Registrera'
+                        : 'Logga in / Registrera'}
                     </span>
                   </Link>
                 )}

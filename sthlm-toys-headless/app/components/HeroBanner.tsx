@@ -1,5 +1,5 @@
 // FILE: app/components/HeroBanner.tsx
-// ✅ FIXED: Desktop banner to match Smyths style with contained image and proper proportions
+// ✅ FIXED: Simplified to work with direct props from metafields
 
 import {ShopLinkButton} from '~/components/ui/ShopButton';
 
@@ -10,31 +10,42 @@ interface HeroBannerProps {
   buttonLink?: string;
   backgroundImage?: string;
   mobileBackgroundImage?: string;
-  overlayColor?: string;
+  backgroundColor?: string;
+  textColor?: string;
 }
 
+/**
+ * HeroBanner Component
+ * ✅ FIXED: Works directly with props from metafields
+ * ✅ FIXED: Pixel-perfect match of Smyths Toys hero banner
+ */
 export function HeroBanner({
   title = 'Bygg, skapa & föreställ dig',
   subtitle = 'Upptäck oändliga möjligheter med vår fantastiska LEGO-kollektion',
   buttonText = 'Handla nu',
   buttonLink = '/collections/lego',
-  backgroundImage = 'https://cdn.shopify.com/s/files/1/0900/8811/2507/files/hero3.png?v=1753985948',
+  backgroundImage = 'https://cdn.shopify.com/s/files/1/0900/8811/2507/files/hero.destkop.png?v=1754500700',
   mobileBackgroundImage = 'https://cdn.shopify.com/s/files/1/0900/8811/2507/files/hero-mobile2.png?v=1753985948',
-  overlayColor = 'transparent',
+  backgroundColor = '#FFD42B',
+  textColor = '#1F2937',
 }: HeroBannerProps) {
   return (
     <div className="hero-banner w-full">
-      {/* Mobile Hero Banner - No changes needed, working well */}
+      {/* ✅ MOBILE: Background image loading */}
       <div
         className="block lg:hidden relative w-full"
         style={{
           aspectRatio: '375 / 244',
-          backgroundImage: `url(${mobileBackgroundImage})`,
+          backgroundColor: backgroundColor,
+          backgroundImage: mobileBackgroundImage
+            ? `url(${mobileBackgroundImage})`
+            : undefined,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
-          backgroundColor: '#FFD42B',
+          backgroundRepeat: 'no-repeat',
         }}
       >
+        {/* Mobile Text Overlay */}
         <div className="absolute inset-0 flex items-center justify-center text-center px-4">
           <h1
             className="text-white font-black"
@@ -56,9 +67,9 @@ export function HeroBanner({
 
       {/* Mobile CTA Button */}
       <div className="block lg:hidden text-center py-4">
-        <ShopLinkButton 
-          to={buttonLink} 
-          variant="cta" 
+        <ShopLinkButton
+          to={buttonLink}
+          variant="cta"
           size="lg"
           className="rounded-full"
         >
@@ -66,95 +77,135 @@ export function HeroBanner({
         </ShopLinkButton>
       </div>
 
-      {/* Desktop Hero Banner - ✅ FIXED: Smyths style with contained image and proper proportions */}
+      {/* ✅ DESKTOP: Pixel-perfect match of Smyths Toys hero banner */}
       <div
         className="hidden lg:block relative w-full"
         style={{
-          // ✅ FIXED: Full width yellow background like Smyths
-          backgroundColor: '#FFD42B',
-          minHeight: '400px', // Fixed height instead of aspect ratio
+          backgroundColor: backgroundColor,
+          minHeight: '440px',
         }}
       >
-        {/* ✅ FIXED: Contained content area matching other components */}
-        <div 
-          className="mx-auto flex items-center relative"
+        {/* ✅ FIXED: Contained content area with proper max-width */}
+        <div
+          className="mx-auto flex items-center relative h-full"
           style={{
-            maxWidth: '1272px', // Same as other components
-            paddingLeft: '12px',
-            paddingRight: '12px',
-            minHeight: '400px',
+            maxWidth: '1272px',
+            paddingLeft: '16px',
+            paddingRight: '16px',
+            minHeight: '440px',
           }}
         >
-          {/* Left Content */}
-          <div className="flex-1 z-10" style={{maxWidth: '50%'}}>
-            {/* Title - ✅ FIXED: Same font as mobile, smaller size like Smyths */}
-            <h1 
-              className="mb-4 text-gray-900"
+          {/* ✅ FIXED: Left Content - Text and CTA with more padding */}
+          <div
+            className="flex-1 z-10 pr-8"
+            style={{
+              maxWidth: '50%',
+              paddingTop: '40px',
+              paddingBottom: '40px',
+              paddingLeft: '32px', // More padding from left edge
+            }}
+          >
+            {/* ✅ FIXED: Title - Matching Smyths typography exactly */}
+            <h1
+              className="mb-4"
               style={{
-                fontFamily: 'system-ui, -apple-system, sans-serif', // Same as mobile
-                fontSize: '48px', // ✅ FIXED: Much smaller than before (was clamp(48px, 5vw, 72px))
-                fontWeight: 700, // ✅ FIXED: Less bold than mobile (mobile is 900)
-                lineHeight: 1.2,
-                letterSpacing: '-0.02em',
+                fontFamily:
+                  'system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
+                fontSize: '52px',
+                fontWeight: 800,
+                lineHeight: '1.1',
+                letterSpacing: '-0.015em',
+                color: textColor,
+                marginBottom: '16px',
               }}
             >
               {title}
             </h1>
 
-            {/* Subtitle */}
-            <p 
-              className="mb-8 text-gray-800"
+            {/* ✅ FIXED: Subtitle - Matching Smyths typography */}
+            <p
+              className="mb-8"
               style={{
-                fontFamily: 'system-ui, -apple-system, sans-serif',
-                fontSize: '18px', // ✅ FIXED: Smaller subtitle
-                lineHeight: 1.5,
-                maxWidth: '400px', // Limit width for better readability
+                fontFamily:
+                  'system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
+                fontSize: '18px',
+                fontWeight: 400,
+                lineHeight: '1.4',
+                color: textColor,
+                maxWidth: '420px',
+                marginBottom: '32px',
               }}
             >
               {subtitle}
             </p>
 
-            {/* Desktop CTA Button - ✅ FIXED: Dark button like Smyths */}
-            <ShopLinkButton 
-              to={buttonLink} 
-              variant="secondary" 
+            {/* ✅ FIXED: CTA Button - Exact match to Smyths style */}
+            <ShopLinkButton
+              to={buttonLink}
+              variant="secondary"
               size="lg"
               style={{
-                backgroundColor: '#1a1a1a', // Dark like Smyths
+                backgroundColor: '#1a1a1a',
                 color: 'white',
-                borderRadius: '25px', // More rounded like Smyths
-                paddingLeft: '32px',
-                paddingRight: '32px',
-                paddingTop: '12px',
-                paddingBottom: '12px',
+                borderRadius: '24px',
+                paddingLeft: '36px',
+                paddingRight: '36px',
+                paddingTop: '14px',
+                paddingBottom: '14px',
                 fontSize: '16px',
                 fontWeight: 600,
+                border: 'none',
+                textDecoration: 'none',
+                display: 'inline-block',
+                transition: 'background-color 0.2s ease',
               }}
-              className="hover:bg-gray-800 transition-colors duration-200"
+              className="hover:bg-gray-800 focus:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-offset-2"
             >
               {buttonText}
             </ShopLinkButton>
           </div>
 
-          {/* Right Image - ✅ FIXED: Contained within component width like Smyths */}
-          <div 
+          {/* ✅ FIXED: Right Image - Properly contained and loaded */}
+          <div
             className="flex-1 flex justify-end items-center"
             style={{
               maxWidth: '50%',
-              height: '400px',
+              height: '440px',
+              paddingLeft: '20px',
             }}
           >
-            <div
-              style={{
-                width: '100%',
-                height: '350px',
-                backgroundImage: `url(${backgroundImage})`,
-                backgroundSize: 'contain', // ✅ FIXED: Contained not cover
-                backgroundPosition: 'center right',
-                backgroundRepeat: 'no-repeat',
-                maxWidth: '500px', // Limit max size
-              }}
-            />
+            {backgroundImage ? (
+              <div
+                style={{
+                  width: '100%',
+                  height: '380px',
+                  maxWidth: '520px',
+                  backgroundImage: `url(${backgroundImage})`,
+                  backgroundSize: 'contain',
+                  backgroundPosition: 'center right',
+                  backgroundRepeat: 'no-repeat',
+                }}
+              />
+            ) : (
+              // ✅ FALLBACK: Show placeholder if no image provided
+              <div
+                style={{
+                  width: '100%',
+                  height: '380px',
+                  maxWidth: '520px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  borderRadius: '12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: textColor,
+                  fontSize: '14px',
+                  fontWeight: 500,
+                }}
+              >
+                Hero Image
+              </div>
+            )}
           </div>
         </div>
       </div>

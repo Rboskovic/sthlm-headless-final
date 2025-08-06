@@ -309,6 +309,19 @@ export type FeaturedCollectionQuery = {
   };
 };
 
+export type HeroBannerQueryVariables = StorefrontAPI.Exact<{
+  country?: StorefrontAPI.InputMaybe<StorefrontAPI.CountryCode>;
+  language?: StorefrontAPI.InputMaybe<StorefrontAPI.LanguageCode>;
+}>;
+
+export type HeroBannerQuery = {
+  shop: {
+    metafields: Array<
+      StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'key' | 'value'>>
+    >;
+  };
+};
+
 export type RecommendedProductFragment = Pick<
   StorefrontAPI.Product,
   'id' | 'title' | 'handle'
@@ -1506,6 +1519,10 @@ interface GeneratedQueryTypes {
   '#graphql\n  fragment FeaturedCollection on Collection {\n    id\n    title\n    handle\n    image {\n      id\n      url\n      altText\n      width\n      height\n    }\n  }\n  query FeaturedCollection($country: CountryCode, $language: LanguageCode)\n    @inContext(country: $country, language: $language) {\n    collections(first: 1, sortKey: UPDATED_AT, reverse: true) {\n      nodes {\n        ...FeaturedCollection\n      }\n    }\n  }\n': {
     return: FeaturedCollectionQuery;
     variables: FeaturedCollectionQueryVariables;
+  };
+  '#graphql\n  query HeroBanner($country: CountryCode, $language: LanguageCode)\n    @inContext(country: $country, language: $language) {\n    shop {\n      metafields(identifiers: [\n        {namespace: "custom", key: "hero-homepage-title"},\n        {namespace: "custom", key: "hero-homepage-subtitle"},\n        {namespace: "custom", key: "hero-homepage-button-text"},\n        {namespace: "custom", key: "hero-homepage-button-link"},\n        {namespace: "custom", key: "hero-homepage-background-color"},\n        {namespace: "custom", key: "hero-homepage-text-color"}\n      ]) {\n        key\n        value\n      }\n    }\n  }\n': {
+    return: HeroBannerQuery;
+    variables: HeroBannerQueryVariables;
   };
   '#graphql\n  fragment RecommendedProduct on Product {\n    id\n    title\n    handle\n    priceRange {\n      minVariantPrice {\n        amount\n        currencyCode\n      }\n    }\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n  }\n  query RecommendedProducts($country: CountryCode, $language: LanguageCode)\n    @inContext(country: $country, language: $language) {\n    products(first: 4, sortKey: UPDATED_AT, reverse: true) {\n      nodes {\n        ...RecommendedProduct\n      }\n    }\n  }\n': {
     return: RecommendedProductsQuery;
