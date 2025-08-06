@@ -1,5 +1,5 @@
 // FILE: app/components/Header/HeaderMain.tsx
-// ✅ FIXED: Uses smart WishlistsLink component instead of hardcoded links
+// ✅ SHOPIFY STANDARD: Updated to work with proper Shopify logo implementation
 
 import {Suspense} from 'react';
 import {Link, Await} from 'react-router';
@@ -49,7 +49,7 @@ export function HeaderMain({
                   >
                     <User size={16} className="text-white" />
                     <span className="text-white">
-                      {isLoggedIn ? 'Mitt konto' : 'Logga in / Registrera'}
+                      {isLoggedIn ? 'Logga in / Registrera' : 'Logga in / Registrera'}
                     </span>
                   </Link>
                 )}
@@ -57,7 +57,7 @@ export function HeaderMain({
             </Suspense>
 
             <Link
-              to="/account/orders"
+              to="/pages/order-tracking"
               className="flex items-center rounded-full text-white hover:bg-white/10 transition-colors px-3 py-2"
               style={{
                 fontSize: '14px',
@@ -72,7 +72,7 @@ export function HeaderMain({
             </Link>
 
             <Link
-              to="/hjalp"
+              to="/pages/help"
               className="flex items-center rounded-full text-white hover:bg-white/10 transition-colors px-3 py-2"
               style={{
                 fontSize: '14px',
@@ -89,31 +89,31 @@ export function HeaderMain({
         </div>
       </div>
 
-      {/* Main Header - Desktop */}
+      {/* Desktop Main Header - ✅ FIXED: Proper logo positioning and sizing */}
       <div className="hidden lg:block">
         <div
-          className="flex items-center"
+          className="flex items-center justify-between mx-auto"
           style={{
-            width: '1272px',
-            height: '68px',
-            margin: '12px auto 0px',
+            maxWidth: '1272px',
+            // ✅ FIXED: Increased height to accommodate larger logo
+            height: '100px', 
+            margin: '8px auto 8px',
             paddingLeft: '12px',
             paddingRight: '12px',
-            gap: '40px',
           }}
         >
-          {/* Logo - Fixed dimensions to prevent cutting */}
-          <div className="flex-shrink-0">
+          {/* Logo - ✅ FIXED: Move logo to the right within its container */}
+          <div className="flex-shrink-0 flex justify-center items-center" style={{width: '300px'}}>
             <Logo shop={shop} />
           </div>
 
-          {/* Search Bar - Fixed padding */}
-          <div className="flex-1 max-w-2xl">
+          {/* Search Bar - Centered */}
+          <div className="flex-1 max-w-2xl mx-8">
             <SearchBar />
           </div>
 
           {/* Right Actions */}
-          <div className="flex items-center" style={{gap: '16px'}}>
+          <div className="flex items-center" style={{gap: '16px', width: '300px', justifyContent: 'flex-end'}}>
             {/* ✅ FIXED: Smart Wishlist Link */}
             <WishlistsLink
               isLoggedIn={isLoggedIn}
@@ -142,32 +142,31 @@ export function HeaderMain({
         </div>
       </div>
 
-      {/* Mobile Header - Updated to use fullscreen menu */}
+      {/* Mobile Header - ✅ FIXED: Logo centered to screen, not between components */}
       <div className="lg:hidden">
-        <div className="flex items-center justify-between px-4 py-3">
-          {/* Left: Hamburger Menu - Updated to use onMobileMenuToggle */}
+        <div 
+          className="relative flex items-center justify-between px-4"
+          style={{
+            // ✅ SHOPIFY STANDARD: Standard mobile header height
+            height: '60px',
+          }}
+        >
+          {/* Left: Hamburger Menu */}
           <button
-            className="text-white p-2 hover:bg-white/10 rounded-lg transition-colors"
+            className="text-white p-2 hover:bg-white/10 rounded-lg transition-colors z-10"
             onClick={onMobileMenuToggle}
             aria-label="Öppna meny"
           >
             <Menu size={24} />
           </button>
 
-          {/* Center: Logo */}
-          <div className="flex-1 flex justify-center">
-            <Logo
-              shop={shop}
-              style={{
-                height: '40px',
-                width: '120px',
-                maxWidth: '120px',
-              }}
-            />
+          {/* Center: Logo - ✅ FIXED: Absolutely centered to screen */}
+          <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
+            <Logo shop={shop} className="scale-55" />
           </div>
 
-          {/* Right: Wishlist and Cart */}
-          <div className="flex items-center gap-2">
+          {/* Right: Wishlist and Cart - Stay in exact same position */}
+          <div className="flex items-center gap-2 z-10">
             {/* ✅ FIXED: Smart Wishlist Link for Mobile */}
             <WishlistsLink
               isLoggedIn={isLoggedIn}
