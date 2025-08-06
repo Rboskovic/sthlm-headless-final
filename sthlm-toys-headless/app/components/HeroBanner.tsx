@@ -1,6 +1,5 @@
-import {ShopLinkButton} from '~/components/ui/ShopButton';
 // FILE: app/components/HeroBanner.tsx
-// ✅ SHOPIFY STANDARD: Updated to use ShopButton consistently
+// ✅ FIXED: Desktop banner to match Smyths style with contained image and proper proportions
 
 import {ShopLinkButton} from '~/components/ui/ShopButton';
 
@@ -25,7 +24,7 @@ export function HeroBanner({
 }: HeroBannerProps) {
   return (
     <div className="hero-banner w-full">
-      {/* Mobile Hero Banner */}
+      {/* Mobile Hero Banner - No changes needed, working well */}
       <div
         className="block lg:hidden relative w-full"
         style={{
@@ -36,7 +35,6 @@ export function HeroBanner({
           backgroundColor: '#FFD42B',
         }}
       >
-        {/* Mobile Content */}
         <div className="absolute inset-0 flex items-center justify-center text-center px-4">
           <h1
             className="text-white font-black"
@@ -56,7 +54,7 @@ export function HeroBanner({
         </div>
       </div>
 
-      {/* Mobile CTA Button - ✅ FIXED: Using ShopButton */}
+      {/* Mobile CTA Button */}
       <div className="block lg:hidden text-center py-4">
         <ShopLinkButton 
           to={buttonLink} 
@@ -68,64 +66,95 @@ export function HeroBanner({
         </ShopLinkButton>
       </div>
 
-      {/* Desktop Hero Banner */}
+      {/* Desktop Hero Banner - ✅ FIXED: Smyths style with contained image and proper proportions */}
       <div
         className="hidden lg:block relative w-full"
         style={{
-          aspectRatio: '219 / 71',
-          backgroundImage: `url(${backgroundImage})`,
-          backgroundSize: 'contain',
-          backgroundPosition: 'center right',
+          // ✅ FIXED: Full width yellow background like Smyths
           backgroundColor: '#FFD42B',
+          minHeight: '400px', // Fixed height instead of aspect ratio
         }}
       >
-        {/* Desktop Content */}
-        <div className="absolute inset-0 flex items-center">
+        {/* ✅ FIXED: Contained content area matching other components */}
+        <div 
+          className="mx-auto flex items-center relative"
+          style={{
+            maxWidth: '1272px', // Same as other components
+            paddingLeft: '12px',
+            paddingRight: '12px',
+            minHeight: '400px',
+          }}
+        >
+          {/* Left Content */}
+          <div className="flex-1 z-10" style={{maxWidth: '50%'}}>
+            {/* Title - ✅ FIXED: Same font as mobile, smaller size like Smyths */}
+            <h1 
+              className="mb-4 text-gray-900"
+              style={{
+                fontFamily: 'system-ui, -apple-system, sans-serif', // Same as mobile
+                fontSize: '48px', // ✅ FIXED: Much smaller than before (was clamp(48px, 5vw, 72px))
+                fontWeight: 700, // ✅ FIXED: Less bold than mobile (mobile is 900)
+                lineHeight: 1.2,
+                letterSpacing: '-0.02em',
+              }}
+            >
+              {title}
+            </h1>
+
+            {/* Subtitle */}
+            <p 
+              className="mb-8 text-gray-800"
+              style={{
+                fontFamily: 'system-ui, -apple-system, sans-serif',
+                fontSize: '18px', // ✅ FIXED: Smaller subtitle
+                lineHeight: 1.5,
+                maxWidth: '400px', // Limit width for better readability
+              }}
+            >
+              {subtitle}
+            </p>
+
+            {/* Desktop CTA Button - ✅ FIXED: Dark button like Smyths */}
+            <ShopLinkButton 
+              to={buttonLink} 
+              variant="secondary" 
+              size="lg"
+              style={{
+                backgroundColor: '#1a1a1a', // Dark like Smyths
+                color: 'white',
+                borderRadius: '25px', // More rounded like Smyths
+                paddingLeft: '32px',
+                paddingRight: '32px',
+                paddingTop: '12px',
+                paddingBottom: '12px',
+                fontSize: '16px',
+                fontWeight: 600,
+              }}
+              className="hover:bg-gray-800 transition-colors duration-200"
+            >
+              {buttonText}
+            </ShopLinkButton>
+          </div>
+
+          {/* Right Image - ✅ FIXED: Contained within component width like Smyths */}
           <div 
-            className="mx-auto w-full flex items-center"
+            className="flex-1 flex justify-end items-center"
             style={{
-              maxWidth: '1272px',
-              paddingLeft: '12px',
-              paddingRight: '12px',
+              maxWidth: '50%',
+              height: '400px',
             }}
           >
-            <div className="max-w-2xl">
-              {/* Title */}
-              <h1 
-                className="mb-4 text-gray-900"
-                style={{
-                  fontFamily: 'system-ui, -apple-system, sans-serif',
-                  fontSize: 'clamp(48px, 5vw, 72px)',
-                  fontWeight: 700,
-                  lineHeight: 1.2,
-                  letterSpacing: '-0.02em',
-                }}
-              >
-                {title}
-              </h1>
-
-              {/* Subtitle */}
-              <p 
-                className="mb-6 text-gray-800"
-                style={{
-                  fontFamily: 'system-ui, -apple-system, sans-serif',
-                  fontSize: '20px',
-                  lineHeight: 1.5,
-                }}
-              >
-                {subtitle}
-              </p>
-
-              {/* Desktop CTA Button - ✅ FIXED: Using ShopButton */}
-              <ShopLinkButton 
-                to={buttonLink} 
-                variant="hero" 
-                size="lg"
-                className="rounded-full"
-              >
-                {buttonText}
-              </ShopLinkButton>
-            </div>
+            <div
+              style={{
+                width: '100%',
+                height: '350px',
+                backgroundImage: `url(${backgroundImage})`,
+                backgroundSize: 'contain', // ✅ FIXED: Contained not cover
+                backgroundPosition: 'center right',
+                backgroundRepeat: 'no-repeat',
+                maxWidth: '500px', // Limit max size
+              }}
+            />
           </div>
         </div>
       </div>
