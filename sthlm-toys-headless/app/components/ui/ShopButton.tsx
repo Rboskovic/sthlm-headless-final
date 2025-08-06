@@ -2,8 +2,8 @@
 // ✅ SHOPIFY HYDROGEN STANDARDS: Reusable button component with consistent styling
 
 import {forwardRef} from 'react';
-import {Link} from '@remix-run/react';
-import type {LinkProps} from '@remix-run/react';
+import {Link} from 'react-router';
+import type {LinkProps} from 'react-router';
 import {cva, type VariantProps} from 'class-variance-authority';
 import {cn} from '~/lib/utils';
 

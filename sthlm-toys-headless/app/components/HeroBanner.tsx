@@ -1,9 +1,8 @@
+import {ShopLinkButton} from '~/components/ui/ShopButton';
 // FILE: app/components/HeroBanner.tsx
-// ✅ SAFE VERSION: Fixed imports and tested structure
+// ✅ SHOPIFY STANDARD: Updated to use ShopButton consistently
 
-import {Link} from 'react-router';
-// Note: If hero3.png doesn't exist, comment out the line below
-// import heroImage from '~/assets/hero3.png';
+import {ShopLinkButton} from '~/components/ui/ShopButton';
 
 interface HeroBannerProps {
   title?: string;
@@ -20,12 +19,11 @@ export function HeroBanner({
   subtitle = 'Upptäck oändliga möjligheter med vår fantastiska LEGO-kollektion',
   buttonText = 'Handla nu',
   buttonLink = '/collections/lego',
-  backgroundImage = 'https://cdn.shopify.com/s/files/1/0900/8811/2507/files/hero3.png?v=1753985948', // Using URL instead of import for safety
+  backgroundImage = 'https://cdn.shopify.com/s/files/1/0900/8811/2507/files/hero3.png?v=1753985948',
   mobileBackgroundImage = 'https://cdn.shopify.com/s/files/1/0900/8811/2507/files/hero-mobile2.png?v=1753985948',
   overlayColor = 'transparent',
 }: HeroBannerProps) {
   return (
-    // No section tag - div sits flush with header
     <div className="hero-banner w-full">
       {/* Mobile Hero Banner */}
       <div
@@ -50,7 +48,7 @@ export function HeroBanner({
               textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
               letterSpacing: '-0.02em',
               textTransform: 'uppercase',
-              paddingBottom: '60px', // Space for button
+              paddingBottom: '60px',
             }}
           >
             {title}
@@ -58,14 +56,16 @@ export function HeroBanner({
         </div>
       </div>
 
-      {/* Mobile CTA Button */}
+      {/* Mobile CTA Button - ✅ FIXED: Using ShopButton */}
       <div className="block lg:hidden text-center py-4">
-        <Link
-          to={buttonLink}
-          className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-8 rounded-full transition-colors duration-200"
+        <ShopLinkButton 
+          to={buttonLink} 
+          variant="cta" 
+          size="lg"
+          className="rounded-full"
         >
           {buttonText}
-        </Link>
+        </ShopLinkButton>
       </div>
 
       {/* Desktop Hero Banner */}
@@ -116,13 +116,15 @@ export function HeroBanner({
                 {subtitle}
               </p>
 
-              {/* Desktop CTA Button */}
-              <Link
-                to={buttonLink}
-                className="inline-block bg-white border-2 border-gray-300 hover:bg-gray-100 text-gray-900 font-medium py-3 px-8 rounded-full transition-colors duration-200"
+              {/* Desktop CTA Button - ✅ FIXED: Using ShopButton */}
+              <ShopLinkButton 
+                to={buttonLink} 
+                variant="hero" 
+                size="lg"
+                className="rounded-full"
               >
                 {buttonText}
-              </Link>
+              </ShopLinkButton>
             </div>
           </div>
         </div>

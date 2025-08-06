@@ -1,7 +1,7 @@
 // FILE: app/components/ui/SectionHeading.tsx
 // ✅ SHOPIFY HYDROGEN STANDARDS: Consistent section headings
 
-import {Link} from '@remix-run/react';
+import {Link} from 'react-router';
 import {cn} from '~/lib/utils';
 import {ChevronRight} from 'lucide-react';
 

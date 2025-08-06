@@ -162,7 +162,7 @@ export function HeaderMain({
 
           {/* Center: Logo - ✅ FIXED: Absolutely centered to screen */}
           <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
-            <Logo shop={shop} className="scale-55" />
+            <Logo shop={shop} className="scale-50" />
           </div>
 
           {/* Right: Wishlist and Cart - Stay in exact same position */}

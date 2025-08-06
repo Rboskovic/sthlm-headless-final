@@ -1,7 +1,7 @@
 // FILE: app/components/ui/ProductCard.tsx
 // ✅ SHOPIFY HYDROGEN STANDARDS: Reusable product card component
 
-import {Link} from '@remix-run/react';
+import {Link} from 'react-router';
 import {Image} from '@shopify/hydrogen';
 import {cn} from '~/lib/utils';
 import {PriceDisplay} from './PriceDisplay';

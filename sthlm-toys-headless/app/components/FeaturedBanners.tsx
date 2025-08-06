@@ -1,6 +1,8 @@
-// app/components/FeaturedBanners.tsx - Fixed title consistency and CTA positioning
+// app/components/FeaturedBanners.tsx - ✅ SHOPIFY STANDARD: Updated to use ShopButton consistently
+import {ShopButton} from '~/components/ui/ShopButton';
 import {Link} from 'react-router';
 import {Image} from '@shopify/hydrogen';
+import {ShopButton} from '~/components/ui/ShopButton';
 
 interface FeaturedBanner {
   id: string;
@@ -98,43 +100,40 @@ export function FeaturedBanners({
   const featuredBanners =
     collections && collections.length > 0
       ? collections.filter((collection) => {
-          const featuredBannerValue =
-            getMetafieldValue(collection.metafields, 'featured-banner') ||
-            getMetafieldValue(collection.metafields, 'featured_banner') ||
-            getMetafieldValue(collection.metafields, 'featuredBanner');
-
-          const isFeatured = isTrueValue(featuredBannerValue);
-          return isFeatured && collection.image?.url;
+          if (!collection?.metafields) return false;
+          const featuredValue = getMetafieldValue(
+            collection.metafields,
+            'featured-banner',
+          );
+          return isTrueValue(featuredValue);
         })
-      : [];
+      : fallbackBanners;
 
-  // Use exactly 2 banners - either from Shopify data or fallback
-  const displayBanners =
-    featuredBanners.length >= 2 ? featuredBanners.slice(0, 2) : fallbackBanners;
+  if (!featuredBanners || featuredBanners.length === 0) {
+    return null;
+  }
 
   return (
-    <section className="w-full bg-white">
-      {/* Container matching header width */}
+    <section
+      className="w-full bg-white"
+      style={{paddingTop: '48px', paddingBottom: '48px'}}
+    >
       <div
-        className="mx-auto relative"
+        className="mx-auto"
         style={{
           width: '1272px',
           maxWidth: '100%',
           paddingLeft: '12px',
           paddingRight: '12px',
-          paddingTop: '32px',
-          paddingBottom: '64px',
         }}
       >
-        {/* Title - Made consistent with other titles as requested */}
+        {/* Section Title */}
         <h2
-          className="text-black font-medium mb-6"
+          className="font-bold text-gray-900 mb-8"
           style={{
-            // Same as other component titles (reduced font size)
-            fontSize: '22px', // Consistent with ShopByBrand
-            fontWeight: 500,
-            lineHeight: '29.7px',
-            marginBottom: '24px',
+            fontSize: '32px',
+            fontWeight: 700,
+            lineHeight: '43.2px',
             fontFamily:
               "UniformRnd, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
           }}
@@ -142,13 +141,9 @@ export function FeaturedBanners({
           {title}
         </h2>
 
-        {/* Banners Grid - 2 columns */}
-        <div
-          className="grid grid-cols-1 md:grid-cols-2 gap-6"
-          style={{gap: '24px'}}
-        >
-          {displayBanners.map((banner) => {
-            // Get background color from metafield or use fallback
+        {/* Banners Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {featuredBanners.map((banner) => {
             const backgroundColor =
               'backgroundColor' in banner
                 ? banner.backgroundColor
@@ -162,13 +157,12 @@ export function FeaturedBanners({
                   'Handla nu';
 
             return (
-              <Link
+              <div
                 key={banner.id}
-                to={`/collections/${banner.handle}`}
-                className="group relative overflow-hidden rounded-lg block"
+                className="group relative overflow-hidden rounded-lg"
                 style={{
                   borderRadius: '12px',
-                  aspectRatio: '5/3', // Landscape aspect ratio
+                  aspectRatio: '5/3',
                   backgroundColor,
                 }}
               >
@@ -188,94 +182,55 @@ export function FeaturedBanners({
                   </div>
                 )}
 
-                {/* Content Overlay - Moved down and CTA aligned to bottom */}
+                {/* Content Overlay - Using flex for proper CTA positioning */}
                 <div className="absolute inset-0 flex flex-col justify-end items-start p-8 text-white">
-                  {/* Title moved down by reducing top spacing */}
-                  <h3
-                    className="font-bold mb-2 text-white"
-                    style={{
-                      fontSize: '24px',
-                      fontWeight: 700,
-                      lineHeight: '32.4px',
-                      fontFamily:
-                        "UniformRnd, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                      textShadow: '0 2px 4px rgba(0,0,0,0.3)',
-                    }}
-                  >
-                    {banner.title}
-                  </h3>
-
-                  {banner.description && (
-                    <p
-                      className="mb-4 text-white/90"
+                  <div className="mb-4">
+                    <h3
+                      className="font-bold mb-2 text-white"
                       style={{
-                        fontSize: '16px',
-                        fontWeight: 400,
-                        lineHeight: '21.6px',
+                        fontSize: '24px',
+                        fontWeight: 700,
+                        lineHeight: '32.4px',
                         fontFamily:
                           "UniformRnd, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                        textShadow: '0 1px 2px rgba(0,0,0,0.3)',
+                        textShadow: '0 2px 4px rgba(0,0,0,0.3)',
                       }}
                     >
-                      {banner.description}
-                    </p>
-                  )}
+                      {banner.title}
+                    </h3>
 
-                  {/* CTA Button - Now at bottom with consistent styling */}
-                  <span
-                    className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg group-hover:bg-blue-800 transition-colors duration-200"
-                    style={{
-                      fontSize: '16px', // Consistent with other CTA buttons
-                      fontWeight: 600,
-                      paddingLeft: '24px',
-                      paddingRight: '24px',
-                      paddingTop: '12px',
-                      paddingBottom: '12px',
-                      lineHeight: '21.6px',
-                      borderRadius: '8px', // Consistent rounded corners
-                      color: 'white', // Explicit white text
-                    }}
-                  >
-                    {buttonText}
-                  </span>
+                    {banner.description && (
+                      <p
+                        className="mb-4 text-white/90"
+                        style={{
+                          fontSize: '16px',
+                          fontWeight: 400,
+                          lineHeight: '21.6px',
+                          fontFamily:
+                            "UniformRnd, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                          textShadow: '0 1px 2px rgba(0,0,0,0.3)',
+                        }}
+                      >
+                        {banner.description}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* ✅ FIXED: CTA Button using ShopButton */}
+                  <Link to={`/collections/${banner.handle}`}>
+                    <ShopButton 
+                      variant="cta" 
+                      size="md"
+                      className="group-hover:scale-105 transition-transform duration-200"
+                    >
+                      {buttonText}
+                    </ShopButton>
+                  </Link>
                 </div>
-              </Link>
+              </div>
             );
           })}
         </div>
-
-        {/* Mobile Layout Adjustments */}
-        <style jsx={true}>{`
-          @media (max-width: 768px) {
-            .grid {
-              grid-template-columns: 1fr;
-              gap: 16px;
-            }
-
-            .group {
-              aspect-ratio: 3/2;
-            }
-
-            .absolute .p-8 {
-              padding: 24px;
-            }
-
-            h3 {
-              font-size: 20px !important;
-              line-height: 27px !important;
-            }
-
-            p {
-              font-size: 14px !important;
-              line-height: 18.9px !important;
-            }
-
-            h2 {
-              font-size: 18px !important;
-              line-height: 24.3px !important;
-            }
-          }
-        `}</style>
       </div>
     </section>
   );
