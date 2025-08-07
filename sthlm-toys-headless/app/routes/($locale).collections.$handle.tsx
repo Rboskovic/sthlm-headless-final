@@ -1,3 +1,6 @@
+// FILE: app/routes/($locale).collections.$handle.tsx
+// ✅ SHOPIFY STANDARD: Fixed collection route with proper product fragments
+
 import { type LoaderFunctionArgs, type MetaFunction } from '@shopify/remix-oxygen';
 import { useLoaderData } from 'react-router';
 import { getPaginationVariables } from '@shopify/hydrogen';
@@ -56,130 +59,47 @@ export async function loader({ context, request, params }: LoaderFunctionArgs) {
   if (available !== null) {
     filters.push({ available: available === 'true' });
   }
-  
-  // Price filter - Fixed format
-  const priceMin = searchParams.get('price_min');
-  const priceMax = searchParams.get('price_max');
-  if (priceMin || priceMax) {
-    const priceFilter: any = { price: {} };
-    if (priceMin) priceFilter.price.min = parseFloat(priceMin);
-    if (priceMax) priceFilter.price.max = parseFloat(priceMax);
-    filters.push(priceFilter);
-  }
 
   try {
-    // Step 1: Find ALL related collections (subcollections) first
-    const { collections: subcollections } = await storefront.query(
-      SUBCOLLECTIONS_QUERY,
-      {
-        variables: {
-          query: `title:*${handle}* OR handle:*${handle}*`,
-          first: 50,
-          country: storefront.i18n?.country,
-          language: storefront.i18n?.language,
-        },
-      }
-    );
+    // Step 1: Get collection info and related collections
+    const [collectionResponse, relatedCollectionsResponse] = await Promise.all([
+      storefront.query(COLLECTION_INFO_QUERY, {
+        variables: { handle },
+      }),
+      storefront.query(RELATED_COLLECTIONS_QUERY, {
+        variables: { first: 10 },
+      })
+    ]);
 
-    // Filter to get actual subcollections
-    const relatedCollections = subcollections.nodes.filter(sub => 
-      sub.handle !== handle && 
-      (sub.handle.includes(handle) || sub.title.toLowerCase().includes(handle))
-    );
-
-    console.log(`Found ${relatedCollections.length} subcollections for ${handle}:`, 
-      relatedCollections.map(c => c.handle)
-    );
-
-    // Step 2: Get main collection info
-    const { collection } = await storefront.query(
-      COLLECTION_INFO_QUERY,
-      {
-        variables: {
-          handle,
-          country: storefront.i18n?.country,
-          language: storefront.i18n?.language,
-        },
-      }
-    );
-
-    if (!collection) {
-      throw new Response('Collection not found', { status: 404 });
+    if (!collectionResponse.collection) {
+      throw new Response(`Collection ${handle} not found`, { status: 404 });
     }
 
-    // Step 3: Determine which collections to query for products
-    const selectedSubcollections = searchParams.getAll('subcollection');
-    let collectionsToQuery: string[] = [];
+    const collection = collectionResponse.collection;
+    const relatedCollections = relatedCollectionsResponse?.collections?.nodes || [];
 
-    if (selectedSubcollections.length > 0) {
-      // User has filtered - only show selected subcollections
-      collectionsToQuery = selectedSubcollections;
-      console.log(`User filtered - showing only: ${collectionsToQuery.join(', ')}`);
-    } else {
-      // Default state - show main collection + ALL subcollections
-      collectionsToQuery = [handle, ...relatedCollections.map(c => c.handle)];
-      console.log(`Default state - showing all: ${collectionsToQuery.join(', ')}`);
-    }
+    console.log(`🐛 Collection ${handle} - Loading products...`);
 
-    // Step 4: Get products from all relevant collections
-    const productQueries = collectionsToQuery.map(collectionHandle =>
-      storefront.query(
-        COLLECTION_PRODUCTS_QUERY,
-        {
-          variables: {
-            handle: collectionHandle,
-            first: 50, // Get more products per collection
-            filters: filters.length > 0 ? filters : undefined,
-            sortKey: cleanSortKey as any,
-            reverse,
-            country: storefront.i18n?.country,
-            language: storefront.i18n?.language,
-          },
-        }
-      )
-    );
-
-    const productResults = await Promise.all(productQueries);
-    
-    // Step 5: Combine all products and get filters from main collection
-    const allProducts: any[] = [];
-    let combinedFilters: any[] = [];
-    
-    productResults.forEach((result, index) => {
-      if (result.collection?.products?.nodes) {
-        allProducts.push(...result.collection.products.nodes);
-      }
-      
-      // Use filters from the main collection (first query if default, or first selected)
-      if (index === 0 && result.collection?.products?.filters) {
-        combinedFilters = result.collection.products.filters;
-      }
-    });
-
-    // Remove duplicate products by ID
-    const uniqueProductsMap = new Map();
-    allProducts.forEach(product => {
-      uniqueProductsMap.set(product.id, product);
-    });
-    const uniqueProducts = Array.from(uniqueProductsMap.values());
-
-    // Step 6: Create final products object
-    const finalProducts = {
-      nodes: uniqueProducts,
-      pageInfo: {
-        hasNextPage: false,
-        hasPreviousPage: false,
-        startCursor: null,
-        endCursor: null,
+    // Step 2: Query for products in this collection
+    const productResponse = await storefront.query(COLLECTION_PRODUCTS_QUERY, {
+      variables: {
+        handle,
+        filters: filters.length > 0 ? filters : undefined,
+        sortKey: cleanSortKey as any,
+        reverse,
+        ...paginationVariables,
+        country: storefront.i18n?.country,
+        language: storefront.i18n?.language,
       },
-      filters: combinedFilters,
-    };
+    });
 
-    console.log(`Final result: ${uniqueProducts.length} products from ${collectionsToQuery.length} collections`);
+    const products = productResponse.collection?.products || { nodes: [], pageInfo: {}, filters: [] };
+
+    console.log(`🐛 Collection ${handle} - Products loaded:`, products.nodes?.length || 0);
 
     return {
       collection,
-      products: finalProducts,
+      products,
       relatedCollections,
       appliedFilters: {
         sortKey,
@@ -187,9 +107,6 @@ export async function loader({ context, request, params }: LoaderFunctionArgs) {
         productTypes,
         tags,
         available,
-        priceMin,
-        priceMax,
-        selectedSubcollections,
       },
     };
   } catch (error) {
@@ -212,6 +129,7 @@ export default function Collection() {
   );
 }
 
+// ✅ FIXED: Updated collection queries with proper product fields
 const COLLECTION_INFO_QUERY = `#graphql
   query CollectionInfo(
     $handle: String!
@@ -220,25 +138,32 @@ const COLLECTION_INFO_QUERY = `#graphql
   ) @inContext(country: $country, language: $language) {
     collection(handle: $handle) {
       id
-      handle
       title
       description
+      handle
+      seo {
+        description
+        title
+      }
       image {
         id
         url
-        altText
         width
         height
+        altText
       }
     }
   }
 ` as const;
 
-const COLLECTION_PRODUCTS_QUERY = `#graphql
-  fragment ProductItem on Product {
+const COLLECTION_PRODUCT_FRAGMENT = `#graphql
+  fragment CollectionProduct on Product {
     id
     handle
     title
+    vendor
+    productType
+    tags
     featuredImage {
       id
       altText
@@ -256,62 +181,60 @@ const COLLECTION_PRODUCTS_QUERY = `#graphql
         currencyCode
       }
     }
-    compareAtPriceRange {
-      minVariantPrice {
+    selectedOrFirstAvailableVariant(
+      selectedOptions: []
+      ignoreUnknownOptions: true
+      caseInsensitiveMatch: true
+    ) {
+      id
+      availableForSale
+      price {
         amount
         currencyCode
       }
-    }
-    vendor
-    productType
-    tags
-    availableForSale
-    variants(first: 1) {
-      nodes {
-        id
-        availableForSale
-        selectedOptions {
-          name
-          value
-        }
-        price {
-          amount
-          currencyCode
-        }
-        compareAtPrice {
-          amount
-          currencyCode
-        }
+      compareAtPrice {
+        amount
+        currencyCode
       }
+      image {
+        url
+        altText
+        width
+        height
+      }
+      selectedOptions {
+        name
+        value
+      }
+      sku
+      title
     }
   }
+` as const;
 
+const COLLECTION_PRODUCTS_QUERY = `#graphql
   query CollectionProducts(
     $handle: String!
     $country: CountryCode
     $language: LanguageCode
-    $first: Int!
     $filters: [ProductFilter!]
-    $sortKey: ProductCollectionSortKeys
+    $sortKey: ProductCollectionSortKeys!
     $reverse: Boolean
+    $first: Int
+    $last: Int
+    $startCursor: String
+    $endCursor: String
   ) @inContext(country: $country, language: $language) {
     collection(handle: $handle) {
-      id
       products(
-        first: $first,
-        filters: $filters,
-        sortKey: $sortKey,
+        filters: $filters
+        sortKey: $sortKey
         reverse: $reverse
+        first: $first
+        last: $last
+        before: $startCursor
+        after: $endCursor
       ) {
-        nodes {
-          ...ProductItem
-        }
-        pageInfo {
-          hasPreviousPage
-          hasNextPage
-          endCursor
-          startCursor
-        }
         filters {
           id
           label
@@ -323,23 +246,40 @@ const COLLECTION_PRODUCTS_QUERY = `#graphql
             input
           }
         }
+        nodes {
+          ...CollectionProduct
+        }
+        pageInfo {
+          hasNextPage
+          hasPreviousPage
+          startCursor
+          endCursor
+        }
       }
     }
   }
+  ${COLLECTION_PRODUCT_FRAGMENT}
 ` as const;
 
-const SUBCOLLECTIONS_QUERY = `#graphql
-  query Subcollections(
-    $query: String!
+const RELATED_COLLECTIONS_QUERY = `#graphql
+  query RelatedCollections(
     $first: Int!
     $country: CountryCode
     $language: LanguageCode
   ) @inContext(country: $country, language: $language) {
-    collections(first: $first, query: $query) {
+    collections(first: $first, sortKey: TITLE) {
       nodes {
         id
-        handle
         title
+        handle
+        description
+        image {
+          id
+          url
+          altText
+          width
+          height
+        }
       }
     }
   }

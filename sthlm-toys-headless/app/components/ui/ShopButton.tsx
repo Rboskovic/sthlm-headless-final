@@ -30,6 +30,13 @@ const buttonVariants = cva(
                   shadow-sm hover:shadow-md`,
         link: `text-blue-600 underline-offset-4 hover:underline hover:text-blue-700
                focus-visible:ring-blue-600 p-0 h-auto`,
+        // ✅ ADDED: Missing addToCart variant
+        addToCart: `bg-blue-600 text-white hover:bg-blue-700 focus-visible:ring-blue-600
+                    shadow-sm hover:shadow-md font-semibold tracking-wide`,
+        // ✅ ADDED: Missing cta variant  
+        cta: `bg-yellow-500 text-black hover:bg-yellow-600 focus-visible:ring-yellow-500
+              shadow-sm hover:shadow-md font-bold tracking-wide border-2 border-transparent
+              hover:border-yellow-700`,
       },
       size: {
         xs: 'h-7 px-2 text-xs rounded-md gap-1',
@@ -84,6 +91,16 @@ export interface ShopLinkButtonProps
  *   Add to Cart
  * </ShopButton>
  * 
+ * // Add to cart button
+ * <ShopButton variant="addToCart" size="lg">
+ *   LÄGG I VARUKORGEN
+ * </ShopButton>
+ * 
+ * // CTA button
+ * <ShopButton variant="cta" size="md">
+ *   Handla nu
+ * </ShopButton>
+ * 
  * // Button with icon
  * <ShopButton leftIcon={<ShoppingCart />}>
  *   Shop Now
@@ -124,14 +141,14 @@ export const ShopButton = forwardRef<HTMLButtonElement, ShopButtonProps>(
       >
         {loading ? (
           <>
-            <LoadingIcon className="animate-spin" />
+            <LoadingIcon className="animate-spin mr-2" />
             <span>Loading...</span>
           </>
         ) : (
           <>
-            {leftIcon && <span className="inline-flex shrink-0">{leftIcon}</span>}
+            {leftIcon && <span className="inline-flex shrink-0 mr-2">{leftIcon}</span>}
             {children}
-            {rightIcon && <span className="inline-flex shrink-0">{rightIcon}</span>}
+            {rightIcon && <span className="inline-flex shrink-0 ml-2">{rightIcon}</span>}
           </>
         )}
       </button>
@@ -165,9 +182,9 @@ export const ShopLinkButton = forwardRef<HTMLAnchorElement, ShopLinkButtonProps>
         className={cn(buttonVariants({ variant, size, fullWidth, className }))}
         {...props}
       >
-        {leftIcon && <span className="inline-flex shrink-0">{leftIcon}</span>}
+        {leftIcon && <span className="inline-flex shrink-0 mr-2">{leftIcon}</span>}
         {children}
-        {rightIcon && <span className="inline-flex shrink-0">{rightIcon}</span>}
+        {rightIcon && <span className="inline-flex shrink-0 ml-2">{rightIcon}</span>}
       </Link>
     );
   }
@@ -179,27 +196,23 @@ ShopLinkButton.displayName = 'ShopLinkButton';
 function LoadingIcon({className}: {className?: string}) {
   return (
     <svg
-      className={cn('h-4 w-4', className)}
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
+      className={className}
+      width="16"
+      height="16"
       viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
     >
-      <circle
-        className="opacity-25"
-        cx="12"
-        cy="12"
-        r="10"
-        stroke="currentColor"
-        strokeWidth="4"
-      />
       <path
-        className="opacity-75"
-        fill="currentColor"
-        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+        d="M12 2V6M12 18V22M4.93 4.93L7.76 7.76M16.24 16.24L19.07 19.07M2 12H6M18 12H22M4.93 19.07L7.76 16.24M16.24 7.76L19.07 4.93"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </svg>
   );
 }
 
-// Export types for TypeScript
-export type {ShopButtonProps, ShopLinkButtonProps};
+// Export utility function for combining class names
+export {cn};

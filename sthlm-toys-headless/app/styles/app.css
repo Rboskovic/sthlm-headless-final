@@ -461,3 +461,171 @@ img {
     overflow: hidden;
   }
 }
+/* Cart aside overlay */
+.cart-aside {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  max-width: 500px;
+  background: white;
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.1);
+  z-index: 50;
+  transform: translateX(100%);
+  transition: transform 0.3s ease-in-out;
+}
+
+.cart-aside.open {
+  transform: translateX(0);
+}
+
+/* ========================================
+   CART LINE ITEM ANIMATIONS
+   ======================================== */
+
+/* Smooth animations for quantity changes */
+.cart-line-item {
+  transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+}
+
+.cart-line-item.removing {
+  opacity: 0;
+  transform: translateX(100%);
+}
+
+.cart-line-item.updating {
+  opacity: 0.6;
+}
+
+/* ========================================
+   LOADING STATES
+   ======================================== */
+
+/* Loading spinner for cart operations */
+.cart-loading {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #f3f4f6;
+  border-radius: 50%;
+  border-top-color: #3b82f6;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ========================================
+   CART SUMMARY STYLING
+   ======================================== */
+
+/* Sticky cart summary on larger screens */
+@media (min-width: 1024px) {
+  .cart-summary-sticky {
+    position: sticky;
+    top: 2rem;
+    max-height: calc(100vh - 4rem);
+    overflow-y: auto;
+  }
+}
+
+/* ========================================
+   FORM STYLING IMPROVEMENTS
+   ======================================== */
+
+/* Discount and gift card forms */
+.cart-form input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* ========================================
+   MOBILE OPTIMIZATIONS
+   ======================================== */
+
+@media (max-width: 640px) {
+  /* Full width cart on mobile */
+  .cart-aside {
+    max-width: 100%;
+  }
+  
+  /* Adjust cart item layout for mobile */
+  .cart-line-item-mobile {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .cart-line-item-mobile .product-info {
+    width: 100%;
+  }
+}
+
+/* ========================================
+   TRUST BADGES
+   ======================================== */
+
+.trust-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+/* ========================================
+   SUCCESS STATES
+   ======================================== */
+
+/* Success animation for added items */
+@keyframes slideInFromRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.cart-item-added {
+  animation: slideInFromRight 0.3s ease-out;
+}
+
+/* ========================================
+   ACCESSIBILITY IMPROVEMENTS
+   ======================================== */
+
+/* Focus styles for better accessibility */
+.cart-button:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .cart-line-item {
+    border-color: #000;
+  }
+  
+  .cart-summary {
+    border-color: #000;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .cart-aside,
+  .cart-line-item,
+  .cart-loading {
+    animation: none;
+    transition: none;
+  }
+}

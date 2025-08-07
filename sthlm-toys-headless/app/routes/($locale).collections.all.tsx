@@ -1,3 +1,6 @@
+// FILE: app/routes/($locale).collections.all.tsx
+// ✅ SHOPIFY STANDARD: Fixed collection query with vendor field
+
 import {type LoaderFunctionArgs} from '@shopify/remix-oxygen';
 import {useLoaderData, type MetaFunction} from 'react-router';
 import {getPaginationVariables, Image, Money} from '@shopify/hydrogen';
@@ -34,6 +37,8 @@ async function loadCriticalData({context, request}: LoaderFunctionArgs) {
     }),
     // Add other queries here, so that they are loaded in parallel
   ]);
+  
+  console.log('🐛 Collection All - Products loaded:', products?.nodes?.length || 0);
   return {products};
 }
 
@@ -48,6 +53,8 @@ function loadDeferredData({context}: LoaderFunctionArgs) {
 
 export default function Collection() {
   const {products} = useLoaderData<typeof loader>();
+
+  console.log('🐛 Collection All Component - Products:', products);
 
   return (
     <div className="collection">
@@ -68,6 +75,7 @@ export default function Collection() {
   );
 }
 
+// ✅ FIXED: Added vendor field to collection fragment
 const COLLECTION_ITEM_FRAGMENT = `#graphql
   fragment MoneyCollectionItem on MoneyV2 {
     amount
@@ -77,6 +85,7 @@ const COLLECTION_ITEM_FRAGMENT = `#graphql
     id
     handle
     title
+    vendor
     featuredImage {
       id
       altText

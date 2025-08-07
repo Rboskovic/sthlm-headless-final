@@ -1,3 +1,6 @@
+// FILE: app/routes/($locale).products.$handle.tsx
+// ✅ SHOPIFY STANDARD: Product detail page with proper quantity state management
+
 import {redirect, type LoaderFunctionArgs} from '@shopify/remix-oxygen';
 import {useLoaderData, type MetaFunction} from 'react-router';
 import {
@@ -12,7 +15,7 @@ import {ProductPrice} from '~/components/ProductPrice';
 import {ProductImageGallery} from '~/components/ProductImageGallery';
 import {ProductForm} from '~/components/ProductForm';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
-import {useState} from 'react';
+import React, {useState} from 'react';
 
 export const meta: MetaFunction<typeof loader> = ({data}) => {
   return [
@@ -86,6 +89,8 @@ function loadDeferredData({context, params}: LoaderFunctionArgs) {
 
 export default function Product() {
   const {product} = useLoaderData<typeof loader>();
+  
+  // ✅ FIXED: Proper quantity state management
   const [quantity, setQuantity] = useState(1);
 
   // Optimistically selects a variant with given available variant information
@@ -113,8 +118,33 @@ export default function Product() {
     // This will be enhanced when you have products with multiple images
   ].filter(Boolean);
 
+  // ✅ FIXED: Reset quantity when variant changes
+  React.useEffect(() => {
+    setQuantity(1);
+  }, [selectedVariant?.id]);
+
+  console.log('🐛 Product Detail Page - selectedVariant:', selectedVariant);
+  console.log('🐛 Product Detail Page - quantity:', quantity);
+
   return (
     <div className="w-full bg-white min-h-screen">
+      {/* Analytics Integration */}
+      <Analytics.ProductView
+        data={{
+          products: [
+            {
+              id: selectedVariant?.product?.id || product.id,
+              title: selectedVariant?.product?.title || product.title,
+              price: selectedVariant?.price?.amount || '0',
+              vendor: selectedVariant?.product?.vendor || product.vendor,
+              variantId: selectedVariant?.id,
+              variantTitle: selectedVariant?.title,
+              quantity: quantity,
+            },
+          ],
+        }}
+      />
+
       {/* Main Product Container */}
       <div
         className="mx-auto px-4 lg:px-16"
@@ -175,11 +205,13 @@ export default function Product() {
               <ProductPrice selectedVariant={selectedVariant} />
             </div>
 
-            {/* Product Form - Add to Cart, Quantity, etc. */}
+            {/* ✅ FIXED: Product Form with proper quantity state */}
             <ProductForm
               product={product}
               productOptions={productOptions}
               selectedVariant={selectedVariant}
+              quantity={quantity}
+              onQuantityChange={setQuantity}
             />
 
             {/* Product Description */}
@@ -204,30 +236,91 @@ export default function Product() {
                 />
               </div>
             )}
+
+            {/* Additional Product Information */}
+            <div className="border-t border-gray-200 pt-6">
+              <h3
+                className="text-lg font-semibold text-gray-900 mb-4"
+                style={{
+                  fontFamily:
+                    "UniformRnd, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                }}
+              >
+                Product Details
+              </h3>
+              <dl className="space-y-2 text-sm">
+                {product.productType && (
+                  <>
+                    <dt className="font-medium text-gray-900">Category</dt>
+                    <dd className="text-gray-600 mb-2">{product.productType}</dd>
+                  </>
+                )}
+                {selectedVariant?.sku && (
+                  <>
+                    <dt className="font-medium text-gray-900">SKU</dt>
+                    <dd className="text-gray-600 mb-2">{selectedVariant.sku}</dd>
+                  </>
+                )}
+                {product.tags && product.tags.length > 0 && (
+                  <>
+                    <dt className="font-medium text-gray-900">Tags</dt>
+                    <dd className="text-gray-600">
+                      {product.tags.slice(0, 5).join(', ')}
+                    </dd>
+                  </>
+                )}
+              </dl>
+            </div>
           </div>
         </div>
       </div>
-
-      <Analytics.ProductView
-        data={{
-          products: [
-            {
-              id: product.id,
-              title: product.title,
-              price: selectedVariant?.price?.amount || '0',
-              vendor: product.vendor,
-              variantId: selectedVariant?.id || '',
-              variantTitle: selectedVariant?.title || '',
-              quantity: 1,
-            },
-          ],
-        }}
-      />
     </div>
   );
 }
 
-const PRODUCT_VARIANT_FRAGMENT = `#graphql
+// ✅ SHOPIFY STANDARD: Product Query Fragment
+const PRODUCT_QUERY = `#graphql
+  query Product(
+    $country: CountryCode
+    $handle: String!
+    $language: LanguageCode
+    $selectedOptions: [SelectedOptionInput!]!
+  ) @inContext(country: $country, language: $language) {
+    product(handle: $handle) {
+      ...Product
+    }
+  }
+  fragment Product on Product {
+    id
+    title
+    vendor
+    handle
+    descriptionHtml
+    description
+    productType
+    tags
+    images(first: 20) {
+      nodes {
+        id
+        url
+        altText
+        width
+        height
+      }
+    }
+    selectedOrFirstAvailableVariant(selectedOptions: $selectedOptions, ignoreUnknownOptions: true, caseInsensitiveMatch: true) {
+      ...ProductVariant
+    }
+    adjacentVariants: variants(first: 3) {
+      nodes {
+        ...ProductVariant
+      }
+    }
+    seo {
+      description
+      title
+    }
+  }
   fragment ProductVariant on ProductVariant {
     availableForSale
     compareAtPrice {
@@ -250,7 +343,10 @@ const PRODUCT_VARIANT_FRAGMENT = `#graphql
     product {
       title
       handle
+      id
+      vendor
     }
+    quantityAvailable
     selectedOptions {
       name
       value
@@ -262,59 +358,4 @@ const PRODUCT_VARIANT_FRAGMENT = `#graphql
       currencyCode
     }
   }
-` as const;
-
-const PRODUCT_FRAGMENT = `#graphql
-  fragment Product on Product {
-    id
-    title
-    vendor
-    handle
-    descriptionHtml
-    description
-    encodedVariantExistence
-    encodedVariantAvailability
-    options {
-      name
-      optionValues {
-        name
-        firstSelectableVariant {
-          ...ProductVariant
-        }
-        swatch {
-          color
-          image {
-            previewImage {
-              url
-            }
-          }
-        }
-      }
-    }
-    selectedOrFirstAvailableVariant(selectedOptions: $selectedOptions, ignoreUnknownOptions: true, caseInsensitiveMatch: true) {
-      ...ProductVariant
-    }
-    adjacentVariants (selectedOptions: $selectedOptions) {
-      ...ProductVariant
-    }
-    seo {
-      description
-      title
-    }
-  }
-  ${PRODUCT_VARIANT_FRAGMENT}
-` as const;
-
-const PRODUCT_QUERY = `#graphql
-  query Product(
-    $country: CountryCode
-    $handle: String!
-    $language: LanguageCode
-    $selectedOptions: [SelectedOptionInput!]!
-  ) @inContext(country: $country, language: $language) {
-    product(handle: $handle) {
-      ...Product
-    }
-  }
-  ${PRODUCT_FRAGMENT}
 ` as const;

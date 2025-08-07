@@ -1,7 +1,8 @@
 // FILE: app/components/ProductForm.tsx
-// ✅ REVERTED: Back to original layout + working wishlist button
+// ✅ SHOPIFY STANDARD: Proper product form with quantity management and cart functionality
 
 import {Link, useNavigate} from 'react-router';
+import {useState, useEffect} from 'react';
 import {type MappedProductOptions} from '@shopify/hydrogen';
 import type {
   Maybe,
@@ -27,22 +28,30 @@ export function ProductForm({
 }) {
   const navigate = useNavigate();
   const {open} = useAside();
+  const [localQuantity, setLocalQuantity] = useState(quantity);
 
+  // ✅ FIXED: Sync local quantity with prop changes
+  useEffect(() => {
+    setLocalQuantity(quantity);
+  }, [quantity]);
+
+  // ✅ FIXED: Proper quantity handlers
   const handleQuantityDecrease = () => {
-    if (quantity > 1 && onQuantityChange) {
-      onQuantityChange(quantity - 1);
-    }
+    const newQuantity = Math.max(1, localQuantity - 1);
+    setLocalQuantity(newQuantity);
+    onQuantityChange?.(newQuantity);
   };
 
   const handleQuantityIncrease = () => {
-    if (onQuantityChange) {
-      onQuantityChange(quantity + 1);
-    }
+    const newQuantity = localQuantity + 1;
+    setLocalQuantity(newQuantity);
+    onQuantityChange?.(newQuantity);
   };
 
   // Debug logs - remove these after testing
   console.log('🐛 ProductForm - selectedVariant:', selectedVariant);
-  console.log('🐛 ProductForm - quantity:', quantity);
+  console.log('🐛 ProductForm - quantity:', localQuantity);
+  console.log('🐛 ProductForm - product:', product?.title);
 
   return (
     <div className="product-form space-y-6">
@@ -87,48 +96,26 @@ export function ProductForm({
                     ? 'hover:border-gray-400 hover:bg-gray-50'
                     : 'opacity-50 cursor-not-allowed';
 
-                const linkClasses = `${baseClasses} ${stateClasses}`;
-
-                if (isDifferentProduct) {
-                  return (
-                    <Link
-                      key={name}
-                      to={`/products/${handle}${variantUriQuery}`}
-                      className={linkClasses}
-                      style={{
-                        fontFamily:
-                          "UniformRnd, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                      }}
-                    >
-                      {swatch?.color && (
-                        <div
-                          className="w-4 h-4 rounded-full mr-2 border border-gray-300"
-                          style={{backgroundColor: swatch.color}}
-                        />
-                      )}
-                      {name}
-                    </Link>
-                  );
-                }
-
                 return (
-                  <Link
+                  <button
                     key={name}
-                    to={`?${variantUriQuery}`}
-                    className={linkClasses}
+                    className={`${baseClasses} ${stateClasses}`}
                     style={{
                       fontFamily:
                         "UniformRnd, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
                     }}
+                    disabled={!available}
+                    onClick={() => {
+                      if (!selected && available) {
+                        navigate(`?${variantUriQuery}`, {
+                          replace: true,
+                        });
+                      }
+                    }}
                   >
-                    {swatch?.color && (
-                      <div
-                        className="w-4 h-4 rounded-full mr-2 border border-gray-300"
-                        style={{backgroundColor: swatch.color}}
-                      />
-                    )}
+                    <ProductOptionSwatch swatch={swatch} name={name} />
                     {name}
-                  </Link>
+                  </button>
                 );
               })}
             </div>
@@ -136,15 +123,15 @@ export function ProductForm({
         );
       })}
 
-      {/* ✅ REVERTED: Original Quantity and Add to Cart Layout */}
-      <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
-        {/* Quantity Controls */}
-        <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden w-fit">
+      {/* ✅ FIXED: Add to Cart Section with Quantity and Actions */}
+      <div className="flex gap-4 items-center">
+        {/* Quantity Selector */}
+        <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
           <button
             type="button"
             onClick={handleQuantityDecrease}
-            disabled={quantity <= 1}
-            className="w-10 h-10 flex items-center justify-center text-gray-600 hover:text-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={localQuantity <= 1}
+            className="w-10 h-10 flex items-center justify-center text-gray-600 hover:text-gray-800 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             style={{
               fontFamily:
                 "UniformRnd, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
@@ -172,13 +159,13 @@ export function ProductForm({
                 "UniformRnd, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
             }}
           >
-            {quantity}
+            {localQuantity}
           </div>
 
           <button
             type="button"
             onClick={handleQuantityIncrease}
-            className="w-10 h-10 flex items-center justify-center text-gray-600 hover:text-gray-800 transition-colors"
+            className="w-10 h-10 flex items-center justify-center text-gray-600 hover:text-gray-800 hover:bg-gray-50 transition-colors"
             style={{
               fontFamily:
                 "UniformRnd, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
@@ -200,7 +187,7 @@ export function ProductForm({
           </button>
         </div>
 
-        {/* ✅ REVERTED: Original Add to Cart Button Layout */}
+        {/* ✅ FIXED: Add to Cart Button with proper analytics */}
         <div className="flex-1">
           <AddToCartButton
             disabled={!selectedVariant || !selectedVariant.availableForSale}
@@ -213,7 +200,7 @@ export function ProductForm({
                 ? [
                     {
                       merchandiseId: selectedVariant.id,
-                      quantity: quantity,
+                      quantity: localQuantity,
                     },
                   ]
                 : []
@@ -221,16 +208,18 @@ export function ProductForm({
             analytics={{
               products: [
                 {
-                  productGid: selectedVariant?.product?.id,
+                  productGid: selectedVariant?.product?.id || product?.id,
                   variantGid: selectedVariant?.id,
-                  name: selectedVariant?.product?.title,
+                  name: selectedVariant?.product?.title || product?.title,
                   variantName: selectedVariant?.title,
-                  brand: selectedVariant?.product?.vendor,
+                  brand: selectedVariant?.product?.vendor || product?.vendor,
                   price: selectedVariant?.price?.amount,
-                  quantity: quantity,
+                  quantity: localQuantity,
                 },
               ],
             }}
+            variant="addToCart"
+            size="lg"
           >
             {selectedVariant?.availableForSale
               ? 'LÄGG I VARUKORGEN'
@@ -239,25 +228,66 @@ export function ProductForm({
         </div>
       </div>
 
-      {/* ✅ REVERTED: Original Separate Wishlist Button (but now working) */}
+      {/* ✅ FIXED: Wishlist Button */}
       {product && (
-        <WishlistButton
-          productId={product.id}
-          productTitle={product.title}
-          size="lg"
-          className="w-10 h-10 border border-gray-300 rounded-lg hover:border-gray-400"
-        />
+        <div className="flex justify-center">
+          <WishlistButton
+            productId={product.id}
+            productTitle={product.title}
+            size="lg"
+            className="w-10 h-10 border border-gray-300 rounded-lg hover:border-gray-400"
+          />
+        </div>
       )}
 
       {/* Availability Status */}
       {selectedVariant && (
         <div className="text-sm">
           {selectedVariant.availableForSale ? (
-            <p className="text-green-600 font-medium">✓ In stock</p>
+            <p className="text-green-600 font-medium">✓ In Stock</p>
           ) : (
-            <p className="text-red-600 font-medium">✗ Out of stock</p>
+            <p className="text-red-600 font-medium">⚠ Out of Stock</p>
+          )}
+          {selectedVariant.quantityAvailable !== undefined && (
+            <p className="text-gray-500 mt-1">
+              {selectedVariant.quantityAvailable > 0
+                ? `${selectedVariant.quantityAvailable} available`
+                : 'No stock available'}
+            </p>
           )}
         </div>
+      )}
+    </div>
+  );
+}
+
+// ✅ SHOPIFY STANDARD: Product option swatch component
+function ProductOptionSwatch({
+  swatch,
+  name,
+}: {
+  swatch?: Maybe<ProductOptionValueSwatch> | undefined;
+  name: string;
+}) {
+  const image = swatch?.image?.previewImage?.url;
+  const color = swatch?.color;
+
+  if (!image && !color) return null;
+
+  return (
+    <div
+      aria-label={name}
+      className="w-5 h-5 rounded border border-gray-300 mr-2 flex-shrink-0"
+      style={{
+        backgroundColor: color || 'transparent',
+      }}
+    >
+      {image && (
+        <img
+          src={image}
+          alt={name}
+          className="w-full h-full object-cover rounded"
+        />
       )}
     </div>
   );
