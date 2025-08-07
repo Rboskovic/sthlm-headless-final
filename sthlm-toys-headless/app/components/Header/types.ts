@@ -1,4 +1,4 @@
-// app/components/Header/types.ts - Updated with mobile menu support
+// app/components/Header/types.ts - Updated with fixed mobile menu props
 import type {CartApiQueryFragment} from 'storefrontapi.generated';
 import type {Collection} from '@shopify/hydrogen/storefront-api-types';
 
@@ -83,13 +83,16 @@ export interface SearchBarProps {
   className?: string;
 }
 
-// New interface for fullscreen mobile menu
+// Updated interface for fullscreen mobile menu with full drill-down support
 export interface MobileMenuFullscreenProps {
   isOpen: boolean;
   onClose: () => void;
   shop: Shop;
   isLoggedIn: Promise<boolean>;
   popularCollections?: Collection[];
+  menu?: Menu | null;
+  primaryDomainUrl?: string;
+  publicStoreDomain?: string;
 }
 
 export type Viewport = 'mobile' | 'desktop';

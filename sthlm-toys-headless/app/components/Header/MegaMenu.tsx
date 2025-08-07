@@ -1,4 +1,4 @@
-// app/components/Header/MegaMenu.tsx (NEW)
+// app/components/Header/MegaMenu.tsx - Fixed: Removed non-working "browse all" text, clean layout
 import {Link} from 'react-router';
 import type {MegaMenuProps} from './types';
 
@@ -21,42 +21,40 @@ export function MegaMenu({
     return url;
   };
 
-  // Trending data - Updated with Swedish translations
-  const trendingItems = [
-    {
-      title: 'NYHET: WWE SummerSlam Elite',
-      url: '/collections/wwe',
-      image: 'wwe-image.jpg',
-      bgColor: 'bg-red-600',
-    },
-    {
-      title: '15 % rabatt på alla superhjältar',
-      url: '/collections/superheroes',
-      image: 'superhero-image.jpg',
-      bgColor: 'bg-red-600',
-    },
-  ];
-
   const activeMenuItem = activeMenu
     ? menu?.items?.find((item: any) => item.id === activeMenu)
     : null;
 
   const hasSubItems = activeMenuItem?.items && activeMenuItem.items.length > 0;
-  const isGiftFinder = activeMenuItem?.title?.toLowerCase().includes('gift');
-  const isBrands =
-    activeMenuItem?.title?.toLowerCase().includes('brands') ||
-    activeMenuItem?.title?.toLowerCase().includes('varumärken');
+  const isGiftFinder = activeMenuItem?.title?.toLowerCase().includes('gift') ||
+                      activeMenuItem?.title?.toLowerCase().includes('presentguide');
 
-  // Don't show mega menu for gift finder or if no active menu
+  // Don't show mega menu for gift finder or if no active menu or no sub-items
   if (!activeMenuItem || !hasSubItems || isGiftFinder) {
     return null;
   }
+
+  // Apply Level 2 constraints - max 8 items
+  const level2Items = activeMenuItem.items.slice(0, 8);
+
+  // Calculate adaptive layout
+  const getGridCols = (itemCount: number): string => {
+    if (itemCount <= 2) return 'grid-cols-2';
+    if (itemCount <= 3) return 'grid-cols-3';
+    return 'grid-cols-4'; // 4+ items use 4 columns
+  };
+
+  const gridCols = getGridCols(level2Items.length);
+
+  // Calculate container width - full width without trending section
+  const containerWidth = '1272px';
+  const contentPadding = '2.5rem'; // 40px
 
   return (
     <div
       className="absolute bg-white z-50 shadow-2xl rounded-b-lg"
       style={{
-        width: '1272px',
+        width: containerWidth,
         left: 0,
         right: 0,
         margin: '0 auto',
@@ -66,74 +64,65 @@ export function MegaMenu({
       }}
     >
       <div
-        className="flex gap-6 items-start p-6 bg-white text-black"
+        className="bg-white text-black"
         style={{
-          height: isBrands ? '461.875px' : '424.094px',
-          width: '1272px',
+          padding: contentPadding,
+          width: containerWidth,
+          minHeight: '380px',
         }}
       >
-        {/* Main Categories Grid */}
-        <div
-          className="grid grid-cols-4 gap-6 flex-grow"
-          style={{
-            width: isBrands ? '720px' : '864px',
-          }}
-        >
-          {activeMenuItem.items?.map((subItem: any) => (
-            <div key={subItem.id} className="flex flex-col gap-3">
-              <Link
-                to={getUrl(subItem.url)}
-                className="font-semibold text-gray-900 hover:text-blue-600 transition-colors text-base leading-tight"
-              >
-                {subItem.title}
-              </Link>
+        {/* Dynamic Grid Layout - Full Width */}
+        <div className={`grid ${gridCols} gap-8 h-full`}>
+          {level2Items.map((level2Item: any) => {
+            // Apply Level 3 constraints - max 8 items
+            const level3Items = level2Item.items ? level2Item.items.slice(0, 8) : [];
+            
+            return (
+              <div key={level2Item.id} className="flex flex-col gap-4">
+                {/* Level 2 Header - Clickable Category Header */}
+                <Link
+                  to={getUrl(level2Item.url)}
+                  className="font-semibold text-gray-900 hover:text-blue-600 transition-colors"
+                  style={{
+                    fontSize: '18px',
+                    fontWeight: 600,
+                    lineHeight: '1.3',
+                    marginBottom: '8px',
+                  }}
+                >
+                  {level2Item.title}
+                </Link>
 
-              {/* Sub-sub items */}
-              {subItem.items && subItem.items.length > 0 && (
-                <div className="flex flex-col gap-2">
-                  {subItem.items.slice(0, 6).map((subSubItem: any) => (
-                    <Link
-                      key={subSubItem.id}
-                      to={getUrl(subSubItem.url)}
-                      className="text-sm text-gray-600 hover:text-blue-600 transition-colors leading-relaxed"
-                    >
-                      {subSubItem.title}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
+                {/* Level 3 Items */}
+                {level3Items.length > 0 && (
+                  <div className="flex flex-col gap-3">
+                    {level3Items.map((level3Item: any) => (
+                      <Link
+                        key={level3Item.id}
+                        to={getUrl(level3Item.url)}
+                        className="text-gray-600 hover:text-blue-600 transition-colors"
+                        style={{
+                          fontSize: '15px',
+                          fontWeight: 400,
+                          lineHeight: '1.4',
+                          display: 'block',
+                          paddingTop: '2px',
+                          paddingBottom: '2px',
+                        }}
+                      >
+                        {level3Item.title}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          {/* Fill empty columns for consistent layout */}
+          {Array.from({length: Math.max(0, 4 - level2Items.length)}).map((_, index) => (
+            <div key={`empty-${index}`} className="hidden lg:block" />
           ))}
-        </div>
-
-        {/* Trending Section */}
-        <div
-          className="flex flex-col gap-4"
-          style={{
-            width: isBrands ? '528px' : '384px',
-          }}
-        >
-          <h3 className="font-semibold text-gray-900 text-base leading-tight mb-2">
-            Trending
-          </h3>
-          <div className="flex flex-col gap-3">
-            {trendingItems.map((trendingItem, index) => (
-              <Link
-                key={index}
-                to={trendingItem.url}
-                className={`${trendingItem.bgColor} text-white p-4 rounded-lg hover:opacity-90 transition-opacity`}
-                style={{
-                  height: '80px',
-                  display: 'flex',
-                  alignItems: 'center',
-                }}
-              >
-                <div className="font-medium text-white text-sm leading-tight">
-                  {trendingItem.title}
-                </div>
-              </Link>
-            ))}
-          </div>
         </div>
       </div>
     </div>

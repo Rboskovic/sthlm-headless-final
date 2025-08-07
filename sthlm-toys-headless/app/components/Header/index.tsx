@@ -1,4 +1,4 @@
-// app/components/Header/index.tsx - Updated with fullscreen mobile menu
+// app/components/Header/index.tsx - Updated to pass correct props to drill-down mobile menu
 import {useState} from 'react';
 import {HeaderBanner} from './HeaderBanner';
 import {HeaderMain} from './HeaderMain';
@@ -51,13 +51,16 @@ export function Header({
         <HeaderBanner />
       </header>
 
-      {/* Fullscreen Mobile Navigation */}
+      {/* Fullscreen Mobile Navigation - Drill-down with Shopify menu */}
       <MobileMenuFullscreen
         isOpen={isMobileMenuOpen}
         onClose={handleMobileMenuClose}
         shop={header.shop}
         isLoggedIn={isLoggedIn}
         popularCollections={popularCollections}
+        menu={header.menu}
+        primaryDomainUrl={header.shop.primaryDomain.url}
+        publicStoreDomain={publicStoreDomain}
       />
     </>
   );

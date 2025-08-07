@@ -1,21 +1,20 @@
-// app/components/Header/MobileMenuFullscreen.tsx - Fixed with better image import and larger sizes
+// app/components/Header/MobileMenuFullscreen.tsx - Fixed: Two-header layout like Smyths
 import {Suspense, useState} from 'react';
 import {Link, Await} from 'react-router';
 import {
   X,
   ChevronRight,
-  ShoppingBag,
-  Baby,
-  Shirt,
-  Gamepad2,
-  Package,
+  ChevronLeft,
+  LogIn,
+  User,
   Heart,
+  Package,
   HelpCircle,
-  LogIn, // Better login icon
 } from 'lucide-react';
 import {Image} from '@shopify/hydrogen';
-import {WishlistsLink} from '../WishlistsLink'; // ✅ ONLY ADDITION
+import {WishlistsLink} from '../WishlistsLink';
 import type {Collection} from '@shopify/hydrogen/storefront-api-types';
+import type {Menu, MenuItem} from './types';
 
 interface MobileMenuFullscreenProps {
   isOpen: boolean;
@@ -23,6 +22,19 @@ interface MobileMenuFullscreenProps {
   shop: any;
   isLoggedIn: Promise<boolean>;
   popularCollections?: Collection[];
+  menu?: Menu | null;
+  primaryDomainUrl?: string;
+  publicStoreDomain?: string;
+}
+
+// Navigation state types
+type NavigationLevel = 'main' | 'level2' | 'level3';
+
+interface NavigationState {
+  level: NavigationLevel;
+  currentItem: MenuItem | null;
+  parentItem: MenuItem | null;
+  breadcrumb: MenuItem[];
 }
 
 export function MobileMenuFullscreen({
@@ -31,7 +43,77 @@ export function MobileMenuFullscreen({
   shop,
   isLoggedIn,
   popularCollections = [],
+  menu,
+  primaryDomainUrl = '',
+  publicStoreDomain = '',
 }: MobileMenuFullscreenProps) {
+  const [navigationState, setNavigationState] = useState<NavigationState>({
+    level: 'main',
+    currentItem: null,
+    parentItem: null,
+    breadcrumb: [],
+  });
+
+  // Reset navigation state when menu closes
+  const handleClose = () => {
+    setNavigationState({
+      level: 'main',
+      currentItem: null,
+      parentItem: null,
+      breadcrumb: [],
+    });
+    onClose();
+  };
+
+  const getUrl = (url: string | null | undefined): string => {
+    if (!url) return '/';
+    if (
+      url.includes('myshopify.com') ||
+      url.includes(publicStoreDomain) ||
+      url.includes(primaryDomainUrl)
+    ) {
+      return new URL(url).pathname;
+    }
+    return url;
+  };
+
+  // Navigation handlers
+  const navigateToLevel2 = (item: MenuItem) => {
+    setNavigationState({
+      level: 'level2',
+      currentItem: item,
+      parentItem: null,
+      breadcrumb: [item],
+    });
+  };
+
+  const navigateToLevel3 = (item: MenuItem) => {
+    setNavigationState({
+      level: 'level3',
+      currentItem: item,
+      parentItem: navigationState.currentItem,
+      breadcrumb: [...navigationState.breadcrumb, item],
+    });
+  };
+
+  const navigateBack = () => {
+    if (navigationState.level === 'level3') {
+      setNavigationState({
+        level: 'level2',
+        currentItem: navigationState.parentItem,
+        parentItem: null,
+        breadcrumb: navigationState.breadcrumb.slice(0, -1),
+      });
+    } else if (navigationState.level === 'level2') {
+      setNavigationState({
+        level: 'main',
+        currentItem: null,
+        parentItem: null,
+        breadcrumb: [],
+      });
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -39,117 +121,368 @@ export function MobileMenuFullscreen({
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-black bg-opacity-50 transition-opacity duration-300"
-        onClick={onClose}
+        onClick={handleClose}
       />
 
-      {/* Full-screen menu */}
-      <div className="fixed inset-0 bg-white transform transition-transform duration-300 ease-in-out overflow-y-auto">
-        {/* Header with logo and close button */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-100">
-          <div className="flex-1">
-            <MobileLogo shop={shop} />
-          </div>
+      {/* Full-screen menu with slide animation */}
+      <div className="fixed inset-0 bg-white transform transition-transform duration-300 ease-in-out overflow-hidden">
+        
+        {/* FIXED BRAND HEADER - Always Visible */}
+        <div className="mobile-brand-header">
+          <MobileLogo shop={shop} />
           <button
-            onClick={onClose}
-            className="p-2 text-gray-500 hover:text-gray-900 transition-colors"
+            onClick={handleClose}
+            className="p-2 text-gray-600 hover:text-gray-900 transition-colors"
             aria-label="Stäng meny"
           >
             <X size={24} />
           </button>
         </div>
 
-        {/* User greeting section */}
-        <div className="border-b border-gray-100">
-          <Suspense fallback={<UserGreetingFallback />}>
-            <Await resolve={isLoggedIn}>
-              {(isLoggedIn) => <UserGreeting isLoggedIn={isLoggedIn} />}
-            </Await>
-          </Suspense>
-        </div>
+        {/* Navigation Screens Container - Below fixed header */}
+        <div className="mobile-nav-container">
+          <div className="relative h-full overflow-hidden">
+            
+            {/* Main Menu Screen */}
+            <div
+              className={`mobile-nav-screen ${
+                navigationState.level === 'main' ? 'translate-x-0' : '-translate-x-full'
+              }`}
+            >
+              <MainMenuScreen
+                isLoggedIn={isLoggedIn}
+                menu={menu}
+                onClose={handleClose}
+                onNavigateToLevel2={navigateToLevel2}
+                getUrl={getUrl}
+                popularCollections={popularCollections}
+              />
+            </div>
 
-        {/* Main navigation */}
-        <div className="py-4">
-          <MainNavigation onClose={onClose} />
-        </div>
+            {/* Level 2 Screen */}
+            <div
+              className={`mobile-nav-screen ${
+                navigationState.level === 'level2' ? 'translate-x-0' : 'translate-x-full'
+              }`}
+            >
+              <Level2Screen
+                currentItem={navigationState.currentItem}
+                onBack={navigateBack}
+                onClose={handleClose}
+                onNavigateToLevel3={navigateToLevel3}
+                getUrl={getUrl}
+              />
+            </div>
 
-        {/* Popular section */}
-        <div className="px-4 py-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Populära</h3>
-          <PopularGrid collections={popularCollections} onClose={onClose} />
-        </div>
-
-        {/* Bottom links */}
-        <div className="mt-auto border-t border-gray-100 px-4 py-4">
-          <BottomLinks onClose={onClose} isLoggedIn={isLoggedIn} />
+            {/* Level 3 Screen */}
+            <div
+              className={`mobile-nav-screen ${
+                navigationState.level === 'level3' ? 'translate-x-0' : 'translate-x-full'
+              }`}
+            >
+              <Level3Screen
+                currentItem={navigationState.currentItem}
+                onBack={navigateBack}
+                onClose={handleClose}
+                getUrl={getUrl}
+              />
+            </div>
+            
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-function MobileLogo({shop}: {shop: any}) {
-  const logoUrl = shop?.brand?.logo?.image?.url;
-  const shopName = shop?.name || 'STHLM TOYS & GAMES';
+// Main Menu Screen Component
+function MainMenuScreen({
+  isLoggedIn,
+  menu,
+  onClose,
+  onNavigateToLevel2,
+  getUrl,
+  popularCollections,
+}: {
+  isLoggedIn: Promise<boolean>;
+  menu?: Menu | null;
+  onClose: () => void;
+  onNavigateToLevel2: (item: MenuItem) => void;
+  getUrl: (url: string | null | undefined) => string;
+  popularCollections: Collection[];
+}) {
+  return (
+    <div className="mobile-screen-content">
+      {/* User greeting section */}
+      <div className="border-b border-gray-200 bg-white">
+        <Suspense fallback={<UserGreetingFallback />}>
+          <Await resolve={isLoggedIn}>
+            {(isLoggedIn) => <UserGreeting isLoggedIn={isLoggedIn} />}
+          </Await>
+        </Suspense>
+      </div>
 
-  if (logoUrl) {
-    return (
-      <Link to="/" className="block">
-        <Image
-          data={{
-            url: logoUrl,
-            altText: `${shopName} logo`,
-            width: 120,
-            height: 40,
-          }}
-          sizes="120px"
-          className="h-10 w-auto object-contain"
+      {/* Dynamic Main Navigation */}
+      <div className="bg-white">
+        <DynamicMainNavigation 
+          menu={menu}
+          onNavigateToLevel2={onNavigateToLevel2}
+          getUrl={getUrl}
+          onClose={onClose}
         />
-      </Link>
-    );
+      </div>
+
+      {/* Popular section */}
+      <div className="px-4 py-6 bg-gray-50">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Populära</h3>
+        <PopularGrid collections={popularCollections} onClose={onClose} />
+      </div>
+
+      {/* Account & Support Links */}
+      <div className="px-4 py-6 border-t border-gray-200 space-y-1 bg-white">
+        <AccountLink
+          href="/account/orders"
+          icon={Package}
+          title="Mina beställningar"
+          onClose={onClose}
+        />
+        <WishlistsLink
+          className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
+          onClose={onClose}
+        >
+          <div className="flex items-center gap-3">
+            <Heart size={20} className="text-gray-600" />
+            <span className="text-gray-900 font-medium">Önskelista</span>
+          </div>
+          <ChevronRight size={20} className="text-gray-400" />
+        </WishlistsLink>
+        <AccountLink
+          href="/pages/customer-service"
+          icon={HelpCircle}
+          title="Kundservice"
+          onClose={onClose}
+        />
+      </div>
+    </div>
+  );
+}
+
+// Level 2 Drill-Down Screen - Fixed with separate navigation header
+function Level2Screen({
+  currentItem,
+  onBack,
+  onClose,
+  onNavigateToLevel3,
+  getUrl,
+}: {
+  currentItem: MenuItem | null;
+  onBack: () => void;
+  onClose: () => void;
+  onNavigateToLevel3: (item: MenuItem) => void;
+  getUrl: (url: string | null | undefined) => string;
+}) {
+  if (!currentItem) return null;
+
+  const level2Items = currentItem.items ? currentItem.items.slice(0, 8) : [];
+
+  return (
+    <div className="mobile-screen-content">
+      {/* NAVIGATION LEVEL HEADER - Separate from brand header */}
+      <div className="mobile-nav-level-header">
+        <button
+          onClick={onBack}
+          className="mobile-back-button"
+        >
+          <ChevronLeft size={20} />
+          <span className="font-semibold text-base">{currentItem.title}</span>
+        </button>
+        
+        <Link
+          to={getUrl(currentItem.url)}
+          onClick={onClose}
+          className="mobile-shop-all-link"
+        >
+          Se alla →
+        </Link>
+      </div>
+
+      {/* Level 2 Navigation Items */}
+      <div className="bg-white">
+        {level2Items.map((item) => {
+          const hasSubItems = item.items && item.items.length > 0;
+          
+          return (
+            <div key={item.id} className="mobile-nav-item">
+              {hasSubItems ? (
+                // Has Level 3 items - navigate to drill-down
+                <button
+                  onClick={() => onNavigateToLevel3(item)}
+                  className="mobile-nav-button"
+                >
+                  <span>{item.title}</span>
+                  <ChevronRight size={20} className="text-gray-400" />
+                </button>
+              ) : (
+                // No Level 3 items - direct link
+                <Link
+                  to={getUrl(item.url)}
+                  onClick={onClose}
+                  className="mobile-nav-link"
+                >
+                  {item.title}
+                </Link>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// Level 3 Drill-Down Screen - Fixed with separate navigation header
+function Level3Screen({
+  currentItem,
+  onBack,
+  onClose,
+  getUrl,
+}: {
+  currentItem: MenuItem | null;
+  onBack: () => void;
+  onClose: () => void;
+  getUrl: (url: string | null | undefined) => string;
+}) {
+  if (!currentItem) return null;
+
+  const level3Items = currentItem.items ? currentItem.items.slice(0, 8) : [];
+
+  return (
+    <div className="mobile-screen-content">
+      {/* NAVIGATION LEVEL HEADER - Separate from brand header */}
+      <div className="mobile-nav-level-header">
+        <button
+          onClick={onBack}
+          className="mobile-back-button"
+        >
+          <ChevronLeft size={20} />
+          <span className="font-semibold text-base">{currentItem.title}</span>
+        </button>
+        
+        <Link
+          to={getUrl(currentItem.url)}
+          onClick={onClose}
+          className="mobile-shop-all-link"
+        >
+          Se alla →
+        </Link>
+      </div>
+
+      {/* Level 3 Navigation Items - All direct links */}
+      <div className="bg-white">
+        {level3Items.map((item) => (
+          <div key={item.id} className="mobile-nav-item">
+            <Link
+              to={getUrl(item.url)}
+              onClick={onClose}
+              className="mobile-nav-link"
+            >
+              {item.title}
+            </Link>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Dynamic Main Navigation - Shopify Menu Driven
+function DynamicMainNavigation({
+  menu,
+  onNavigateToLevel2,
+  getUrl,
+  onClose,
+}: {
+  menu?: Menu | null;
+  onNavigateToLevel2: (item: MenuItem) => void;
+  getUrl: (url: string | null | undefined) => string;
+  onClose: () => void;
+}) {
+  // Return empty if no menu - Shopify default behavior
+  if (!menu?.items || menu.items.length === 0) {
+    return null;
   }
 
-  // Fallback text logo matching your brand
+  // Limit to max 6 Level 1 items for mobile UI
+  const menuItems = menu.items.slice(0, 6);
+
   return (
-    <Link to="/" className="block">
-      <div className="text-red-600 font-black text-xl leading-tight">
-        STHLM
-        <br />
-        TOYS &<br />
-        GAMES
-      </div>
+    <div className="bg-white">
+      {menuItems.map((item) => {
+        const hasSubItems = item.items && item.items.length > 0;
+        
+        return (
+          <div key={item.id} className="mobile-nav-item">
+            {hasSubItems ? (
+              // Has sub-items - navigate to drill-down (NOT direct link)
+              <button
+                onClick={() => onNavigateToLevel2(item)}
+                className="mobile-nav-button"
+              >
+                <span>{item.title}</span>
+                <ChevronRight size={20} className="text-gray-400" />
+              </button>
+            ) : (
+              // No sub-items - direct link to collection
+              <Link
+                to={getUrl(item.url)}
+                onClick={onClose}
+                className="mobile-nav-link"
+              >
+                {item.title}
+              </Link>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// Helper Components
+function MobileLogo({shop}: {shop: any}) {
+  return (
+    <Link to="/" className="flex items-center">
+      <span className="mobile-menu-logo">
+        {shop?.name || 'STHLM TOYS'}
+      </span>
     </Link>
   );
 }
 
 function UserGreetingFallback() {
   return (
-    <div className="flex items-center justify-between p-4">
+    <div className="flex items-center justify-between px-4 py-4 bg-white">
       <div className="flex items-center gap-3">
-        <div className="w-6 h-6 bg-blue-100 rounded-full animate-pulse"></div>
-        <span className="text-gray-400">Laddar...</span>
+        <div className="w-6 h-6 bg-gray-200 rounded-full animate-pulse" />
+        <div className="h-4 w-20 bg-gray-200 rounded animate-pulse" />
       </div>
-      <ChevronRight size={20} className="text-gray-400" />
     </div>
   );
 }
 
 function UserGreeting({isLoggedIn}: {isLoggedIn: boolean}) {
-  // TODO: Get actual customer name from customer account query
-  const customerName = 'Vale'; // This should come from customer data
-
   if (isLoggedIn) {
+    const customerName = 'Kund';
     return (
       <Link
         to="/account"
-        className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
+        className="flex items-center justify-between px-4 py-4 hover:bg-gray-50 transition-colors bg-white"
       >
         <div className="flex items-center gap-3">
           <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
-            <span className="text-white text-sm font-medium">
-              {customerName.charAt(0).toUpperCase()}
-            </span>
+            <User size={14} className="text-white" />
           </div>
-          <span className="text-gray-900 font-medium">Hi, {customerName}</span>
+          <span className="text-gray-900 font-medium">Hej, {customerName}</span>
         </div>
         <ChevronRight size={20} className="text-gray-400" />
       </Link>
@@ -159,10 +492,9 @@ function UserGreeting({isLoggedIn}: {isLoggedIn: boolean}) {
   return (
     <Link
       to="/account/login"
-      className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
+      className="flex items-center justify-between px-4 py-4 hover:bg-gray-50 transition-colors bg-white"
     >
       <div className="flex items-center gap-3">
-        {/* Improved login icon */}
         <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
           <LogIn size={14} className="text-white" />
         </div>
@@ -173,62 +505,6 @@ function UserGreeting({isLoggedIn}: {isLoggedIn: boolean}) {
   );
 }
 
-function MainNavigation({onClose}: {onClose: () => void}) {
-  const mainNavItems = [
-    {
-      id: 'toys',
-      title: 'Leksaker',
-      icon: ShoppingBag,
-      color: 'bg-red-500',
-      href: '/collections', // Will lead to all categories later
-    },
-    {
-      id: 'shop-by-age',
-      title: 'Handla efter ålder',
-      icon: Baby,
-      color: 'bg-blue-500',
-      href: '/collections/age', // Will be specific results later
-    },
-    {
-      id: 'shop-by-brand',
-      title: 'Handla efter märke',
-      icon: Shirt,
-      color: 'bg-green-500',
-      href: '/collections/brands', // Will be specific results later
-    },
-    {
-      id: 'shop-by-character',
-      title: 'Handla efter karaktär',
-      icon: Gamepad2,
-      color: 'bg-orange-500',
-      href: '/collections/characters', // Will be specific results later
-    },
-  ];
-
-  return (
-    <div className="space-y-1">
-      {mainNavItems.map((item) => (
-        <Link
-          key={item.id}
-          to={item.href}
-          onClick={onClose}
-          className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
-        >
-          <div className="flex items-center gap-3">
-            <div
-              className={`w-8 h-8 ${item.color} rounded-lg flex items-center justify-center`}
-            >
-              <item.icon size={18} className="text-white" />
-            </div>
-            <span className="text-gray-900 font-medium">{item.title}</span>
-          </div>
-          <ChevronRight size={20} className="text-gray-400" />
-        </Link>
-      ))}
-    </div>
-  );
-}
-
 function PopularGrid({
   collections,
   onClose,
@@ -236,14 +512,6 @@ function PopularGrid({
   collections: Collection[];
   onClose: () => void;
 }) {
-  // Debug logging to see what we're getting from Shopify
-  console.log('PopularGrid - Collections received:', collections?.length || 0);
-  console.log('PopularGrid - Collections data:', collections);
-  if (collections?.length > 0) {
-    console.log('PopularGrid - First collection sample:', collections[0]);
-  }
-
-  // Filter collections with mobile_menu_featured metafield and limit to 9 (updated from 8)
   const getMetafieldValue = (metafields: any, key: string): string | null => {
     if (!metafields || !Array.isArray(metafields)) return null;
     const metafield = metafields.find((field: any) => field?.key === key);
@@ -267,25 +535,10 @@ function PopularGrid({
           collection.metafields,
           'mobile_menu_featured',
         );
-        const hasImage = collection.image?.url;
-
-        console.log(`Collection: ${collection.title}`, {
-          featuredValue,
-          hasImage,
-          imageUrl: collection.image?.url,
-          metafields: collection.metafields,
-        });
-
         return isTrueValue(featuredValue);
       })
-      ?.slice(0, 9) || []; // Updated from 8 to 9 items for 3x3 grid
+      ?.slice(0, 9) || [];
 
-  console.log(
-    'PopularGrid - Featured collections:',
-    featuredCollections.length,
-  );
-
-  // Fallback data with 9 items for perfect 3x3 grid
   const fallbackItems = [
     {id: 'deals', title: 'Erbjudanden', image: null, handle: 'deals'},
     {id: 'new', title: 'Nytt & Populärt', image: null, handle: 'new'},
@@ -295,17 +548,11 @@ function PopularGrid({
     {id: 'sonic', title: 'Sonic', image: null, handle: 'sonic'},
     {id: 'spiderman', title: 'Spiderman', image: null, handle: 'spiderman'},
     {id: 'disney', title: 'Disney', image: null, handle: 'disney'},
-    {id: 'outdoor', title: 'Utomhus', image: null, handle: 'outdoor'}, // Added 9th item
+    {id: 'outdoor', title: 'Utomhus', image: null, handle: 'outdoor'},
   ];
 
   const displayItems =
     featuredCollections.length > 0 ? featuredCollections : fallbackItems;
-
-  console.log(
-    'PopularGrid - Display items:',
-    displayItems.length,
-    displayItems,
-  );
 
   return (
     <div className="grid grid-cols-3 gap-4 mobile-menu-popular-grid">
@@ -319,42 +566,27 @@ function PopularGrid({
           <div
             className="w-20 h-20 bg-gray-200 rounded-xl flex items-center justify-center overflow-hidden"
             style={{
-              width: '5rem', // Increased from 4rem to 5rem
-              height: '5rem', // Increased from 4rem to 5rem
+              width: '5rem',
+              height: '5rem',
               backgroundColor: item.image?.url ? 'transparent' : '#f3f4f6',
             }}
           >
             {item.image?.url ? (
               <Image
-                data={{
-                  url: item.image.url,
-                  altText: item.image.altText || item.title,
-                  width: 80, // Increased from 64 to 80
-                  height: 80, // Increased from 64 to 80
-                }}
-                sizes="80px" // Increased from 64px to 80px
+                data={item.image}
+                sizes="80px"
                 className="w-full h-full object-cover rounded-xl"
+                loading="lazy"
               />
             ) : (
-              <div
-                className="w-full h-full rounded-xl flex items-center justify-center text-gray-500"
-                style={{
-                  backgroundColor: '#e5e7eb',
-                  fontSize: '2rem', // Increased icon size
-                }}
-              >
-                📦
-              </div>
+              <span className="text-2xl text-gray-400">🎯</span>
             )}
           </div>
           <span
-            className="text-xs font-medium text-gray-700 text-center mt-2 mobile-popular-text"
+            className="text-gray-900 text-center mt-2 leading-tight"
             style={{
-              fontSize: '0.75rem',
-              lineHeight: '1rem',
-              maxWidth: '5rem', // Increased from 4rem to 5rem
-              wordWrap: 'break-word',
-              hyphens: 'auto',
+              fontSize: '13px',
+              fontWeight: 500,
             }}
           >
             {item.title}
@@ -365,56 +597,28 @@ function PopularGrid({
   );
 }
 
-// ✅ ONLY CHANGE: Added isLoggedIn prop and smart wishlist handling
-function BottomLinks({
+function AccountLink({
+  href,
+  icon: Icon,
+  title,
   onClose,
-  isLoggedIn,
 }: {
+  href: string;
+  icon: any;
+  title: string;
   onClose: () => void;
-  isLoggedIn: Promise<boolean>;
 }) {
-  const bottomLinks = [
-    {
-      id: 'orders',
-      title: 'Mina beställningar',
-      icon: Package,
-      href: '/account/orders',
-      color: 'text-blue-600',
-    },
-    {
-      id: 'help',
-      title: 'Hjälp',
-      icon: HelpCircle,
-      href: '/hjalp',
-      color: 'text-blue-600',
-    },
-  ];
-
   return (
-    <div className="space-y-1">
-      {/* Orders and Help - unchanged */}
-      {bottomLinks.map((link) => (
-        <Link
-          key={link.id}
-          to={link.href}
-          onClick={onClose}
-          className="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors"
-        >
-          <link.icon size={20} className={link.color} />
-          <span className="text-gray-900 font-medium">{link.title}</span>
-        </Link>
-      ))}
-
-      {/* ✅ ONLY CHANGE: Smart Wishlist Link */}
-      <WishlistsLink
-        isLoggedIn={isLoggedIn}
-        onClose={onClose}
-        variant="nav-item"
-        className="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors"
-      >
-        <Heart size={20} className="text-blue-600" />
-        <span className="text-gray-900 font-medium">Önskelista</span>
-      </WishlistsLink>
-    </div>
+    <Link
+      to={href}
+      onClick={onClose}
+      className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
+    >
+      <div className="flex items-center gap-3">
+        <Icon size={20} className="text-gray-600" />
+        <span className="text-gray-900 font-medium">{title}</span>
+      </div>
+      <ChevronRight size={20} className="text-gray-400" />
+    </Link>
   );
 }
