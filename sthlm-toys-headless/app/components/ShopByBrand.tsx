@@ -1,85 +1,95 @@
 import {Link} from 'react-router';
 import {Image} from '@shopify/hydrogen';
 import {useState, useRef} from 'react';
-import type {Collection} from '@shopify/hydrogen/storefront-api-types';
+import type {FeaturedCollectionFragment} from 'storefrontapi.generated';
 
-interface ShopByBrandProps {
-  brands?: Collection[] | null;
-}
-
-interface BrandWithColor extends Collection {
-  backgroundColor?: string;
-}
-
-// Brand color mapping for fallbacks (matching Smyths design)
+// Brand colors matching the Smyths theme
 const brandColors: Record<string, string> = {
-  'toys-r-us': '#0066CC',
-  barbie: '#E91E63',
-  lego: '#FFEB3B',
-  disney: '#1976D2',
-  'fisher-price': '#00BCD4',
-  crayola: '#FFC107',
-  minecraft: '#4CAF50',
-  sonic: '#2196F3',
+  'lego': '#FFD700',
+  'barbie': '#FF69B4', 
+  'playmobil': '#4169E1',
+  'nerf': '#FF4500',
+  'pokemon': '#FFFF00',
+  'disney': '#1E90FF',
+  'marvel': '#FF0000',
+  'star-wars': '#000000',
+  'default': '#6B7280',
 };
 
-// Fallback brands (matching Smyths exactly)
-const fallbackBrands: BrandWithColor[] = [
+// Fallback static brands for testing  
+const fallbackBrands = [
   {
-    id: 'toys-r-us',
-    title: 'Toys"R"Us',
-    handle: 'toys-r-us',
-    backgroundColor: '#4CAF50',
-    image: null,
-  },
-  {
-    id: 'barbie',
-    title: 'Barbie',
-    handle: 'barbie',
-    backgroundColor: '#E91E63',
-    image: null,
-  },
-  {
-    id: 'lego',
+    id: 'brand-1',
     title: 'LEGO',
     handle: 'lego',
-    backgroundColor: '#FFC107',
-    image: null,
+    image: {url: '', altText: 'LEGO'},
+    backgroundColor: brandColors['lego'],
   },
   {
-    id: 'disney',
+    id: 'brand-2',
+    title: 'Barbie', 
+    handle: 'barbie',
+    image: {url: '', altText: 'Barbie'},
+    backgroundColor: brandColors['barbie'],
+  },
+  {
+    id: 'brand-3',
+    title: 'Playmobil',
+    handle: 'playmobil', 
+    image: {url: '', altText: 'Playmobil'},
+    backgroundColor: brandColors['playmobil'],
+  },
+  {
+    id: 'brand-4',
+    title: 'Nerf',
+    handle: 'nerf',
+    image: {url: '', altText: 'Nerf'},
+    backgroundColor: brandColors['nerf'],
+  },
+  {
+    id: 'brand-5',
+    title: 'Pokemon',
+    handle: 'pokemon',
+    image: {url: '', altText: 'Pokemon'},
+    backgroundColor: brandColors['pokemon'],
+  },
+  {
+    id: 'brand-6',
     title: 'Disney',
     handle: 'disney',
-    backgroundColor: '#1976D2',
-    image: null,
-  },
-  {
-    id: 'fisher-price',
-    title: 'Fisher-Price',
-    handle: 'fisher-price',
-    backgroundColor: '#00BCD4',
-    image: null,
-  },
-  {
-    id: 'crayola',
-    title: 'Crayola',
-    handle: 'crayola',
-    backgroundColor: '#FFC107',
-    image: null,
+    image: {url: '', altText: 'Disney'},
+    backgroundColor: brandColors['disney'],
   },
 ];
 
+interface BrandWithColor extends FeaturedCollectionFragment {
+  backgroundColor?: string;
+}
+
+interface ShopByBrandProps {
+  brands: FeaturedCollectionFragment[];
+}
+
 export function ShopByBrand({brands}: ShopByBrandProps) {
+  const mobileScrollRef = useRef<HTMLDivElement>(null);
+  
+  // ✅ FIXED: Improved drag detection with threshold
   const [isDragging, setIsDragging] = useState(false);
+  const [hasActuallyDragged, setHasActuallyDragged] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
-  const mobileScrollRef = useRef<HTMLDivElement>(null);
+  
+  // Drag threshold in pixels - only disable pointer events after this distance
+  const DRAG_THRESHOLD = 10;
 
-  // Helper function to get metafield value
-  const getMetafieldValue = (metafields: any, key: string): string | null => {
-    if (!metafields || !Array.isArray(metafields)) return null;
-    const metafield = metafields.find((field: any) => field?.key === key);
-    return metafield?.value ? metafield.value : null;
+  // Helper function to extract metafield values
+  const getMetafieldValue = (
+    metafields: Array<{key: string; value: string; namespace: string}> | null,
+    key: string,
+  ): string | null => {
+    if (!metafields) return null;
+    const metafield = metafields.find((m) => m && m.key === key);
+    return metafield ? metafield.value : null;
   };
 
   // Helper function to check if a value represents "true"
@@ -112,10 +122,11 @@ export function ShopByBrand({brands}: ShopByBrandProps) {
   // Desktop: Show only first 6 brands (no scrolling/pagination)
   const visibleBrands = displayBrands.slice(0, 6);
 
-  // Mouse drag handlers for mobile scroll container
+  // ✅ FIXED: Improved mouse drag handlers with threshold
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!mobileScrollRef.current) return;
     setIsDragging(true);
+    setHasActuallyDragged(false); // Reset the actual drag flag
     setStartX(e.pageX - mobileScrollRef.current.offsetLeft);
     setScrollLeft(mobileScrollRef.current.scrollLeft);
   };
@@ -123,13 +134,21 @@ export function ShopByBrand({brands}: ShopByBrandProps) {
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!isDragging || !mobileScrollRef.current) return;
     e.preventDefault();
+    
     const x = e.pageX - mobileScrollRef.current.offsetLeft;
-    const walk = (x - startX) * 2; // Scroll speed multiplier
-    mobileScrollRef.current.scrollLeft = scrollLeft - walk;
+    const dragDistance = Math.abs(x - startX);
+    
+    // Only set hasActuallyDragged after threshold is exceeded
+    if (dragDistance > DRAG_THRESHOLD) {
+      setHasActuallyDragged(true);
+      const walk = (x - startX) * 2; // Scroll speed multiplier
+      mobileScrollRef.current.scrollLeft = scrollLeft - walk;
+    }
   };
 
   const handleMouseUpOrLeave = () => {
     setIsDragging(false);
+    setHasActuallyDragged(false);
   };
 
   return (
@@ -142,8 +161,8 @@ export function ShopByBrand({brands}: ShopByBrandProps) {
           maxWidth: '100%',
           paddingLeft: '12px',
           paddingRight: '12px',
-          paddingTop: '64px',
-          paddingBottom: '32px',
+          paddingTop: '32px',
+          paddingBottom: '16px',
         }}
       >
         {/* Desktop Layout */}
@@ -153,145 +172,103 @@ export function ShopByBrand({brands}: ShopByBrandProps) {
             <div className="flex-1"></div>
             <div className="flex-1 flex justify-center">
               <h2
+                className="text-black font-semibold"
                 style={{
-                  fontFamily:
-                    'Buenos Aires, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, Cantarell, "Noto Sans", sans-serif',
-                  fontSize: '35px',
-                  fontStyle: 'normal',
-                  fontVariant: 'normal',
+                  fontSize: '36px',
                   fontWeight: 600,
-                  letterSpacing: 'normal',
-                  lineHeight: 'normal',
-                  textDecoration: 'none solid rgb(33, 36, 39)',
-                  textAlign: 'center',
-                  textIndent: '0px',
-                  textTransform: 'none',
-                  verticalAlign: 'baseline',
-                  whiteSpace: 'normal',
-                  wordSpacing: '0px',
+                  lineHeight: '42px',
+                  fontFamily:
+                    "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
                   color: 'rgb(33, 36, 39)',
-                  border: '0px none rgb(33, 36, 39)',
-                  margin: '0px',
-                  padding: '0px',
+                  textAlign: 'center',
                 }}
               >
                 Handla efter märke
               </h2>
             </div>
-
-            <div className="flex-1 flex justify-end items-center">
+            <div className="flex-1 flex justify-end">
               <Link
                 to="/collections/brands"
+                className="text-blue-600 hover:text-blue-700 transition-colors duration-200"
                 style={{
+                  fontSize: '18px',
+                  fontWeight: 500,
                   fontFamily:
-                    'Buenos Aires, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, Cantarell, "Noto Sans", sans-serif',
-                  fontSize: 'clamp(14px, 1.5vw, 18px)',
-                  fontStyle: 'normal',
-                  fontVariant: 'normal',
-                  fontWeight: 600,
-                  letterSpacing: 'normal',
-                  lineHeight: 'normal',
-                  textDecoration: 'underline solid rgb(0, 78, 188)',
-                  textAlign: 'right',
-                  textIndent: '0px',
-                  textTransform: 'none',
-                  verticalAlign: 'baseline',
-                  whiteSpace: 'normal',
-                  wordSpacing: '0px',
-                  color: 'rgb(0, 78, 188)',
-                  border: '0px none rgb(33, 36, 39)',
-                  margin: '0px',
-                  padding: '0px',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
+                    "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                  color: '#3B82F6',
+                  textDecoration: 'none',
+                  alignSelf: 'center',
                 }}
-                className="hover:opacity-80"
               >
                 Handla alla märken
               </Link>
             </div>
           </div>
 
-          {/* Desktop Brands Grid - No Navigation */}
-          <div className="relative">
-            <div className="grid grid-cols-6 gap-2 md:gap-3 lg:gap-4 justify-center">
-              {visibleBrands.map((brand) => (
-                <Link
-                  key={brand.id}
-                  to={`/collections/${brand.handle}`}
-                  className="group block"
+          {/* Desktop Grid */}
+          <div className="grid grid-cols-6 gap-6">
+            {visibleBrands.map((brand) => (
+              <Link
+                key={brand.id}
+                to={`/collections/${brand.handle}`}
+                className="group text-center"
+              >
+                <div
+                  className="relative overflow-hidden group-hover:shadow-lg transition-shadow duration-200 mb-4"
+                  style={{
+                    width: '192px',
+                    height: '192px',
+                    borderRadius: '12px',
+                  }}
                 >
-                  <div
-                    className="relative overflow-hidden group-hover:shadow-lg transition-shadow duration-200"
-                    style={{
-                      width: '200px',
-                      height: '200px',
-                      borderRadius: '12px',
-                    }}
-                  >
-                    {brand.image?.url ? (
-                      <Image
-                        data={brand.image}
-                        alt={brand.image.altText || brand.title}
-                        style={{
-                          height: '200px',
-                          width: '200px',
-                          overflow: 'clip',
-                          cursor: 'pointer',
-                          boxSizing: 'content-box',
-                        }}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
-                        sizes="200px"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <div
-                        className="w-full h-full flex items-center justify-center"
-                        style={{
-                          backgroundColor:
-                            brand.backgroundColor ||
-                            brandColors[brand.handle] ||
-                            '#6B7280',
-                        }}
-                      >
-                        <span
-                          className="text-white font-bold text-center px-2"
-                          style={{
-                            fontSize: 'clamp(14px, 1.5vw, 18px)',
-                            fontWeight: 700,
-                            lineHeight: '24px',
-                            fontFamily:
-                              "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                          }}
-                        >
-                          {brand.title}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                  {/* Brand Name - Desktop */}
-                  <div className="mt-3 text-center">
-                    <h3
-                      className="text-black font-medium group-hover:text-blue-600 transition-colors duration-200"
+                  {brand.image?.url ? (
+                    <Image
+                      data={brand.image}
+                      alt={brand.image.altText || brand.title}
+                      className="w-full h-full object-cover"
+                      sizes="192px"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div
+                      className="w-full h-full flex items-center justify-center"
                       style={{
-                        fontSize: '14px',
-                        fontWeight: 500,
-                        lineHeight: '18.9px',
-                        fontFamily:
-                          "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                        wordWrap: 'break-word',
-                        hyphens: 'auto',
-                        whiteSpace: 'normal',
-                        textAlign: 'center',
-                        maxWidth: '200px',
+                        backgroundColor:
+                          brand.backgroundColor ||
+                          brandColors[brand.handle] ||
+                          '#6B7280',
                       }}
                     >
-                      {brand.title}
-                    </h3>
-                  </div>
-                </Link>
-              ))}
-            </div>
+                      <span
+                        className="text-white font-bold text-center px-2"
+                        style={{
+                          fontSize: '18px',
+                          fontWeight: 700,
+                          lineHeight: '24px',
+                          fontFamily:
+                            "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                        }}
+                      >
+                        {brand.title}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <h3
+                  className="text-black font-medium group-hover:text-blue-600 transition-colors duration-200"
+                  style={{
+                    fontSize: '18px',
+                    fontWeight: 500,
+                    lineHeight: '24px',
+                    fontFamily:
+                      "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                    textAlign: 'center',
+                  }}
+                >
+                  {brand.title}
+                </h3>
+              </Link>
+            ))}
           </div>
         </div>
 
@@ -299,26 +276,30 @@ export function ShopByBrand({brands}: ShopByBrandProps) {
         <div className="block md:hidden">
           {/* Mobile Title */}
           <h2
-            className="text-black font-semibold text-center mb-8"
+            className="text-black font-semibold text-center mb-6"
             style={{
-              fontSize: '30px',
+              fontSize: '24px',
               fontWeight: 600,
-              lineHeight: 'normal',
+              lineHeight: '28px',
               fontFamily:
                 "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+              color: 'rgb(33, 36, 39)',
+              textAlign: 'center',
+              marginBottom: '24px',
             }}
           >
             Handla efter märke
           </h2>
 
-          {/* Mobile Horizontal Scroll - Left padding, right edge-to-edge */}
+          {/* Mobile Horizontal Scroll Container */}
           <div
             ref={mobileScrollRef}
-            className="overflow-x-auto mb-8 pb-2 -ml-3"
+            className="overflow-x-auto mb-6 pb-2"
             style={{
               scrollSnapType: 'x mandatory',
               scrollbarWidth: 'none',
               msOverflowStyle: 'none',
+              WebkitOverflowScrolling: 'touch',
               cursor: isDragging ? 'grabbing' : 'grab',
             }}
             onMouseDown={handleMouseDown}
@@ -348,7 +329,8 @@ export function ShopByBrand({brands}: ShopByBrandProps) {
                   className="group flex-shrink-0"
                   style={{
                     scrollSnapAlign: 'start',
-                    pointerEvents: isDragging ? 'none' : 'auto',
+                    // ✅ FIXED: Only disable pointer events when actually dragging
+                    pointerEvents: hasActuallyDragged ? 'none' : 'auto',
                   }}
                 >
                   <div

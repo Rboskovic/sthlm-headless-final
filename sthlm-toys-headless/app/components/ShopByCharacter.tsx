@@ -1,85 +1,97 @@
 import {Link} from 'react-router';
 import {Image} from '@shopify/hydrogen';
 import {useState, useRef} from 'react';
-import type {Collection} from '@shopify/hydrogen/storefront-api-types';
+import type {FeaturedCollectionFragment} from 'storefrontapi.generated';
 
-interface ShopByCharacterProps {
-  characters?: Collection[] | null;
-}
-
-interface CharacterWithColor extends Collection {
-  backgroundColor?: string;
-}
-
-// Character color mapping for fallbacks (matching popular characters)
+// Character colors matching the theme
 const characterColors: Record<string, string> = {
-  'mickey-mouse': '#E91E63',
-  frozen: '#1976D2',
-  'spider-man': '#FF1744',
-  batman: '#424242',
-  princess: '#E91E63',
-  cars: '#F44336',
-  'peppa-pig': '#E91E63',
-  'paw-patrol': '#2196F3',
+  'pokemon': '#FFDE00',
+  'disney-princess': '#FF69B4',
+  'marvel-heroes': '#ED1D24',
+  'star-wars': '#FFE81F',
+  'frozen': '#87CEEB',
+  'toy-story': '#FFD700',
+  'spider-man': '#DC143C',
+  'batman': '#000000',
+  'peppa-pig': '#FF69B4',
+  'paw-patrol': '#4169E1',
+  'default': '#6B7280',
 };
 
-// Fallback characters (popular toy characters)
-const fallbackCharacters: CharacterWithColor[] = [
+// Fallback static characters for testing
+const fallbackCharacters = [
   {
-    id: 'mickey-mouse',
-    title: 'Mickey Mouse',
-    handle: 'mickey-mouse',
-    backgroundColor: '#E91E63',
-    image: null,
+    id: 'char-1',
+    title: 'Pokemon',
+    handle: 'pokemon',
+    image: {url: '', altText: 'Pokemon'},
+    backgroundColor: characterColors['pokemon'],
   },
   {
-    id: 'frozen',
+    id: 'char-2',
+    title: 'Disney Princess',
+    handle: 'disney-princess',
+    image: {url: '', altText: 'Disney Princess'},
+    backgroundColor: characterColors['disney-princess'],
+  },
+  {
+    id: 'char-3',
+    title: 'Marvel Heroes',
+    handle: 'marvel-heroes',
+    image: {url: '', altText: 'Marvel Heroes'},
+    backgroundColor: characterColors['marvel-heroes'],
+  },
+  {
+    id: 'char-4',
+    title: 'Star Wars',
+    handle: 'star-wars',
+    image: {url: '', altText: 'Star Wars'},
+    backgroundColor: characterColors['star-wars'],
+  },
+  {
+    id: 'char-5',
     title: 'Frozen',
     handle: 'frozen',
-    backgroundColor: '#1976D2',
-    image: null,
+    image: {url: '', altText: 'Frozen'},
+    backgroundColor: characterColors['frozen'],
   },
   {
-    id: 'spider-man',
-    title: 'Spider-Man',
-    handle: 'spider-man',
-    backgroundColor: '#FF1744',
-    image: null,
-  },
-  {
-    id: 'batman',
-    title: 'Batman',
-    handle: 'batman',
-    backgroundColor: '#424242',
-    image: null,
-  },
-  {
-    id: 'princess',
-    title: 'Princess',
-    handle: 'princess',
-    backgroundColor: '#E91E63',
-    image: null,
-  },
-  {
-    id: 'paw-patrol',
-    title: 'Paw Patrol',
-    handle: 'paw-patrol',
-    backgroundColor: '#2196F3',
-    image: null,
+    id: 'char-6',
+    title: 'Toy Story',
+    handle: 'toy-story',
+    image: {url: '', altText: 'Toy Story'},
+    backgroundColor: characterColors['toy-story'],
   },
 ];
 
+interface CharacterWithColor extends FeaturedCollectionFragment {
+  backgroundColor?: string;
+}
+
+interface ShopByCharacterProps {
+  characters: FeaturedCollectionFragment[];
+}
+
 export function ShopByCharacter({characters}: ShopByCharacterProps) {
+  const mobileScrollRef = useRef<HTMLDivElement>(null);
+  
+  // ✅ FIXED: Improved drag detection with threshold
   const [isDragging, setIsDragging] = useState(false);
+  const [hasActuallyDragged, setHasActuallyDragged] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
-  const mobileScrollRef = useRef<HTMLDivElement>(null);
+  
+  // Drag threshold in pixels - only disable pointer events after this distance
+  const DRAG_THRESHOLD = 10;
 
-  // Helper function to get metafield value
-  const getMetafieldValue = (metafields: any, key: string): string | null => {
-    if (!metafields || !Array.isArray(metafields)) return null;
-    const metafield = metafields.find((field: any) => field?.key === key);
-    return metafield?.value ? metafield.value : null;
+  // Helper function to extract metafield values
+  const getMetafieldValue = (
+    metafields: Array<{key: string; value: string; namespace: string}> | null,
+    key: string,
+  ): string | null => {
+    if (!metafields) return null;
+    const metafield = metafields.find((m) => m && m.key === key);
+    return metafield ? metafield.value : null;
   };
 
   // Helper function to check if a value represents "true"
@@ -112,10 +124,11 @@ export function ShopByCharacter({characters}: ShopByCharacterProps) {
   // Desktop: Show only first 6 characters (no scrolling/pagination)
   const visibleCharacters = displayCharacters.slice(0, 6);
 
-  // Mouse drag handlers for mobile scroll container
+  // ✅ FIXED: Improved mouse drag handlers with threshold
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!mobileScrollRef.current) return;
     setIsDragging(true);
+    setHasActuallyDragged(false); // Reset the actual drag flag
     setStartX(e.pageX - mobileScrollRef.current.offsetLeft);
     setScrollLeft(mobileScrollRef.current.scrollLeft);
   };
@@ -123,13 +136,21 @@ export function ShopByCharacter({characters}: ShopByCharacterProps) {
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!isDragging || !mobileScrollRef.current) return;
     e.preventDefault();
+    
     const x = e.pageX - mobileScrollRef.current.offsetLeft;
-    const walk = (x - startX) * 2; // Scroll speed multiplier
-    mobileScrollRef.current.scrollLeft = scrollLeft - walk;
+    const dragDistance = Math.abs(x - startX);
+    
+    // Only set hasActuallyDragged after threshold is exceeded
+    if (dragDistance > DRAG_THRESHOLD) {
+      setHasActuallyDragged(true);
+      const walk = (x - startX) * 2; // Scroll speed multiplier
+      mobileScrollRef.current.scrollLeft = scrollLeft - walk;
+    }
   };
 
   const handleMouseUpOrLeave = () => {
     setIsDragging(false);
+    setHasActuallyDragged(false);
   };
 
   return (
@@ -142,8 +163,8 @@ export function ShopByCharacter({characters}: ShopByCharacterProps) {
           maxWidth: '100%',
           paddingLeft: '12px',
           paddingRight: '12px',
-          paddingTop: '64px',
-          paddingBottom: '32px',
+          paddingTop: '32px',
+          paddingBottom: '16px',
         }}
       >
         {/* Desktop Layout */}
@@ -153,145 +174,103 @@ export function ShopByCharacter({characters}: ShopByCharacterProps) {
             <div className="flex-1"></div>
             <div className="flex-1 flex justify-center">
               <h2
+                className="text-black font-semibold"
                 style={{
-                  fontFamily:
-                    'Buenos Aires, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, Cantarell, "Noto Sans", sans-serif',
-                  fontSize: '35px',
-                  fontStyle: 'normal',
-                  fontVariant: 'normal',
+                  fontSize: '36px',
                   fontWeight: 600,
-                  letterSpacing: 'normal',
-                  lineHeight: 'normal',
-                  textDecoration: 'none solid rgb(33, 36, 39)',
-                  textAlign: 'center',
-                  textIndent: '0px',
-                  textTransform: 'none',
-                  verticalAlign: 'baseline',
-                  whiteSpace: 'normal',
-                  wordSpacing: '0px',
+                  lineHeight: '42px',
+                  fontFamily:
+                    "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
                   color: 'rgb(33, 36, 39)',
-                  border: '0px none rgb(33, 36, 39)',
-                  margin: '0px',
-                  padding: '0px',
+                  textAlign: 'center',
                 }}
               >
                 Handla efter karaktär
               </h2>
             </div>
-
-            <div className="flex-1 flex justify-end items-center">
+            <div className="flex-1 flex justify-end">
               <Link
                 to="/collections/characters"
+                className="text-blue-600 hover:text-blue-700 transition-colors duration-200"
                 style={{
+                  fontSize: '18px',
+                  fontWeight: 500,
                   fontFamily:
-                    'Buenos Aires, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, Cantarell, "Noto Sans", sans-serif',
-                  fontSize: 'clamp(14px, 1.5vw, 18px)',
-                  fontStyle: 'normal',
-                  fontVariant: 'normal',
-                  fontWeight: 600,
-                  letterSpacing: 'normal',
-                  lineHeight: 'normal',
-                  textDecoration: 'underline solid rgb(0, 78, 188)',
-                  textAlign: 'right',
-                  textIndent: '0px',
-                  textTransform: 'none',
-                  verticalAlign: 'baseline',
-                  whiteSpace: 'normal',
-                  wordSpacing: '0px',
-                  color: 'rgb(0, 78, 188)',
-                  border: '0px none rgb(0, 78, 188)',
-                  margin: '0px',
-                  padding: '0px',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
+                    "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                  color: '#3B82F6',
+                  textDecoration: 'none',
+                  alignSelf: 'center',
                 }}
-                className="hover:opacity-80"
               >
                 Handla alla karaktärer
               </Link>
             </div>
           </div>
 
-          {/* Desktop Characters Grid - No Navigation */}
-          <div className="relative">
-            <div className="grid grid-cols-6 gap-2 md:gap-3 lg:gap-4 justify-center">
-              {visibleCharacters.map((character) => (
-                <Link
-                  key={character.id}
-                  to={`/collections/${character.handle}`}
-                  className="group block"
+          {/* Desktop Grid */}
+          <div className="grid grid-cols-6 gap-6">
+            {visibleCharacters.map((character) => (
+              <Link
+                key={character.id}
+                to={`/collections/${character.handle}`}
+                className="group text-center"
+              >
+                <div
+                  className="relative overflow-hidden group-hover:shadow-lg transition-shadow duration-200 mb-4"
+                  style={{
+                    width: '192px',
+                    height: '192px',
+                    borderRadius: '12px',
+                  }}
                 >
-                  <div
-                    className="relative overflow-hidden group-hover:shadow-lg transition-shadow duration-200"
-                    style={{
-                      width: '200px',
-                      height: '200px',
-                      borderRadius: '12px',
-                    }}
-                  >
-                    {character.image?.url ? (
-                      <Image
-                        data={character.image}
-                        alt={character.image.altText || character.title}
-                        style={{
-                          height: '200px',
-                          width: '200px',
-                          overflow: 'clip',
-                          cursor: 'pointer',
-                          boxSizing: 'content-box',
-                        }}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
-                        sizes="200px"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <div
-                        className="w-full h-full flex items-center justify-center"
-                        style={{
-                          backgroundColor:
-                            character.backgroundColor ||
-                            characterColors[character.handle] ||
-                            '#6B7280',
-                        }}
-                      >
-                        <span
-                          className="text-white font-bold text-center px-2"
-                          style={{
-                            fontSize: 'clamp(14px, 1.5vw, 18px)',
-                            fontWeight: 700,
-                            lineHeight: '24px',
-                            fontFamily:
-                              "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                          }}
-                        >
-                          {character.title}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                  {/* Character Name - Desktop */}
-                  <div className="mt-3 text-center">
-                    <h3
-                      className="text-black font-medium group-hover:text-blue-600 transition-colors duration-200"
+                  {character.image?.url ? (
+                    <Image
+                      data={character.image}
+                      alt={character.image.altText || character.title}
+                      className="w-full h-full object-cover"
+                      sizes="192px"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div
+                      className="w-full h-full flex items-center justify-center"
                       style={{
-                        fontSize: '14px',
-                        fontWeight: 500,
-                        lineHeight: '18.9px',
-                        fontFamily:
-                          "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                        wordWrap: 'break-word',
-                        hyphens: 'auto',
-                        whiteSpace: 'normal',
-                        textAlign: 'center',
-                        maxWidth: '200px',
+                        backgroundColor:
+                          character.backgroundColor ||
+                          characterColors[character.handle] ||
+                          '#6B7280',
                       }}
                     >
-                      {character.title}
-                    </h3>
-                  </div>
-                </Link>
-              ))}
-            </div>
+                      <span
+                        className="text-white font-bold text-center px-2"
+                        style={{
+                          fontSize: '18px',
+                          fontWeight: 700,
+                          lineHeight: '24px',
+                          fontFamily:
+                            "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                        }}
+                      >
+                        {character.title}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <h3
+                  className="text-black font-medium group-hover:text-blue-600 transition-colors duration-200"
+                  style={{
+                    fontSize: '18px',
+                    fontWeight: 500,
+                    lineHeight: '24px',
+                    fontFamily:
+                      "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                    textAlign: 'center',
+                  }}
+                >
+                  {character.title}
+                </h3>
+              </Link>
+            ))}
           </div>
         </div>
 
@@ -299,26 +278,30 @@ export function ShopByCharacter({characters}: ShopByCharacterProps) {
         <div className="block md:hidden">
           {/* Mobile Title */}
           <h2
-            className="text-black font-semibold text-center mb-8"
+            className="text-black font-semibold text-center mb-6"
             style={{
-              fontSize: '30px',
+              fontSize: '24px',
               fontWeight: 600,
-              lineHeight: 'normal',
+              lineHeight: '28px',
               fontFamily:
                 "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+              color: 'rgb(33, 36, 39)',
+              textAlign: 'center',
+              marginBottom: '24px',
             }}
           >
             Handla efter karaktär
           </h2>
 
-          {/* Mobile Horizontal Scroll - Left padding, right edge-to-edge */}
+          {/* Mobile Horizontal Scroll Container */}
           <div
             ref={mobileScrollRef}
-            className="overflow-x-auto mb-8 pb-2 -ml-3"
+            className="overflow-x-auto mb-6 pb-2"
             style={{
               scrollSnapType: 'x mandatory',
               scrollbarWidth: 'none',
               msOverflowStyle: 'none',
+              WebkitOverflowScrolling: 'touch',
               cursor: isDragging ? 'grabbing' : 'grab',
             }}
             onMouseDown={handleMouseDown}
@@ -348,7 +331,8 @@ export function ShopByCharacter({characters}: ShopByCharacterProps) {
                   className="group flex-shrink-0"
                   style={{
                     scrollSnapAlign: 'start',
-                    pointerEvents: isDragging ? 'none' : 'auto',
+                    // ✅ FIXED: Only disable pointer events when actually dragging
+                    pointerEvents: hasActuallyDragged ? 'none' : 'auto',
                   }}
                 >
                   <div

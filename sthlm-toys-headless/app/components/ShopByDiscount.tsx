@@ -72,15 +72,21 @@ export function ShopByDiscount({
   discounts,
   variant = 'homepage',
 }: ShopByDiscountProps) {
+  const mobileScrollRef = useRef<HTMLDivElement>(null);
+  
+  // ✅ IMPROVED: Better drag detection with threshold
   const [isDragging, setIsDragging] = useState(false);
+  const [hasActuallyDragged, setHasActuallyDragged] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
-  const mobileScrollRef = useRef<HTMLDivElement>(null);
+  
+  // Drag threshold in pixels - only disable pointer events after this distance
+  const DRAG_THRESHOLD = 10;
 
   // Helper function to get metafield value
   const getMetafieldValue = (metafields: any, key: string): string | null => {
     if (!metafields || !Array.isArray(metafields)) return null;
-    const metafield = metafields.find((field: any) => field?.key === key);
+    const metafield = metafields.find((field: any) => field && field.key === key);
     return metafield?.value ? metafield.value : null;
   };
 
@@ -114,10 +120,11 @@ export function ShopByDiscount({
   // Desktop: Show only first 6 discounts (no scrolling/pagination)
   const visibleDiscounts = displayDiscounts.slice(0, 6);
 
-  // Mouse drag handlers for mobile scroll container
+  // ✅ IMPROVED: Enhanced mouse drag handlers with threshold
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!mobileScrollRef.current) return;
     setIsDragging(true);
+    setHasActuallyDragged(false); // Reset the actual drag flag
     setStartX(e.pageX - mobileScrollRef.current.offsetLeft);
     setScrollLeft(mobileScrollRef.current.scrollLeft);
   };
@@ -125,13 +132,21 @@ export function ShopByDiscount({
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!isDragging || !mobileScrollRef.current) return;
     e.preventDefault();
+    
     const x = e.pageX - mobileScrollRef.current.offsetLeft;
-    const walk = (x - startX) * 2; // Scroll speed multiplier
-    mobileScrollRef.current.scrollLeft = scrollLeft - walk;
+    const dragDistance = Math.abs(x - startX);
+    
+    // Only set hasActuallyDragged after threshold is exceeded
+    if (dragDistance > DRAG_THRESHOLD) {
+      setHasActuallyDragged(true);
+      const walk = (x - startX) * 2; // Scroll speed multiplier
+      mobileScrollRef.current.scrollLeft = scrollLeft - walk;
+    }
   };
 
   const handleMouseUpOrLeave = () => {
     setIsDragging(false);
+    setHasActuallyDragged(false);
   };
 
   return (
@@ -145,119 +160,121 @@ export function ShopByDiscount({
           paddingLeft: '12px',
           paddingRight: '12px',
           ...(variant === 'collection'
-            ? {paddingTop: '32px', paddingBottom: '32px'}
-            : {paddingTop: '64px', paddingBottom: '32px'}),
+            ? {paddingTop: '16px', paddingBottom: '16px'}
+            : {paddingTop: '32px', paddingBottom: '16px'}),
         }}
       >
         {/* Desktop Layout */}
         <div className="hidden md:block">
-          {/* Header with centered title and right-aligned Shop All link - Only show on homepage */}
-          {variant === 'homepage' && (
-            <div className="flex items-center justify-between mb-8">
-              <div className="flex-1"></div>
-              <div className="flex-1 flex justify-center">
-                <h2
-                  className="text-black font-bold text-center"
-                  style={{
-                    fontSize: '28px',
-                    fontWeight: 700,
-                    lineHeight: '36px',
-                    fontFamily:
-                      "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                  }}
-                >
-                  Handla på rea
-                </h2>
-              </div>
-              <div className="flex-1 flex justify-end">
-                <Link
-                  to="/collections/rea"
-                  style={{
-                    fontSize: '16px',
-                    fontWeight: 500,
-                    lineHeight: 'normal',
-                    textDecoration: 'underline solid rgb(0, 78, 188)',
-                    textAlign: 'right',
-                    textIndent: '0px',
-                    textTransform: 'none',
-                    verticalAlign: 'baseline',
-                    whiteSpace: 'normal',
-                    wordSpacing: '0px',
-                    color: 'rgb(0, 78, 188)',
-                    border: '0px none rgb(0, 78, 188)',
-                    margin: '0px',
-                    padding: '0px',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                  }}
-                  className="hover:opacity-80"
-                >
-                  Handla alla erbjudanden
-                </Link>
-              </div>
+          {/* Desktop Header with centered title and right-aligned Shop All link */}
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex-1"></div>
+            <div className="flex-1 flex justify-center">
+              <h2
+                className="text-black font-semibold"
+                style={{
+                  fontSize: '36px',
+                  fontWeight: 600,
+                  lineHeight: '42px',
+                  fontFamily:
+                    "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                  color: 'rgb(33, 36, 39)',
+                  textAlign: 'center',
+                }}
+              >
+                Handla på rea
+              </h2>
             </div>
-          )}
+            <div className="flex-1 flex justify-end">
+              <Link
+                to="/collections/rea"
+                className="text-blue-600 hover:text-blue-700 transition-colors duration-200"
+                style={{
+                  fontSize: '18px',
+                  fontWeight: 500,
+                  fontFamily:
+                    "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                  color: '#3B82F6',
+                  textDecoration: 'none',
+                  alignSelf: 'center',
+                }}
+              >
+                Handla alla erbjudanden
+              </Link>
+            </div>
+          </div>
 
-          {/* Desktop Discounts Grid - No Navigation */}
-          <div className="relative">
-            <div className="grid grid-cols-6 gap-4 justify-center">
-              {visibleDiscounts.map((discount) => (
-                <Link
-                  key={discount.id}
-                  to={`/collections/${discount.handle}`}
-                  className="group block"
+          {/* Desktop Grid */}
+          <div className="grid grid-cols-6 gap-6">
+            {visibleDiscounts.map((discount) => (
+              <Link
+                key={discount.id}
+                to={`/collections/${discount.handle}`}
+                className="group text-center"
+              >
+                <div
+                  className="relative overflow-hidden group-hover:shadow-lg transition-shadow duration-200 mb-4"
+                  style={{
+                    width: '192px',
+                    height: '192px',
+                    borderRadius: '12px',
+                  }}
                 >
-                  <div
-                    className="relative overflow-hidden group-hover:shadow-lg transition-shadow duration-200"
-                    style={{
-                      width: '200px',
-                      height: '200px',
-                      borderRadius: '12px',
-                    }}
-                  >
-                    {discount.image?.url ? (
-                      <Image
-                        data={discount.image}
-                        alt={discount.image.altText || discount.title}
+                  {discount.image?.url ? (
+                    <Image
+                      data={discount.image}
+                      alt={discount.image.altText || discount.title}
+                      style={{
+                        height: '192px',
+                        width: '192px',
+                        overflow: 'clip',
+                        cursor: 'pointer',
+                        boxSizing: 'content-box',
+                      }}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                      sizes="192px"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div
+                      className="w-full h-full flex items-center justify-center"
+                      style={{
+                        backgroundColor:
+                          discount.backgroundColor ||
+                          discountColors[discount.handle] ||
+                          '#6B7280',
+                      }}
+                    >
+                      <span
+                        className="text-white font-bold text-center px-2"
                         style={{
-                          height: '200px',
-                          width: '200px',
-                          overflow: 'clip',
-                          cursor: 'pointer',
-                          boxSizing: 'content-box',
-                        }}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
-                        sizes="200px"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <div
-                        className="w-full h-full flex items-center justify-center"
-                        style={{
-                          backgroundColor:
-                            discount.backgroundColor ||
-                            discountColors[discount.handle] ||
-                            '#6B7280',
+                          fontSize: '16px',
+                          fontWeight: 700,
+                          lineHeight: '20px',
+                          fontFamily:
+                            "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
                         }}
                       >
-                        <span
-                          className="text-white font-bold text-center px-2"
-                          style={{
-                            fontSize: '16px',
-                            fontWeight: 700,
-                            lineHeight: '20px',
-                            fontFamily:
-                              "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                          }}
-                        >
-                          {discount.title}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </Link>
-              ))}
-            </div>
+                        {discount.title}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <h3
+                  className="text-black font-medium group-hover:text-blue-600 transition-colors duration-200"
+                  style={{
+                    fontSize: '18px',
+                    fontWeight: 500,
+                    lineHeight: '24px',
+                    fontFamily:
+                      "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                    textAlign: 'center',
+                  }}
+                >
+                  {discount.title}
+                </h3>
+              </Link>
+            ))}
           </div>
         </div>
 
@@ -270,8 +287,8 @@ export function ShopByDiscount({
                 className="text-black font-bold"
                 style={{
                   fontSize: '24px',
-                  fontWeight: 700,
-                  lineHeight: '32.4px',
+                  fontWeight: 600,
+                  lineHeight: '28px',
                   fontFamily:
                     "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
                 }}
@@ -284,23 +301,38 @@ export function ShopByDiscount({
           {/* Mobile Scrollable Container */}
           <div
             ref={mobileScrollRef}
-            className="flex gap-4 overflow-x-auto scrollbar-hide cursor-grab active:cursor-grabbing"
+            className="flex gap-4 overflow-x-auto scrollbar-hide"
             style={{
               paddingLeft: '8px',
               paddingRight: '8px',
               scrollSnapType: 'x mandatory',
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+              WebkitOverflowScrolling: 'touch',
+              cursor: isDragging ? 'grabbing' : 'grab',
             }}
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUpOrLeave}
             onMouseLeave={handleMouseUpOrLeave}
           >
+            <style>
+              {`
+                .scrollbar-hide::-webkit-scrollbar {
+                  display: none;
+                }
+              `}
+            </style>
             {displayDiscounts.map((discount) => (
               <Link
                 key={discount.id}
                 to={`/collections/${discount.handle}`}
                 className="group block flex-shrink-0"
-                style={{scrollSnapAlign: 'start'}}
+                style={{
+                  scrollSnapAlign: 'start',
+                  // ✅ IMPROVED: Only disable pointer events when actually dragging
+                  pointerEvents: hasActuallyDragged ? 'none' : 'auto',
+                }}
               >
                 <div
                   className="relative overflow-hidden group-hover:shadow-lg transition-shadow duration-200"

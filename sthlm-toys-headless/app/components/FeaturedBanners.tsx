@@ -1,48 +1,20 @@
-// app/components/FeaturedBanners.tsx - ✅ SHOPIFY STANDARD: Updated to use ShopButton consistently
-import {ShopButton} from '~/components/ui/ShopButton';
 import {Link} from 'react-router';
 import {Image} from '@shopify/hydrogen';
-import {ShopButton} from '~/components/ui/ShopButton';
-
-interface FeaturedBanner {
-  id: string;
-  title: string;
-  handle: string;
-  description?: string | null;
-  metafields?: Array<{
-    key: string;
-    value: string;
-    namespace?: string;
-  } | null> | null;
-  image?: {
-    id: string;
-    url: string;
-    altText?: string | null;
-    width?: number | null;
-    height?: number | null;
-  } | null;
-}
+import type {FeaturedCollectionFragment} from 'storefrontapi.generated';
 
 interface FeaturedBannersProps {
-  collections?: FeaturedBanner[];
-  title?: string;
+  collections: FeaturedCollectionFragment[];
 }
 
-// Fallback banners matching your current design
-const fallbackBanners: (FeaturedBanner & {
-  backgroundColor: string;
-  buttonText?: string;
-})[] = [
+// Fallback banners for testing/development
+const fallbackBanners = [
   {
-    id: 'fallback-banner-1',
+    id: 'fallback-1',
     title: 'MINECRAFT',
     handle: 'minecraft',
     description: 'Bygg din värld med oändliga möjligheter',
-    metafields: [{key: 'featured-banner', value: 'true', namespace: 'custom'}],
-    backgroundColor: '#4CAF50',
-    buttonText: 'Handla nu',
     image: {
-      id: 'fallback-banner-img-1',
+      id: 'fallback-img-1',
       url: 'https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
       altText: 'Minecraft Collection',
       width: 800,
@@ -50,42 +22,32 @@ const fallbackBanners: (FeaturedBanner & {
     },
   },
   {
-    id: 'fallback-banner-2',
+    id: 'fallback-2', 
     title: 'SONIC THE HEDGEHOG',
     handle: 'sonic',
     description: 'Snabbhetens ultimata äventyr väntar',
-    metafields: [{key: 'featured-banner', value: 'true', namespace: 'custom'}],
-    backgroundColor: '#2196F3',
-    buttonText: 'Handla nu',
     image: {
-      id: 'fallback-banner-img-2',
-      url: 'https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      altText: 'Sonic Collection',
+      id: 'fallback-img-2',
+      url: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+      altText: 'Sonic Collection', 
       width: 800,
       height: 400,
     },
   },
 ];
 
-export function FeaturedBanners({
-  collections,
-  title = 'Utvalda kollektioner',
-}: FeaturedBannersProps) {
-  // Helper function to get metafield value with proper null checks
+export function FeaturedBanners({collections}: FeaturedBannersProps) {
+  // Helper function to extract metafield values (same pattern as other components)
   const getMetafieldValue = (
-    metafields:
-      | Array<{key: string; value: string; namespace?: string} | null>
-      | null
-      | undefined,
+    metafields: Array<{key: string; value: string; namespace: string}> | null,
     key: string,
   ): string | null => {
-    if (!metafields || !Array.isArray(metafields)) return null;
-
+    if (!metafields) return null;
     const metafield = metafields.find((m) => m && m.key === key);
     return metafield ? metafield.value : null;
   };
 
-  // Helper function to check if a value represents "true"
+  // Helper function to check if a value represents "true" (same as other components)
   const isTrueValue = (value: string | null): boolean => {
     if (!value) return false;
     const normalizedValue = value.toLowerCase().trim();
@@ -96,140 +58,268 @@ export function FeaturedBanners({
     );
   };
 
-  // Filter collections that have featured-banner metafield set to "true"
+  // Filter featured banners from Shopify data (same pattern as other components)
   const featuredBanners =
     collections && collections.length > 0
       ? collections.filter((collection) => {
-          if (!collection?.metafields) return false;
-          const featuredValue = getMetafieldValue(
-            collection.metafields,
-            'featured-banner',
-          );
-          return isTrueValue(featuredValue);
+          const featuredBannerValue =
+            getMetafieldValue(collection.metafields, 'featured-banner') ||
+            getMetafieldValue(collection.metafields, 'featured_banner');
+          const isFeatured = isTrueValue(featuredBannerValue);
+          return isFeatured;
         })
-      : fallbackBanners;
+      : [];
 
-  if (!featuredBanners || featuredBanners.length === 0) {
-    return null;
-  }
+  // Use Shopify banners or fallback
+  const displayBanners = featuredBanners.length > 0 ? featuredBanners : fallbackBanners;
 
   return (
-    <section
-      className="w-full bg-white"
-      style={{paddingTop: '48px', paddingBottom: '48px'}}
-    >
+    <section className="w-full bg-white">
+      {/* Container matching other sections */}
       <div
-        className="mx-auto"
+        className="mx-auto relative"
         style={{
           width: '1272px',
           maxWidth: '100%',
           paddingLeft: '12px',
           paddingRight: '12px',
+          paddingTop: '32px',
+          paddingBottom: '16px',
         }}
       >
-        {/* Section Title */}
-        <h2
-          className="font-bold text-gray-900 mb-8"
-          style={{
-            fontSize: '32px',
-            fontWeight: 700,
-            lineHeight: '43.2px',
-            fontFamily:
-              "UniformRnd, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-          }}
-        >
-          {title}
-        </h2>
+        {/* Desktop Layout */}
+        <div className="hidden md:block">
+          {/* Header with centered title (no "shop all" for banners) */}
+          <div className="flex items-center justify-center mb-8">
+            <h2
+              className="text-black font-semibold"
+              style={{
+                fontSize: '36px',
+                fontWeight: 600,
+                lineHeight: '42px',
+                fontFamily:
+                  "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                color: 'rgb(33, 36, 39)',
+                textAlign: 'center',
+              }}
+            >
+              Utvalda kollektioner
+            </h2>
+          </div>
 
-        {/* Banners Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {featuredBanners.map((banner) => {
-            const backgroundColor =
-              'backgroundColor' in banner
-                ? banner.backgroundColor
-                : getMetafieldValue(banner.metafields, 'background-color') ||
-                  '#4CAF50';
-
-            const buttonText =
-              'buttonText' in banner
-                ? banner.buttonText
-                : getMetafieldValue(banner.metafields, 'button-text') ||
-                  'Handla nu';
-
-            return (
-              <div
+          {/* Desktop Grid - 2 columns for banners */}
+          <div className="grid grid-cols-2 gap-6">
+            {displayBanners.slice(0, 2).map((banner) => (
+              <Link
                 key={banner.id}
-                className="group relative overflow-hidden rounded-lg"
-                style={{
-                  borderRadius: '12px',
-                  aspectRatio: '5/3',
-                  backgroundColor,
-                }}
+                to={`/collections/${banner.handle}`}
+                className="group block"
               >
-                {/* Background Image */}
-                {banner.image?.url && (
-                  <div className="absolute inset-0">
-                    <Image
-                      data={{
-                        url: banner.image.url,
-                        altText: banner.image.altText || banner.title,
-                        width: banner.image.width || 800,
-                        height: banner.image.height || 400,
-                      }}
-                      sizes="(min-width: 768px) 50vw, 100vw"
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  </div>
-                )}
+                <div
+                  className="relative overflow-hidden group-hover:shadow-lg transition-shadow duration-200"
+                  style={{
+                    height: '280px',
+                    borderRadius: '12px',
+                  }}
+                >
+                  {/* Banner Image */}
+                  {banner.image?.url ? (
+                    <>
+                      <Image
+                        data={banner.image}
+                        alt={banner.image.altText || banner.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        sizes="(min-width: 768px) 50vw, 100vw"
+                        loading="lazy"
+                      />
+                      {/* TEMPORARILY REMOVED: Dark overlay for debugging */}
+                      {/* <div className="absolute inset-0 bg-black bg-opacity-30" /> */}
+                    </>
+                  ) : (
+                    /* Fallback colored background */
+                    <>
+                      <div
+                        className="w-full h-full flex items-center justify-center"
+                        style={{backgroundColor: '#4CAF50'}}
+                      >
+                        <div className="text-white text-sm opacity-75">No Image</div>
+                      </div>
+                    </>
+                  )}
 
-                {/* Content Overlay - Using flex for proper CTA positioning */}
-                <div className="absolute inset-0 flex flex-col justify-end items-start p-8 text-white">
-                  <div className="mb-4">
-                    <h3
-                      className="font-bold mb-2 text-white"
-                      style={{
-                        fontSize: '24px',
-                        fontWeight: 700,
-                        lineHeight: '32.4px',
-                        fontFamily:
-                          "UniformRnd, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                        textShadow: '0 2px 4px rgba(0,0,0,0.3)',
-                      }}
-                    >
-                      {banner.title}
-                    </h3>
-
-                    {banner.description && (
-                      <p
-                        className="mb-4 text-white/90"
+                  {/* Content overlay */}
+                  <div className="absolute inset-0 flex flex-col justify-end p-6">
+                    <div className="text-left">
+                      {/* Collection Title */}
+                      <h3
+                        className="text-black font-bold mb-2 bg-white bg-opacity-90 px-2 py-1 rounded"
                         style={{
-                          fontSize: '16px',
-                          fontWeight: 400,
-                          lineHeight: '21.6px',
+                          fontSize: '28px',
+                          fontWeight: 700,
+                          lineHeight: '32px',
                           fontFamily:
-                            "UniformRnd, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                          textShadow: '0 1px 2px rgba(0,0,0,0.3)',
+                            "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
                         }}
                       >
-                        {banner.description}
-                      </p>
-                    )}
-                  </div>
+                        {banner.title}
+                      </h3>
+                      
+                      {/* Collection Description */}
+                      {banner.description && (
+                        <p
+                          className="text-black mb-8 bg-white bg-opacity-90 px-2 py-1 rounded"
+                          style={{
+                            fontSize: '16px',
+                            fontWeight: 400,
+                            lineHeight: '22px',
+                            fontFamily:
+                              "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                            marginBottom: '32px',
+                          }}
+                          dangerouslySetInnerHTML={{ 
+                            __html: typeof banner.description === 'string' 
+                              ? banner.description 
+                              : String(banner.description || '')
+                          }}
+                        />
+                      )}
 
-                  {/* ✅ FIXED: CTA Button using ShopButton */}
-                  <Link to={`/collections/${banner.handle}`}>
-                    <ShopButton 
-                      variant="cta" 
-                      size="md"
-                      className="group-hover:scale-105 transition-transform duration-200"
-                    >
-                      {buttonText}
-                    </ShopButton>
-                  </Link>
+                      {/* CTA Button */}
+                      <div
+                        className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-8 rounded-full transition-colors duration-200"
+                        style={{
+                          fontSize: '16px',
+                          fontWeight: 500,
+                          fontFamily:
+                            "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                        }}
+                      >
+                        Handla nu
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        {/* Mobile Layout */}
+        <div className="block md:hidden">
+          {/* Mobile Title */}
+          <h2
+            className="text-black font-semibold text-center mb-6"
+            style={{
+              fontSize: '24px',
+              fontWeight: 600,
+              lineHeight: '28px',
+              fontFamily:
+                "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+              color: 'rgb(33, 36, 39)',
+              textAlign: 'center',
+              marginBottom: '24px',
+            }}
+          >
+            Utvalda kollektioner
+          </h2>
+
+          {/* Mobile Stack */}
+          <div className="space-y-4">
+            {displayBanners.slice(0, 2).map((banner) => (
+              <Link
+                key={banner.id}
+                to={`/collections/${banner.handle}`}
+                className="group block"
+              >
+                <div
+                  className="relative overflow-hidden group-hover:shadow-lg transition-shadow duration-200"
+                  style={{
+                    height: '200px',
+                    borderRadius: '12px',
+                  }}
+                >
+                  {/* Banner Image */}
+                  {banner.image?.url ? (
+                    <>
+                      <Image
+                        data={banner.image}
+                        alt={banner.image.altText || banner.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        sizes="100vw"
+                        loading="lazy"
+                      />
+                      {/* TEMPORARILY REMOVED: Dark overlay for debugging */}
+                      {/* <div className="absolute inset-0 bg-black bg-opacity-30" /> */}
+                    </>
+                  ) : (
+                    /* Fallback colored background */
+                    <>
+                      <div
+                        className="w-full h-full flex items-center justify-center"
+                        style={{backgroundColor: '#4CAF50'}}
+                      >
+                        <div className="text-white text-xs opacity-75">No Image</div>
+                      </div>
+                    </>
+                  )}
+
+                  {/* Content overlay */}
+                  <div className="absolute inset-0 flex flex-col justify-end p-4">
+                    <div className="text-left">
+                      {/* Collection Title */}
+                      <h3
+                        className="text-white font-bold mb-1"
+                        style={{
+                          fontSize: '20px',
+                          fontWeight: 700,
+                          lineHeight: '24px',
+                          fontFamily:
+                            "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                          textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
+                        }}
+                      >
+                        {banner.title}
+                      </h3>
+                      
+                      {/* Collection Description */}
+                      {banner.description && (
+                        <p
+                          className="text-white mb-6"
+                          style={{
+                            fontSize: '14px',
+                            fontWeight: 400,
+                            lineHeight: '18px',
+                            fontFamily:
+                              "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                            textShadow: '1px 1px 3px rgba(0,0,0,0.8)',
+                            marginBottom: '24px',
+                          }}
+                          dangerouslySetInnerHTML={{ 
+                            __html: typeof banner.description === 'string' 
+                              ? banner.description 
+                              : String(banner.description || '')
+                          }}
+                        />
+                      )}
+
+                      {/* CTA Button */}
+                      <div
+                        className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-full transition-colors duration-200"
+                        style={{
+                          fontSize: '14px',
+                          fontWeight: 500,
+                          fontFamily:
+                            "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                        }}
+                      >
+                        Handla nu
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
         </div>
       </div>
     </section>
