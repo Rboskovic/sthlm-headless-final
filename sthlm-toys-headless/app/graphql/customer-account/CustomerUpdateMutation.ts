@@ -1,3 +1,6 @@
+// FILE: app/graphql/customer-account/CustomerUpdateMutation.ts
+// ✅ FIXED: Correct mutation structure - removed non-existent mutations
+
 export const CUSTOMER_UPDATE_MUTATION = `#graphql
   # https://shopify.dev/docs/api/customer/latest/mutations/customerUpdate
   mutation customerUpdate(

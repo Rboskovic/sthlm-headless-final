@@ -1,5 +1,5 @@
 // FILE: app/routes/($locale).account.profile.tsx
-// ✅ FIXED: Profile save error + proper success handling + correct contact info display
+// ✅ FIXED: Correct implementation using only existing customerUpdate mutation
 
 import type {CustomerFragment} from 'customer-accountapi.generated';
 import type {CustomerUpdateInput} from '@shopify/hydrogen/customer-account-api-types';
@@ -44,12 +44,12 @@ export async function action({request, context}: ActionFunctionArgs) {
 
   try {
     const customer: CustomerUpdateInput = {};
+    
+    // ✅ FIXED: Only update fields that are supported by customerUpdate
     const validInputKeys = ['firstName', 'lastName'] as const;
 
     for (const [key, value] of form.entries()) {
-      if (!validInputKeys.includes(key as any)) {
-        continue;
-      }
+      if (!validInputKeys.includes(key as any)) continue;
       if (typeof value === 'string' && value.length) {
         customer[key as (typeof validInputKeys)[number]] = value;
       }
@@ -57,18 +57,14 @@ export async function action({request, context}: ActionFunctionArgs) {
 
     const {data: mutationData, errors} = await customerAccount.mutate(
       CUSTOMER_UPDATE_MUTATION,
-      {
-        variables: {
-          customer,
-        },
-      },
+      { variables: { customer } }
     );
 
     if (errors?.length) {
-      return data({
-        error: errors[0].message,
-        customer: null,
-        success: false,
+      return data({ 
+        error: errors[0].message, 
+        customer: null, 
+        success: false 
       });
     }
 
@@ -80,7 +76,6 @@ export async function action({request, context}: ActionFunctionArgs) {
       });
     }
 
-    // ✅ FIXED: Return proper success response without redirect
     return data({
       error: null,
       customer: mutationData.customerUpdate.customer,
@@ -104,53 +99,38 @@ export default function AccountProfile() {
   const customer = actionData?.customer ?? account?.customer;
   const isSubmitting = state === 'submitting';
 
-  // ✅ FIXED: Format date properly with fallback
-  const formatMemberSince = (dateString?: string) => {
-    if (!dateString) return 'Unknown';
-    try {
-      return new Date(dateString).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      });
-    } catch (error) {
-      return 'Unknown';
-    }
-  };
-
   return (
-    <div style={{ padding: '20px', maxWidth: '600px' }}>
-      <h2>Profile</h2>
-      
-      {/* ✅ FIXED: Better success message display */}
+    <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
+      <h2 style={{ marginBottom: '20px' }}>Profile Settings</h2>
+
+      {/* ✅ Success/Error Messages */}
       {actionData?.success && (
         <div style={{
-          padding: '10px',
           backgroundColor: '#d4edda',
-          border: '1px solid #c3e6cb',
-          borderRadius: '5px',
+          color: '#155724',
+          padding: '12px 16px',
+          borderRadius: '4px',
           marginBottom: '20px',
-          color: '#155724'
+          border: '1px solid #c3e6cb'
         }}>
-          ✅ {actionData.message}
+          {actionData.message}
         </div>
       )}
-
-      {/* ✅ FIXED: Better error message display */}
+      
       {actionData?.error && (
         <div style={{
-          padding: '10px',
           backgroundColor: '#f8d7da',
-          border: '1px solid #f5c6cb',
-          borderRadius: '5px',
+          color: '#721c24',
+          padding: '12px 16px',
+          borderRadius: '4px',
           marginBottom: '20px',
-          color: '#721c24'
+          border: '1px solid #f5c6cb'
         }}>
-          ❌ {actionData.error}
+          {actionData.error}
         </div>
       )}
 
-      {/* Personal Information Form */}
+      {/* ✅ FIXED: Name Update Form */}
       <div style={{
         backgroundColor: 'white',
         padding: '20px',
@@ -158,47 +138,44 @@ export default function AccountProfile() {
         borderRadius: '8px',
         marginBottom: '20px'
       }}>
-        <h3>Personal Information</h3>
-        
-        <Form method="PUT" style={{ marginTop: '15px' }}>
-          <div style={{ marginBottom: '15px' }}>
-            <label htmlFor="firstName" style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-              First name
-            </label>
-            <input
-              id="firstName"
-              name="firstName"
-              type="text"
-              defaultValue={customer?.firstName ?? ''}
-              style={{
-                width: '100%',
-                padding: '8px',
-                border: '1px solid #ccc',
-                borderRadius: '4px',
-                fontSize: '14px'
-              }}
-            />
+        <h3 style={{ marginBottom: '15px' }}>Personal Information</h3>
+        <Form method="put">
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                First Name
+              </label>
+              <input
+                type="text"
+                name="firstName"
+                defaultValue={customer?.firstName || ''}
+                style={{
+                  width: '100%',
+                  padding: '8px',
+                  border: '1px solid #ccc',
+                  borderRadius: '4px',
+                  fontSize: '14px'
+                }}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                Last Name
+              </label>
+              <input
+                type="text"
+                name="lastName"
+                defaultValue={customer?.lastName || ''}
+                style={{
+                  width: '100%',
+                  padding: '8px',
+                  border: '1px solid #ccc',
+                  borderRadius: '4px',
+                  fontSize: '14px'
+                }}
+              />
+            </div>
           </div>
-
-          <div style={{ marginBottom: '15px' }}>
-            <label htmlFor="lastName" style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-              Last name
-            </label>
-            <input
-              id="lastName"
-              name="lastName"
-              type="text"
-              defaultValue={customer?.lastName ?? ''}
-              style={{
-                width: '100%',
-                padding: '8px',
-                border: '1px solid #ccc',
-                borderRadius: '4px',
-                fontSize: '14px'
-              }}
-            />
-          </div>
-
           <button
             type="submit"
             disabled={isSubmitting}
@@ -212,12 +189,12 @@ export default function AccountProfile() {
               fontSize: '14px'
             }}
           >
-            {isSubmitting ? 'Saving...' : 'Save Changes'}
+            {isSubmitting ? 'Saving...' : 'Update Profile'}
           </button>
         </Form>
       </div>
 
-      {/* ✅ FIXED: Contact Information - Customer Data Only */}
+      {/* ✅ FIXED: Contact Information - Read-only for now */}
       <div style={{
         backgroundColor: 'white',
         padding: '20px',
@@ -225,57 +202,42 @@ export default function AccountProfile() {
         borderRadius: '8px',
         marginBottom: '20px'
       }}>
-        <h3>Contact Information</h3>
+        <h3 style={{ marginBottom: '15px' }}>Contact Information</h3>
         
         <div style={{ marginBottom: '15px' }}>
           <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-            Email
+            Email Address
           </label>
           <div style={{
             padding: '8px',
             backgroundColor: '#f8f9fa',
             border: '1px solid #e9ecef',
             borderRadius: '4px',
-            color: '#6c757d'
+            color: '#495057'
           }}>
             {customer?.emailAddress?.emailAddress || 'No email address on file'}
           </div>
           <small style={{ color: '#6c757d' }}>
-            Email address is managed through your Shopify account
+            Email updates are managed through your Shopify account settings
           </small>
         </div>
 
         <div style={{ marginBottom: '15px' }}>
           <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-            Phone
+            Phone Number
           </label>
           <div style={{
             padding: '8px',
             backgroundColor: '#f8f9fa',
             border: '1px solid #e9ecef',
             borderRadius: '4px',
-            color: '#6c757d'
+            color: '#495057'
           }}>
             {customer?.phoneNumber?.phoneNumber || 'No phone number on file'}
           </div>
           <small style={{ color: '#6c757d' }}>
-            Phone number is managed through your Shopify account
+            Phone updates are managed through your Shopify account settings
           </small>
-        </div>
-      </div>
-
-      {/* ✅ FIXED: Account Information with Proper Date */}
-      <div style={{
-        backgroundColor: '#e7f3ff',
-        padding: '20px',
-        border: '1px solid #b3d9ff',
-        borderRadius: '8px'
-      }}>
-        <h3 style={{ color: '#0066cc' }}>Account Information</h3>
-        <div style={{ color: '#0066cc' }}>
-          <p><strong>Account Status:</strong> Active</p>
-          <p><strong>Member Since:</strong> {formatMemberSince(customer?.createdAt)}</p>
-          <p><strong>Customer ID:</strong> {customer?.id?.split('/').pop() || 'Unknown'}</p>
         </div>
       </div>
     </div>

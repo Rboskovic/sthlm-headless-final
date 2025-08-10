@@ -26,13 +26,31 @@ export default function AccountDashboard() {
         margin: '0 auto'
       }}
     >
+      {/* ✅ ENHANCED: Added "My Account" heading (Issue #3) */}
+      <div style={{ marginBottom: '30px' }}>
+        <h1 style={{ 
+          margin: '0 0 8px 0', 
+          fontSize: '28px', 
+          fontWeight: 'bold',
+          color: '#111827'
+        }}>
+          My Account
+        </h1>
+        <p style={{ 
+          margin: '0', 
+          color: '#6b7280',
+          fontSize: '16px'
+        }}>
+          Manage your account settings and preferences
+        </p>
+      </div>
+
       {/* ✅ ENHANCED: Smyths-style card grid layout */}
       <div 
         style={{ 
           display: 'grid', 
           gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', 
-          gap: '20px',
-          marginTop: '20px'
+          gap: '20px'
         }}
       >
         {/* Account Details Card */}
