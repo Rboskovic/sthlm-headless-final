@@ -1,5 +1,5 @@
 // FILE: app/routes/($locale).account._index.tsx
-// ✅ ENHANCED: Smyths-style layout + removed duplicate sections + added wishlist
+// ✅ ENHANCED: Updated account details card + added customer since info
 
 import {redirect, type LoaderFunctionArgs} from '@shopify/remix-oxygen';
 import {Link, useOutletContext, type MetaFunction} from 'react-router';
@@ -18,6 +18,15 @@ export async function loader({context}: LoaderFunctionArgs) {
 export default function AccountDashboard() {
   const {customer} = useOutletContext<{customer: CustomerFragment}>();
 
+  // Format customer since date
+  const formatCustomerSince = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'long'
+    });
+  };
+
   return (
     <div 
       style={{ 
@@ -26,7 +35,7 @@ export default function AccountDashboard() {
         margin: '0 auto'
       }}
     >
-      {/* ✅ FIXED: Centered "My Account" heading (Issue #2) */}
+      {/* ✅ FIXED: Centered "My Account" heading */}
       <div style={{ marginBottom: '30px', textAlign: 'center' }}>
         <h1 style={{ 
           margin: '0 0 8px 0', 
@@ -45,7 +54,7 @@ export default function AccountDashboard() {
         </p>
       </div>
 
-      {/* ✅ ENHANCED: Smyths-style card grid layout */}
+      {/* ✅ ENHANCED: Account grid layout */}
       <div 
         style={{ 
           display: 'grid', 
@@ -57,13 +66,13 @@ export default function AccountDashboard() {
         <AccountCard
           icon={<User size={24} className="text-blue-600" />}
           title="Account details"
-          description="Change your name, log-in details, and contact information."
+          description="Change your name and manage your marketing preferences."
           href="/account/profile"
           details={[
             `Name: ${customer?.firstName || ''} ${customer?.lastName || ''}`.trim() || 'Not set',
-            `Email: ${customer?.emailAddress?.emailAddress || 'Not set'}`,
-            `Phone: ${customer?.phoneNumber?.phoneNumber || 'Not set'}`,
-          ]}
+            customer?.createdAt ? `Customer since: ${formatCustomerSince(customer.createdAt)}` : '',
+            `Marketing emails: ${customer?.acceptsMarketing ? 'Subscribed' : 'Not subscribed'}`,
+          ].filter(Boolean)}
         />
 
         {/* Order History Card */}
@@ -82,7 +91,7 @@ export default function AccountDashboard() {
           href="/account/addresses"
         />
 
-        {/* ✅ ENHANCED: Wishlist Card (replaces payment details) */}
+        {/* ✅ ENHANCED: Wishlist Card */}
         <AccountCard
           icon={<Heart size={24} className="text-blue-600" />}
           title="My wishlist"
@@ -90,9 +99,6 @@ export default function AccountDashboard() {
           href="/account/wishlist"
         />
       </div>
-
-      {/* ✅ REMOVED: Duplicate navigation section */}
-      {/* ✅ REMOVED: Blue account information section */}
     </div>
   );
 }
@@ -110,104 +116,46 @@ function AccountCard({ icon, title, description, href, details }: AccountCardPro
     <Link
       to={href}
       style={{
-        display: 'block',
         backgroundColor: 'white',
         border: '1px solid #e5e7eb',
         borderRadius: '12px',
-        padding: '24px',
+        padding: '20px',
         textDecoration: 'none',
-        transition: 'all 0.2s ease-in-out',
-        boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
-        minHeight: '200px',
+        color: 'inherit',
+        display: 'block',
+        transition: 'all 0.2s ease',
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
       }}
-      className="account-card"
-      onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = '#3b82f6';
-        e.currentTarget.style.boxShadow = '0 4px 12px 0 rgba(59, 130, 246, 0.15)';
-        e.currentTarget.style.transform = 'translateY(-2px)';
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = '#e5e7eb';
-        e.currentTarget.style.boxShadow = '0 1px 3px 0 rgba(0, 0, 0, 0.1)';
-        e.currentTarget.style.transform = 'translateY(0)';
-      }}
+      className="hover:shadow-md hover:border-blue-300"
     >
-      {/* Card Header */}
-      <div 
-        style={{
-          display: 'flex',
-          alignItems: 'flex-start',
-          justifyContent: 'space-between',
-          marginBottom: '16px'
-        }}
-      >
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           {icon}
-          <h3 
-            style={{
-              fontSize: '18px',
-              fontWeight: '600',
-              color: '#111827',
-              margin: 0,
-              lineHeight: '1.4'
-            }}
-          >
+          <h3 style={{ margin: '0', fontSize: '18px', fontWeight: '600', color: '#111827' }}>
             {title}
           </h3>
         </div>
         <ChevronRight size={20} className="text-gray-400" />
       </div>
-
-      {/* Card Description */}
-      <p 
-        style={{
-          fontSize: '14px',
-          color: '#6b7280',
-          lineHeight: '1.5',
-          margin: '0 0 16px 0'
-        }}
-      >
+      
+      <p style={{ margin: '0 0 16px 0', color: '#6b7280', fontSize: '14px', lineHeight: '1.5' }}>
         {description}
       </p>
-
-      {/* Card Details (if provided) */}
+      
       {details && details.length > 0 && (
-        <div style={{ marginTop: '16px' }}>
+        <div style={{ borderTop: '1px solid #f3f4f6', paddingTop: '16px' }}>
           {details.map((detail, index) => (
-            <div
-              key={index}
-              style={{
-                fontSize: '13px',
-                color: '#374151',
-                marginBottom: '6px',
-                padding: '4px 0',
-                borderBottom: index < details.length - 1 ? '1px solid #f3f4f6' : 'none'
-              }}
-            >
+            <div key={index} style={{ 
+              fontSize: '13px', 
+              color: '#4b5563', 
+              marginBottom: '4px',
+              padding: '2px 0'
+            }}>
               {detail}
             </div>
           ))}
         </div>
       )}
-
-      {/* Card Action Footer */}
-      <div 
-        style={{
-          marginTop: 'auto',
-          paddingTop: '16px',
-          borderTop: '1px solid #f3f4f6'
-        }}
-      >
-        <span 
-          style={{
-            fontSize: '14px',
-            color: '#3b82f6',
-            fontWeight: '500'
-          }}
-        >
-          Manage →
-        </span>
-      </div>
     </Link>
   );
 }

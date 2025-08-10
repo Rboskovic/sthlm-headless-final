@@ -1,9 +1,10 @@
 // FILE: app/routes/($locale).account.profile.tsx
-// ✅ FIXED: Correct implementation using only existing customerUpdate mutation
+// ✅ ENHANCED: Added marketing preferences + customer since + removed email/phone fields
 
 import type {CustomerFragment} from 'customer-accountapi.generated';
 import type {CustomerUpdateInput} from '@shopify/hydrogen/customer-account-api-types';
 import {CUSTOMER_UPDATE_MUTATION} from '~/graphql/customer-account/CustomerUpdateMutation';
+import {CUSTOMER_MARKETING_UPDATE_MUTATION} from '~/graphql/customer-account/CustomerMarketingUpdateMutation';
 import {
   data,
   type ActionFunctionArgs,
@@ -22,10 +23,11 @@ export type ActionResponse = {
   customer: CustomerFragment | null;
   success?: boolean;
   message?: string;
+  actionType?: 'profile' | 'marketing';
 };
 
 export const meta: MetaFunction = () => {
-  return [{title: 'Profile'}];
+  return [{title: 'Profile Settings'}];
 };
 
 export async function loader({context}: LoaderFunctionArgs) {
@@ -41,46 +43,96 @@ export async function action({request, context}: ActionFunctionArgs) {
   }
 
   const form = await request.formData();
+  const actionType = form.get('actionType') as string;
 
   try {
-    const customer: CustomerUpdateInput = {};
-    
-    // ✅ FIXED: Only update fields that are supported by customerUpdate
-    const validInputKeys = ['firstName', 'lastName'] as const;
+    if (actionType === 'profile') {
+      // ✅ KEEP EXACTLY: Name update logic (working perfectly)
+      const customer: CustomerUpdateInput = {};
+      const validInputKeys = ['firstName', 'lastName'] as const;
 
-    for (const [key, value] of form.entries()) {
-      if (!validInputKeys.includes(key as any)) continue;
-      if (typeof value === 'string' && value.length) {
-        customer[key as (typeof validInputKeys)[number]] = value;
+      for (const [key, value] of form.entries()) {
+        if (!validInputKeys.includes(key as any)) continue;
+        if (typeof value === 'string' && value.length) {
+          customer[key as (typeof validInputKeys)[number]] = value;
+        }
       }
-    }
 
-    const {data: mutationData, errors} = await customerAccount.mutate(
-      CUSTOMER_UPDATE_MUTATION,
-      { variables: { customer } }
-    );
+      const {data: mutationData, errors} = await customerAccount.mutate(
+        CUSTOMER_UPDATE_MUTATION,
+        { variables: { customer } }
+      );
 
-    if (errors?.length) {
-      return data({ 
-        error: errors[0].message, 
-        customer: null, 
-        success: false 
-      });
-    }
+      if (errors?.length) {
+        return data({ 
+          error: errors[0].message, 
+          customer: null, 
+          success: false,
+          actionType: 'profile'
+        });
+      }
 
-    if (!mutationData?.customerUpdate?.customer) {
+      if (!mutationData?.customerUpdate?.customer) {
+        return data({
+          error: 'Profile update failed.',
+          customer: null,
+          success: false,
+          actionType: 'profile'
+        });
+      }
+
       return data({
-        error: 'Customer profile update failed.',
-        customer: null,
-        success: false,
+        error: null,
+        customer: mutationData.customerUpdate.customer,
+        success: true,
+        message: 'Profile updated successfully',
+        actionType: 'profile'
+      });
+
+    } else if (actionType === 'marketing') {
+      // ✅ NEW: Marketing preferences update
+      const acceptsMarketing = form.get('acceptsMarketing') === 'on';
+      
+      const customer: CustomerUpdateInput = {
+        acceptsMarketing
+      };
+
+      const {data: mutationData, errors} = await customerAccount.mutate(
+        CUSTOMER_MARKETING_UPDATE_MUTATION,
+        { variables: { customer } }
+      );
+
+      if (errors?.length) {
+        return data({ 
+          error: errors[0].message, 
+          customer: null, 
+          success: false,
+          actionType: 'marketing'
+        });
+      }
+
+      if (!mutationData?.customerUpdate?.customer) {
+        return data({
+          error: 'Marketing preferences update failed.',
+          customer: null,
+          success: false,
+          actionType: 'marketing'
+        });
+      }
+
+      return data({
+        error: null,
+        customer: mutationData.customerUpdate.customer,
+        success: true,
+        message: 'Marketing preferences updated successfully',
+        actionType: 'marketing'
       });
     }
 
     return data({
-      error: null,
-      customer: mutationData.customerUpdate.customer,
-      success: true,
-      message: 'Profile updated successfully',
+      error: 'Invalid action type',
+      customer: null,
+      success: false,
     });
 
   } catch (error: any) {
@@ -98,6 +150,15 @@ export default function AccountProfile() {
   const actionData = useActionData<ActionResponse>();
   const customer = actionData?.customer ?? account?.customer;
   const isSubmitting = state === 'submitting';
+
+  // Format customer since date
+  const formatCustomerSince = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'long'
+    });
+  };
 
   return (
     <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
@@ -130,7 +191,34 @@ export default function AccountProfile() {
         </div>
       )}
 
-      {/* ✅ FIXED: Name Update Form */}
+      {/* ✅ NEW: Customer Since Information */}
+      {customer?.createdAt && (
+        <div style={{
+          backgroundColor: 'white',
+          padding: '20px',
+          border: '1px solid #ddd',
+          borderRadius: '8px',
+          marginBottom: '20px'
+        }}>
+          <h3 style={{ marginBottom: '15px' }}>Account Information</h3>
+          <div style={{
+            padding: '12px',
+            backgroundColor: '#f8f9fa',
+            border: '1px solid #e9ecef',
+            borderRadius: '4px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}>
+            <span style={{ fontWeight: 'bold' }}>Customer since:</span>
+            <span style={{ color: '#495057' }}>
+              {formatCustomerSince(customer.createdAt)}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* ✅ KEEP EXACTLY: Personal Information Section (working perfectly) */}
       <div style={{
         backgroundColor: 'white',
         padding: '20px',
@@ -140,6 +228,7 @@ export default function AccountProfile() {
       }}>
         <h3 style={{ marginBottom: '15px' }}>Personal Information</h3>
         <Form method="put">
+          <input type="hidden" name="actionType" value="profile" />
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
             <div>
               <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
@@ -178,23 +267,23 @@ export default function AccountProfile() {
           </div>
           <button
             type="submit"
-            disabled={isSubmitting}
+            disabled={isSubmitting && actionData?.actionType === 'profile'}
             style={{
-              backgroundColor: isSubmitting ? '#ccc' : '#007bff',
+              backgroundColor: isSubmitting && actionData?.actionType === 'profile' ? '#ccc' : '#007bff',
               color: 'white',
               padding: '10px 20px',
               border: 'none',
               borderRadius: '4px',
-              cursor: isSubmitting ? 'not-allowed' : 'pointer',
+              cursor: isSubmitting && actionData?.actionType === 'profile' ? 'not-allowed' : 'pointer',
               fontSize: '14px'
             }}
           >
-            {isSubmitting ? 'Saving...' : 'Update Profile'}
+            {isSubmitting && actionData?.actionType === 'profile' ? 'Saving...' : 'Update Profile'}
           </button>
         </Form>
       </div>
 
-      {/* ✅ FIXED: Contact Information - Read-only for now */}
+      {/* ✅ NEW: Marketing Preferences Section */}
       <div style={{
         backgroundColor: 'white',
         padding: '20px',
@@ -202,44 +291,63 @@ export default function AccountProfile() {
         borderRadius: '8px',
         marginBottom: '20px'
       }}>
-        <h3 style={{ marginBottom: '15px' }}>Contact Information</h3>
-        
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-            Email Address
-          </label>
-          <div style={{
-            padding: '8px',
-            backgroundColor: '#f8f9fa',
-            border: '1px solid #e9ecef',
-            borderRadius: '4px',
-            color: '#495057'
-          }}>
-            {customer?.emailAddress?.emailAddress || 'No email address on file'}
+        <h3 style={{ marginBottom: '15px' }}>Marketing Preferences</h3>
+        <Form method="put">
+          <input type="hidden" name="actionType" value="marketing" />
+          
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              cursor: 'pointer',
+              padding: '12px',
+              backgroundColor: '#f8f9fa',
+              border: '1px solid #e9ecef',
+              borderRadius: '4px'
+            }}>
+              <input
+                type="checkbox"
+                name="acceptsMarketing"
+                defaultChecked={customer?.acceptsMarketing || false}
+                style={{
+                  marginRight: '12px',
+                  width: '16px',
+                  height: '16px'
+                }}
+              />
+              <div>
+                <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>
+                  Email Marketing
+                </div>
+                <div style={{ fontSize: '14px', color: '#6c757d' }}>
+                  Receive special offers, promotions, and new product information by email
+                </div>
+              </div>
+            </label>
+            <small style={{ color: '#6c757d', display: 'block', marginTop: '8px' }}>
+              You can unsubscribe at any time by clicking the unsubscribe link in our emails
+            </small>
           </div>
-          <small style={{ color: '#6c757d' }}>
-            Email updates are managed through your Shopify account settings
-          </small>
-        </div>
 
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-            Phone Number
-          </label>
-          <div style={{
-            padding: '8px',
-            backgroundColor: '#f8f9fa',
-            border: '1px solid #e9ecef',
-            borderRadius: '4px',
-            color: '#495057'
-          }}>
-            {customer?.phoneNumber?.phoneNumber || 'No phone number on file'}
-          </div>
-          <small style={{ color: '#6c757d' }}>
-            Phone updates are managed through your Shopify account settings
-          </small>
-        </div>
+          <button
+            type="submit"
+            disabled={isSubmitting && actionData?.actionType === 'marketing'}
+            style={{
+              backgroundColor: isSubmitting && actionData?.actionType === 'marketing' ? '#ccc' : '#007bff',
+              color: 'white',
+              padding: '10px 20px',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: isSubmitting && actionData?.actionType === 'marketing' ? 'not-allowed' : 'pointer',
+              fontSize: '14px'
+            }}
+          >
+            {isSubmitting && actionData?.actionType === 'marketing' ? 'Saving...' : 'Update Preferences'}
+          </button>
+        </Form>
       </div>
+
+      {/* ✅ REMOVED: Contact Information section (email/phone) as requested */}
     </div>
   );
 }

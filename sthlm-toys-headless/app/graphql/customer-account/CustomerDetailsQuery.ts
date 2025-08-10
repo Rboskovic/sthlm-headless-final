@@ -1,9 +1,20 @@
+// FILE: app/graphql/customer-account/CustomerDetailsQuery.ts
+// ✅ ENHANCED: Added createdAt, emailAddress, phoneNumber, and acceptsMarketing for profile
+
 // NOTE: https://shopify.dev/docs/api/customer/latest/objects/Customer
 export const CUSTOMER_FRAGMENT = `#graphql
   fragment Customer on Customer {
     id
     firstName
     lastName
+    createdAt
+    emailAddress {
+      emailAddress
+    }
+    phoneNumber {
+      phoneNumber
+    }
+    acceptsMarketing
     defaultAddress {
       ...Address
     }
