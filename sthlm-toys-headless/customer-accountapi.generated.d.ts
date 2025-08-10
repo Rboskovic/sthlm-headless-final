@@ -109,10 +109,10 @@ export type CustomerFragment = Pick<
   };
 };
 
-// ✅ NEW: Enhanced fragment for profile page only
+// ✅ SIMPLIFIED: CustomerProfileFragment using only available fields
 export type CustomerProfileFragment = Pick<
   CustomerAccountAPI.Customer,
-  'id' | 'firstName' | 'lastName' | 'createdAt' | 'acceptsMarketing'
+  'id' | 'firstName' | 'lastName'
 > & {
   emailAddress?: CustomerAccountAPI.Maybe<
     Pick<CustomerAccountAPI.CustomerEmailAddress, 'emailAddress'>
@@ -187,7 +187,7 @@ export type CustomerDetailsQuery = {
   };
 };
 
-// ✅ NEW: Enhanced query for profile page
+// ✅ SIMPLIFIED: Enhanced query for profile page using only available fields
 export type CustomerProfileQueryVariables = CustomerAccountAPI.Exact<{
   [key: string]: never;
 }>;
@@ -195,7 +195,7 @@ export type CustomerProfileQueryVariables = CustomerAccountAPI.Exact<{
 export type CustomerProfileQuery = {
   customer: Pick<
     CustomerAccountAPI.Customer,
-    'id' | 'firstName' | 'lastName' | 'createdAt' | 'acceptsMarketing'
+    'id' | 'firstName' | 'lastName'
   > & {
     emailAddress?: CustomerAccountAPI.Maybe<
       Pick<CustomerAccountAPI.CustomerEmailAddress, 'emailAddress'>
@@ -482,37 +482,11 @@ export type CustomerUpdateMutationVariables = CustomerAccountAPI.Exact<{
   customer: CustomerAccountAPI.CustomerUpdateInput;
 }>;
 
-// ✅ UPDATED: Enhanced CustomerUpdateMutation with new fields
+// ✅ RESTORED: Original CustomerUpdateMutation
 export type CustomerUpdateMutation = {
   customerUpdate?: CustomerAccountAPI.Maybe<{
     customer?: CustomerAccountAPI.Maybe<
-      Pick<CustomerAccountAPI.Customer, 'id' | 'firstName' | 'lastName' | 'createdAt' | 'acceptsMarketing'> & {
-        emailAddress?: CustomerAccountAPI.Maybe<
-          Pick<CustomerAccountAPI.CustomerEmailAddress, 'emailAddress'>
-        >;
-        phoneNumber?: CustomerAccountAPI.Maybe<
-          Pick<CustomerAccountAPI.CustomerPhoneNumber, 'phoneNumber'>
-        >;
-      }
-    >;
-    userErrors: Array<
-      Pick<
-        CustomerAccountAPI.UserErrorsCustomerUserErrors,
-        'code' | 'field' | 'message'
-      >
-    >;
-  }>;
-};
-
-// ✅ NEW: CustomerMarketingUpdateMutation type
-export type CustomerMarketingUpdateMutationVariables = CustomerAccountAPI.Exact<{
-  customer: CustomerAccountAPI.CustomerUpdateInput;
-}>;
-
-export type CustomerMarketingUpdateMutation = {
-  customerUpdate?: CustomerAccountAPI.Maybe<{
-    customer?: CustomerAccountAPI.Maybe<
-      Pick<CustomerAccountAPI.Customer, 'id' | 'firstName' | 'lastName' | 'createdAt' | 'acceptsMarketing'> & {
+      Pick<CustomerAccountAPI.Customer, 'firstName' | 'lastName'> & {
         emailAddress?: CustomerAccountAPI.Maybe<
           Pick<CustomerAccountAPI.CustomerEmailAddress, 'emailAddress'>
         >;
@@ -561,10 +535,6 @@ interface GeneratedMutationTypes {
   '#graphql\n  # https://shopify.dev/docs/api/customer/latest/mutations/customerUpdate\n  mutation customerUpdate(\n    $customer: CustomerUpdateInput!\n  ){\n    customerUpdate(input: $customer) {\n      customer {\n        firstName\n        lastName\n        emailAddress {\n          emailAddress\n        }\n        phoneNumber {\n          phoneNumber\n        }\n      }\n      userErrors {\n        code\n        field\n        message\n      }\n    }\n  }\n': {
     return: CustomerUpdateMutation;
     variables: CustomerUpdateMutationVariables;
-  };
-  '#graphql\n  # https://shopify.dev/docs/api/customer/latest/mutations/customerUpdate\n  mutation customerMarketingUpdate(\n    $customer: CustomerUpdateInput!\n  ){\n    customerUpdate(input: $customer) {\n      customer {\n        id\n        firstName\n        lastName\n        acceptsMarketing\n        emailAddress {\n          emailAddress\n        }\n        phoneNumber {\n          phoneNumber\n        }\n        createdAt\n      }\n      userErrors {\n        code\n        field\n        message\n      }\n    }\n  }\n': {
-    return: CustomerMarketingUpdateMutation;
-    variables: CustomerMarketingUpdateMutationVariables;
   };
 }
 

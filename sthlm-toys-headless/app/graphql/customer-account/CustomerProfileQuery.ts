@@ -1,19 +1,17 @@
 // FILE: app/graphql/customer-account/CustomerProfileQuery.ts
-// ✅ ENHANCED: Profile-specific query with additional fields
+// ✅ FIXED: Using only available Customer Account API fields
 
 export const CUSTOMER_PROFILE_FRAGMENT = `#graphql
   fragment CustomerProfile on Customer {
     id
     firstName
     lastName
-    createdAt
     emailAddress {
       emailAddress
     }
     phoneNumber {
       phoneNumber
     }
-    acceptsMarketing
   }
 ` as const;
 
