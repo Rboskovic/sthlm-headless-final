@@ -1,5 +1,5 @@
 // FILE: app/routes/($locale).account.tsx
-// ✅ SHOPIFY HYDROGEN STANDARDS: Fixed logout + enhanced styling while keeping all working functionality
+// ✅ ENHANCED: Removed duplicate greeting since it's now in header dropdown
 
 import {
   data as remixData,
@@ -46,16 +46,11 @@ export async function loader({context, request}: LoaderFunctionArgs) {
 export default function AccountLayout() {
   const {customer} = useLoaderData<typeof loader>();
 
-  const heading = customer
-    ? customer.firstName
-      ? `Welcome, ${customer.firstName}`
-      : `Welcome to your account.`
-    : 'Account Details';
+  // ✅ ENHANCED: Removed duplicate greeting - now handled in header dropdown
 
   return (
     <div className="account">
-      <h1>{heading}</h1>
-      <br />
+      {/* ✅ REMOVED: Duplicate greeting section */}
       <AccountMenu />
       <br />
       <br />

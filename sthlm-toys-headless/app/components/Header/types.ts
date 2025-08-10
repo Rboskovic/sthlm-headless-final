@@ -1,6 +1,7 @@
-// app/components/Header/types.ts - Updated with fixed mobile menu props
+// app/components/Header/types.ts - Updated with fixed mobile menu props + customer data
 import type {CartApiQueryFragment} from 'storefrontapi.generated';
 import type {Collection} from '@shopify/hydrogen/storefront-api-types';
+import type {CustomerFragment} from 'customer-accountapi.generated';
 
 export interface MenuItem {
   id: string;
@@ -44,6 +45,7 @@ export interface HeaderProps {
   isLoggedIn: Promise<boolean>;
   publicStoreDomain: string;
   popularCollections?: Collection[];
+  customer?: CustomerFragment | null; // ✅ ENHANCED: Added customer data
 }
 
 export interface HeaderMainProps {
@@ -51,6 +53,7 @@ export interface HeaderMainProps {
   cart: Promise<CartApiQueryFragment | null>;
   isLoggedIn: Promise<boolean>;
   onMobileMenuToggle?: () => void;
+  customer?: CustomerFragment | null; // ✅ ENHANCED: Added customer data
 }
 
 export interface DesktopNavProps {

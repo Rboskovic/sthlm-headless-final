@@ -1,7 +1,8 @@
-// app/components/PageLayout.tsx - Clean implementation with fullscreen mobile menu
-import {Await, Link} from 'react-router';
+// app/components/PageLayout.tsx - Enhanced with customer data for header dropdown + FIXED SearchAside
+import {Await, Link, useRouteLoaderData} from 'react-router';
 import {Suspense, useId} from 'react';
 import type {CartApiQueryFragment} from 'storefrontapi.generated';
+import type {CustomerFragment} from 'customer-accountapi.generated';
 import {Aside} from '~/components/Aside';
 import Footer from '~/components/Footer';
 import Header from '~/components/Header';
@@ -32,6 +33,10 @@ export function PageLayout({
   publicStoreDomain,
   popularCollections = [],
 }: PageLayoutProps) {
+  // ✅ ENHANCED: Get customer data from account route when available
+  const accountData = useRouteLoaderData<{customer: CustomerFragment}>('routes/($locale).account');
+  const customer = accountData?.customer || null;
+
   return (
     <Aside.Provider>
       <CartAside cart={cart} />
@@ -44,6 +49,7 @@ export function PageLayout({
           isLoggedIn={isLoggedIn}
           publicStoreDomain={publicStoreDomain}
           popularCollections={popularCollections}
+          customer={customer} // ✅ ENHANCED: Pass customer data to header
         />
       )}
       <main>{children}</main>
@@ -71,6 +77,7 @@ function CartAside({cart}: {cart: PageLayoutProps['cart']}) {
 }
 
 function SearchAside() {
+  // ✅ FIXED: Proper SearchAside implementation from working code
   const queriesDatalistId = useId();
   return (
     <Aside type="search" heading="SÖK">

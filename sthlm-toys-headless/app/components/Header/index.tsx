@@ -1,16 +1,10 @@
-// app/components/Header/index.tsx - Updated to pass correct props to drill-down mobile menu
+// app/components/Header/index.tsx - Enhanced to pass customer data to HeaderMain
 import {useState} from 'react';
 import {HeaderBanner} from './HeaderBanner';
 import {HeaderMain} from './HeaderMain';
 import {DesktopNav} from './DesktopNav';
 import {MobileMenuFullscreen} from './MobileMenuFullscreen';
 import type {HeaderProps} from './types';
-import type {Collection} from '@shopify/hydrogen/storefront-api-types';
-
-// Extended interface to include collections for mobile menu
-interface HeaderPropsExtended extends HeaderProps {
-  popularCollections?: Collection[];
-}
 
 export function Header({
   header,
@@ -18,7 +12,8 @@ export function Header({
   isLoggedIn,
   publicStoreDomain,
   popularCollections = [],
-}: HeaderPropsExtended) {
+  customer, // ✅ ENHANCED: Accept customer data
+}: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleMobileMenuToggle = () => {
@@ -38,6 +33,7 @@ export function Header({
           cart={cart}
           isLoggedIn={isLoggedIn}
           onMobileMenuToggle={handleMobileMenuToggle}
+          customer={customer} // ✅ ENHANCED: Pass customer data to HeaderMain
         />
 
         {/* 2. Desktop Navigation - Menu items */}

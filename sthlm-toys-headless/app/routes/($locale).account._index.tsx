@@ -1,8 +1,9 @@
 // FILE: app/routes/($locale).account._index.tsx
-// ✅ FIXED: Invalid date display + proper contact info + better layout
+// ✅ ENHANCED: Smyths-style layout + removed duplicate sections + added wishlist
 
 import {redirect, type LoaderFunctionArgs} from '@shopify/remix-oxygen';
 import {Link, useOutletContext, type MetaFunction} from 'react-router';
+import {User, Package, MapPin, Heart, ChevronRight} from 'lucide-react';
 import type {CustomerFragment} from 'customer-accountapi.generated';
 
 export const meta: MetaFunction = () => {
@@ -17,31 +18,26 @@ export async function loader({context}: LoaderFunctionArgs) {
 export default function AccountDashboard() {
   const {customer} = useOutletContext<{customer: CustomerFragment}>();
 
-  // ✅ FIXED: Proper date formatting with fallback
-  const formatMemberSince = (dateString?: string) => {
-    if (!dateString) return 'Unknown';
-    try {
-      return new Date(dateString).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-      });
-    } catch (error) {
-      return 'Unknown';
-    }
-  };
-
   return (
-    <div style={{ padding: '20px' }}>
-      <h2>My Account</h2>
-
-      <div style={{ 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', 
-        gap: '20px',
-        marginTop: '20px'
-      }}>
+    <div 
+      style={{ 
+        padding: '20px',
+        maxWidth: '1200px',
+        margin: '0 auto'
+      }}
+    >
+      {/* ✅ ENHANCED: Smyths-style card grid layout */}
+      <div 
+        style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', 
+          gap: '20px',
+          marginTop: '20px'
+        }}
+      >
         {/* Account Details Card */}
         <AccountCard
+          icon={<User size={24} className="text-blue-600" />}
           title="Account details"
           description="Change your name, log-in details, and contact information."
           href="/account/profile"
@@ -54,6 +50,7 @@ export default function AccountDashboard() {
 
         {/* Order History Card */}
         <AccountCard
+          icon={<Package size={24} className="text-blue-600" />}
           title="Order history"
           description="You'll find your order history here after your first purchase with us. Happy shopping!"
           href="/account/orders"
@@ -61,122 +58,138 @@ export default function AccountDashboard() {
 
         {/* My Addresses Card */}
         <AccountCard
+          icon={<MapPin size={24} className="text-blue-600" />}
           title="My addresses"
           description="Please add an address for faster future orders."
           href="/account/addresses"
         />
 
-        {/* Wishlist Card */}
+        {/* ✅ ENHANCED: Wishlist Card (replaces payment details) */}
         <AccountCard
+          icon={<Heart size={24} className="text-blue-600" />}
           title="My wishlist"
           description="Save your favorite items for later."
           href="/account/wishlist"
         />
       </div>
 
-      {/* ✅ FIXED: Account Information with Proper Date */}
-      <div style={{
-        marginTop: '30px',
-        backgroundColor: '#e7f3ff',
-        padding: '20px',
-        border: '1px solid #b3d9ff',
-        borderRadius: '8px'
-      }}>
-        <h3 style={{ color: '#0066cc', marginBottom: '15px' }}>Account Information</h3>
-        <div style={{ color: '#0066cc' }}>
-          <p style={{ margin: '5px 0' }}>
-            <strong>Account Status:</strong> Active
-          </p>
-          <p style={{ margin: '5px 0' }}>
-            <strong>Member Since:</strong> {formatMemberSince(customer?.createdAt)}
-          </p>
-          <p style={{ margin: '5px 0' }}>
-            <strong>Customer ID:</strong> {customer?.id?.split('/').pop() || 'Unknown'}
-          </p>
-        </div>
-      </div>
+      {/* ✅ REMOVED: Duplicate navigation section */}
+      {/* ✅ REMOVED: Blue account information section */}
     </div>
   );
 }
 
 interface AccountCardProps {
+  icon: React.ReactNode;
   title: string;
   description: string;
   href: string;
   details?: string[];
 }
 
-function AccountCard({ title, description, href, details }: AccountCardProps) {
+function AccountCard({ icon, title, description, href, details }: AccountCardProps) {
   return (
-    <div style={{
-      backgroundColor: 'white',
-      border: '1px solid #ddd',
-      borderRadius: '8px',
-      padding: '20px',
-      display: 'flex',
-      flexDirection: 'column',
-      height: '100%'
-    }}>
-      <div style={{ marginBottom: '10px' }}>
-        <h3 style={{ 
-          margin: '0 0 10px 0', 
-          color: '#333',
-          fontSize: '18px'
-        }}>
-          {title}
-        </h3>
-        <p style={{ 
-          margin: '0 0 15px 0', 
-          color: '#666',
-          fontSize: '14px',
-          lineHeight: '1.4'
-        }}>
-          {description}
-        </p>
+    <Link
+      to={href}
+      style={{
+        display: 'block',
+        backgroundColor: 'white',
+        border: '1px solid #e5e7eb',
+        borderRadius: '12px',
+        padding: '24px',
+        textDecoration: 'none',
+        transition: 'all 0.2s ease-in-out',
+        boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
+        minHeight: '200px',
+      }}
+      className="account-card"
+      onMouseEnter={(e) => {
+        e.currentTarget.style.borderColor = '#3b82f6';
+        e.currentTarget.style.boxShadow = '0 4px 12px 0 rgba(59, 130, 246, 0.15)';
+        e.currentTarget.style.transform = 'translateY(-2px)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.borderColor = '#e5e7eb';
+        e.currentTarget.style.boxShadow = '0 1px 3px 0 rgba(0, 0, 0, 0.1)';
+        e.currentTarget.style.transform = 'translateY(0)';
+      }}
+    >
+      {/* Card Header */}
+      <div 
+        style={{
+          display: 'flex',
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          marginBottom: '16px'
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {icon}
+          <h3 
+            style={{
+              fontSize: '18px',
+              fontWeight: '600',
+              color: '#111827',
+              margin: 0,
+              lineHeight: '1.4'
+            }}
+          >
+            {title}
+          </h3>
+        </div>
+        <ChevronRight size={20} className="text-gray-400" />
       </div>
 
-      {/* Details Section */}
-      {details && (
-        <div style={{ marginBottom: '15px' }}>
+      {/* Card Description */}
+      <p 
+        style={{
+          fontSize: '14px',
+          color: '#6b7280',
+          lineHeight: '1.5',
+          margin: '0 0 16px 0'
+        }}
+      >
+        {description}
+      </p>
+
+      {/* Card Details (if provided) */}
+      {details && details.length > 0 && (
+        <div style={{ marginTop: '16px' }}>
           {details.map((detail, index) => (
-            <p key={index} style={{ 
-              margin: '5px 0', 
-              fontSize: '13px', 
-              color: '#555'
-            }}>
+            <div
+              key={index}
+              style={{
+                fontSize: '13px',
+                color: '#374151',
+                marginBottom: '6px',
+                padding: '4px 0',
+                borderBottom: index < details.length - 1 ? '1px solid #f3f4f6' : 'none'
+              }}
+            >
               {detail}
-            </p>
+            </div>
           ))}
         </div>
       )}
 
-      {/* Action Link */}
-      <div style={{ marginTop: 'auto' }}>
-        <Link 
-          to={href}
+      {/* Card Action Footer */}
+      <div 
+        style={{
+          marginTop: 'auto',
+          paddingTop: '16px',
+          borderTop: '1px solid #f3f4f6'
+        }}
+      >
+        <span 
           style={{
-            display: 'inline-block',
-            color: '#007bff',
-            textDecoration: 'none',
             fontSize: '14px',
-            fontWeight: 'bold',
-            padding: '8px 16px',
-            border: '1px solid #007bff',
-            borderRadius: '4px',
-            transition: 'all 0.2s'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = '#007bff';
-            e.currentTarget.style.color = 'white';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'transparent';
-            e.currentTarget.style.color = '#007bff';
+            color: '#3b82f6',
+            fontWeight: '500'
           }}
         >
           Manage →
-        </Link>
+        </span>
       </div>
-    </div>
+    </Link>
   );
 }
