@@ -1,5 +1,5 @@
 // FILE: app/routes/($locale).account.addresses.tsx
-// ✅ FIXED: Proper address display and default handling (Issue #4)
+// ✅ FIXED: Proper default address, empty state, and address display
 
 import {redirect, type LoaderFunctionArgs} from '@shopify/remix-oxygen';
 import {useOutletContext, type MetaFunction, Link} from 'react-router';
@@ -26,7 +26,7 @@ export async function loader({context}: LoaderFunctionArgs) {
 export default function AddressesPage() {
   const {customer} = useOutletContext<{customer: CustomerFragment}>();
 
-  // ✅ FIXED: Get actual addresses from customer data
+  // ✅ FIXED: Get actual addresses and default from customer data
   const addresses = customer?.addresses?.nodes || [];
   const defaultAddressId = customer?.defaultAddress?.id;
 
@@ -45,7 +45,7 @@ export default function AddressesPage() {
           </p>
         </div>
         <Link
-          to="/account/addresses/new"
+          to="/account/addresses/add"
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -67,7 +67,7 @@ export default function AddressesPage() {
         </Link>
       </div>
 
-      {/* ✅ FIXED: Show actual addresses or empty state */}
+      {/* ✅ IMPROVED: Empty state or addresses display */}
       {addresses.length === 0 ? (
         <div style={{ 
           textAlign: 'center', 
@@ -86,16 +86,17 @@ export default function AddressesPage() {
             justifyContent: 'center',
             margin: '0 auto 20px'
           }}>
-            <MapPin size={32} className="text-gray-500" />
+            <MapPin size={32} style={{ color: '#9ca3af' }} />
           </div>
           <h3 style={{ margin: '0 0 10px 0', color: '#111827', fontSize: '18px', fontWeight: '600' }}>
-            No addresses saved yet
+            You haven't added any addresses yet
           </h3>
-          <p style={{ margin: '0 0 24px 0', color: '#6b7280', fontSize: '14px' }}>
-            Add your delivery addresses to make checkout faster and easier.
+          <p style={{ margin: '0 0 24px 0', color: '#6b7280', fontSize: '14px', lineHeight: '1.5' }}>
+            Add your delivery addresses to make checkout faster and easier.<br />
+            Your first address will automatically become your default.
           </p>
           <Link
-            to="/account/addresses/new"
+            to="/account/addresses/add"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -132,7 +133,23 @@ export default function AddressesPage() {
   );
 }
 
-function AddressCard({ address, isDefault }: { address: any; isDefault: boolean }) {
+interface AddressCardProps {
+  address: {
+    id: string;
+    firstName?: string;
+    lastName?: string;
+    company?: string;
+    address1?: string;
+    address2?: string;
+    city?: string;
+    zoneCode?: string;
+    zip?: string;
+    phoneNumber?: string;
+  };
+  isDefault: boolean;
+}
+
+function AddressCard({ address, isDefault }: AddressCardProps) {
   return (
     <div style={{
       backgroundColor: 'white',
@@ -141,9 +158,9 @@ function AddressCard({ address, isDefault }: { address: any; isDefault: boolean 
       padding: '20px',
       position: 'relative',
       transition: 'all 0.2s ease',
-      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+      boxShadow: isDefault ? '0 4px 12px rgba(0, 123, 255, 0.15)' : '0 1px 3px rgba(0, 0, 0, 0.1)'
     }}>
-      {/* ✅ Default badge */}
+      {/* ✅ ENHANCED: Default badge */}
       {isDefault && (
         <div style={{
           position: 'absolute',
@@ -157,14 +174,16 @@ function AddressCard({ address, isDefault }: { address: any; isDefault: boolean 
           padding: '4px 8px',
           borderRadius: '12px',
           fontSize: '11px',
-          fontWeight: '600'
+          fontWeight: '600',
+          textTransform: 'uppercase',
+          letterSpacing: '0.5px'
         }}>
           <Star size={12} />
           Default
         </div>
       )}
 
-      <div style={{ marginBottom: '12px' }}>
+      <div style={{ marginBottom: '12px', paddingRight: isDefault ? '70px' : '0' }}>
         <h4 style={{ 
           margin: '0 0 8px 0', 
           fontSize: '16px', 
@@ -174,7 +193,7 @@ function AddressCard({ address, isDefault }: { address: any; isDefault: boolean 
           {address.firstName} {address.lastName}
         </h4>
         {address.company && (
-          <p style={{ margin: '0 0 4px 0', fontSize: '14px', color: '#6b7280' }}>
+          <p style={{ margin: '0 0 4px 0', fontSize: '14px', color: '#6b7280', fontStyle: 'italic' }}>
             {address.company}
           </p>
         )}
@@ -190,10 +209,10 @@ function AddressCard({ address, isDefault }: { address: any; isDefault: boolean 
           </p>
         )}
         <p style={{ margin: '0', fontSize: '14px', color: '#374151' }}>
-          {address.city}, {address.zoneCode} {address.zip}
+          {address.city}{address.zoneCode ? `, ${address.zoneCode}` : ''} {address.zip}
         </p>
         {address.phoneNumber && (
-          <p style={{ margin: '4px 0 0 0', fontSize: '14px', color: '#6b7280' }}>
+          <p style={{ margin: '8px 0 0 0', fontSize: '14px', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '4px' }}>
             📞 {address.phoneNumber}
           </p>
         )}
@@ -213,14 +232,14 @@ function AddressCard({ address, isDefault }: { address: any; isDefault: boolean 
             alignItems: 'center',
             justifyContent: 'center',
             gap: '6px',
-            padding: '8px',
+            padding: '8px 12px',
             borderRadius: '6px',
             border: '1px solid #d1d5db',
             color: '#374151',
             textDecoration: 'none',
             fontSize: '13px',
             fontWeight: '500',
-            transition: 'all 0.2s'
+            transition: 'all 0.2s ease'
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.backgroundColor = '#f9fafb';
@@ -235,28 +254,40 @@ function AddressCard({ address, isDefault }: { address: any; isDefault: boolean 
           Edit
         </Link>
         
-        {!isDefault && (
-          <button
-            style={{
-              padding: '8px',
-              borderRadius: '6px',
-              border: '1px solid #fca5a5',
-              backgroundColor: 'transparent',
-              color: '#dc2626',
-              cursor: 'pointer',
-              fontSize: '13px',
-              transition: 'all 0.2s'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#fef2f2';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent';
-            }}
-          >
-            <Trash2 size={14} />
-          </button>
-        )}
+        <button
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '6px',
+            padding: '8px 12px',
+            borderRadius: '6px',
+            border: '1px solid #fecaca',
+            backgroundColor: 'transparent',
+            color: '#dc2626',
+            fontSize: '13px',
+            fontWeight: '500',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = '#fef2f2';
+            e.currentTarget.style.borderColor = '#f87171';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'transparent';
+            e.currentTarget.style.borderColor = '#fecaca';
+          }}
+          onClick={() => {
+            if (confirm('Are you sure you want to delete this address?')) {
+              // TODO: Implement delete functionality
+              console.log('Delete address:', address.id);
+            }
+          }}
+        >
+          <Trash2 size={14} />
+          Delete
+        </button>
       </div>
     </div>
   );

@@ -1,3 +1,28 @@
+// FILE: app/graphql/customer-account/CustomerAddressMutations.ts
+// ✅ SHOPIFY HYDROGEN: Customer address mutations
+
+// NOTE: https://shopify.dev/docs/api/customer/latest/mutations/customerAddressCreate
+export const CREATE_ADDRESS_MUTATION = `#graphql
+  mutation customerAddressCreate(
+    $address: CustomerAddressInput!
+    $defaultAddress: Boolean
+  ) {
+    customerAddressCreate(
+      address: $address
+      defaultAddress: $defaultAddress
+    ) {
+      customerAddress {
+        id
+      }
+      userErrors {
+        code
+        field
+        message
+      }
+    }
+  }
+` as const;
+
 // NOTE: https://shopify.dev/docs/api/customer/latest/mutations/customerAddressUpdate
 export const UPDATE_ADDRESS_MUTATION = `#graphql
   mutation customerAddressUpdate(
@@ -29,28 +54,6 @@ export const DELETE_ADDRESS_MUTATION = `#graphql
   ) {
     customerAddressDelete(addressId: $addressId) {
       deletedAddressId
-      userErrors {
-        code
-        field
-        message
-      }
-    }
-  }
-` as const;
-
-// NOTE: https://shopify.dev/docs/api/customer/latest/mutations/customerAddressCreate
-export const CREATE_ADDRESS_MUTATION = `#graphql
-  mutation customerAddressCreate(
-    $address: CustomerAddressInput!
-    $defaultAddress: Boolean
-  ) {
-    customerAddressCreate(
-      address: $address
-      defaultAddress: $defaultAddress
-    ) {
-      customerAddress {
-        id
-      }
       userErrors {
         code
         field

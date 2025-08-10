@@ -76,8 +76,22 @@ export default function AccountDashboard() {
         <AccountCard
           icon={<MapPin size={24} className="text-blue-600" />}
           title="My addresses"
-          description="Please add an address for faster future orders."
+          description={
+            customer?.addresses?.nodes?.length > 0 
+              ? "Manage your delivery addresses for faster checkout."
+              : "Please add an address for faster future orders."
+          }
           href="/account/addresses"
+          details={
+            customer?.addresses?.nodes?.length > 0 
+              ? [
+                  `Addresses: ${customer.addresses.nodes.length}`,
+                  customer?.defaultAddress 
+                    ? `Default: ${customer.defaultAddress.city}${customer.defaultAddress.zoneCode ? `, ${customer.defaultAddress.zoneCode}` : ''}`
+                    : 'No default address set'
+                ].filter(Boolean)
+              : []
+          }
         />
 
         {/* ✅ ENHANCED: Wishlist Card */}

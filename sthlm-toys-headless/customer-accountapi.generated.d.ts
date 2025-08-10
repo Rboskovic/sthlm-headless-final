@@ -3,6 +3,27 @@
 /* eslint-disable */
 import type * as CustomerAccountAPI from '@shopify/hydrogen/customer-account-api-types';
 
+export type CustomerAddressCreateMutationVariables = CustomerAccountAPI.Exact<{
+  address: CustomerAccountAPI.CustomerAddressInput;
+  defaultAddress?: CustomerAccountAPI.InputMaybe<
+    CustomerAccountAPI.Scalars['Boolean']['input']
+  >;
+}>;
+
+export type CustomerAddressCreateMutation = {
+  customerAddressCreate?: CustomerAccountAPI.Maybe<{
+    customerAddress?: CustomerAccountAPI.Maybe<
+      Pick<CustomerAccountAPI.CustomerAddress, 'id'>
+    >;
+    userErrors: Array<
+      Pick<
+        CustomerAccountAPI.UserErrorsCustomerAddressUserErrors,
+        'code' | 'field' | 'message'
+      >
+    >;
+  }>;
+};
+
 export type CustomerAddressUpdateMutationVariables = CustomerAccountAPI.Exact<{
   address: CustomerAccountAPI.CustomerAddressInput;
   addressId: CustomerAccountAPI.Scalars['ID']['input'];
@@ -45,28 +66,6 @@ export type CustomerAddressDeleteMutation = {
   >;
 };
 
-export type CustomerAddressCreateMutationVariables = CustomerAccountAPI.Exact<{
-  address: CustomerAccountAPI.CustomerAddressInput;
-  defaultAddress?: CustomerAccountAPI.InputMaybe<
-    CustomerAccountAPI.Scalars['Boolean']['input']
-  >;
-}>;
-
-export type CustomerAddressCreateMutation = {
-  customerAddressCreate?: CustomerAccountAPI.Maybe<{
-    customerAddress?: CustomerAccountAPI.Maybe<
-      Pick<CustomerAccountAPI.CustomerAddress, 'id'>
-    >;
-    userErrors: Array<
-      Pick<
-        CustomerAccountAPI.UserErrorsCustomerAddressUserErrors,
-        'code' | 'field' | 'message'
-      >
-    >;
-  }>;
-};
-
-// ✅ RESTORED: Original CustomerFragment with new CustomerProfileFragment added
 export type CustomerFragment = Pick<
   CustomerAccountAPI.Customer,
   'id' | 'firstName' | 'lastName'
@@ -109,19 +108,6 @@ export type CustomerFragment = Pick<
   };
 };
 
-// ✅ SIMPLIFIED: CustomerProfileFragment using only available fields
-export type CustomerProfileFragment = Pick<
-  CustomerAccountAPI.Customer,
-  'id' | 'firstName' | 'lastName'
-> & {
-  emailAddress?: CustomerAccountAPI.Maybe<
-    Pick<CustomerAccountAPI.CustomerEmailAddress, 'emailAddress'>
-  >;
-  phoneNumber?: CustomerAccountAPI.Maybe<
-    Pick<CustomerAccountAPI.CustomerPhoneNumber, 'phoneNumber'>
-  >;
-};
-
 export type AddressFragment = Pick<
   CustomerAccountAPI.CustomerAddress,
   | 'id'
@@ -142,7 +128,6 @@ export type CustomerDetailsQueryVariables = CustomerAccountAPI.Exact<{
   [key: string]: never;
 }>;
 
-// ✅ RESTORED: Original CustomerDetailsQuery
 export type CustomerDetailsQuery = {
   customer: Pick<
     CustomerAccountAPI.Customer,
@@ -184,25 +169,6 @@ export type CustomerDetailsQuery = {
         >
       >;
     };
-  };
-};
-
-// ✅ SIMPLIFIED: Enhanced query for profile page using only available fields
-export type CustomerProfileQueryVariables = CustomerAccountAPI.Exact<{
-  [key: string]: never;
-}>;
-
-export type CustomerProfileQuery = {
-  customer: Pick<
-    CustomerAccountAPI.Customer,
-    'id' | 'firstName' | 'lastName'
-  > & {
-    emailAddress?: CustomerAccountAPI.Maybe<
-      Pick<CustomerAccountAPI.CustomerEmailAddress, 'emailAddress'>
-    >;
-    phoneNumber?: CustomerAccountAPI.Maybe<
-      Pick<CustomerAccountAPI.CustomerPhoneNumber, 'phoneNumber'>
-    >;
   };
 };
 
@@ -478,11 +444,40 @@ export type CustomerOrdersQuery = {
   };
 };
 
+export type CustomerProfileFragment = Pick<
+  CustomerAccountAPI.Customer,
+  'id' | 'firstName' | 'lastName'
+> & {
+  emailAddress?: CustomerAccountAPI.Maybe<
+    Pick<CustomerAccountAPI.CustomerEmailAddress, 'emailAddress'>
+  >;
+  phoneNumber?: CustomerAccountAPI.Maybe<
+    Pick<CustomerAccountAPI.CustomerPhoneNumber, 'phoneNumber'>
+  >;
+};
+
+export type CustomerProfileQueryVariables = CustomerAccountAPI.Exact<{
+  [key: string]: never;
+}>;
+
+export type CustomerProfileQuery = {
+  customer: Pick<
+    CustomerAccountAPI.Customer,
+    'id' | 'firstName' | 'lastName'
+  > & {
+    emailAddress?: CustomerAccountAPI.Maybe<
+      Pick<CustomerAccountAPI.CustomerEmailAddress, 'emailAddress'>
+    >;
+    phoneNumber?: CustomerAccountAPI.Maybe<
+      Pick<CustomerAccountAPI.CustomerPhoneNumber, 'phoneNumber'>
+    >;
+  };
+};
+
 export type CustomerUpdateMutationVariables = CustomerAccountAPI.Exact<{
   customer: CustomerAccountAPI.CustomerUpdateInput;
 }>;
 
-// ✅ RESTORED: Original CustomerUpdateMutation
 export type CustomerUpdateMutation = {
   customerUpdate?: CustomerAccountAPI.Maybe<{
     customer?: CustomerAccountAPI.Maybe<
@@ -505,7 +500,7 @@ export type CustomerUpdateMutation = {
 };
 
 interface GeneratedQueryTypes {
-  '#graphql\n  query CustomerDetails {\n    customer {\n      ...Customer\n    }\n  }\n  #graphql\n  fragment Customer on Customer {\n    id\n    firstName\n    lastName\n    createdAt\n    emailAddress {\n      emailAddress\n    }\n    phoneNumber {\n      phoneNumber\n    }\n    acceptsMarketing\n    defaultAddress {\n      ...Address\n    }\n    addresses(first: 6) {\n      nodes {\n        ...Address\n      }\n    }\n  }\n  fragment Address on CustomerAddress {\n    id\n    formatted\n    firstName\n    lastName\n    company\n    address1\n    address2\n    territoryCode\n    zoneCode\n    city\n    zip\n    phoneNumber\n  }\n\n': {
+  '#graphql\n  query CustomerDetails {\n    customer {\n      ...Customer\n    }\n  }\n  #graphql\n  fragment Customer on Customer {\n    id\n    firstName\n    lastName\n    defaultAddress {\n      ...Address\n    }\n    addresses(first: 6) {\n      nodes {\n        ...Address\n      }\n    }\n  }\n  fragment Address on CustomerAddress {\n    id\n    formatted\n    firstName\n    lastName\n    company\n    address1\n    address2\n    territoryCode\n    zoneCode\n    city\n    zip\n    phoneNumber\n  }\n\n': {
     return: CustomerDetailsQuery;
     variables: CustomerDetailsQueryVariables;
   };
@@ -517,9 +512,17 @@ interface GeneratedQueryTypes {
     return: CustomerOrdersQuery;
     variables: CustomerOrdersQueryVariables;
   };
+  '#graphql\n  query CustomerProfile {\n    customer {\n      ...CustomerProfile\n    }\n  }\n  #graphql\n  fragment CustomerProfile on Customer {\n    id\n    firstName\n    lastName\n    emailAddress {\n      emailAddress\n    }\n    phoneNumber {\n      phoneNumber\n    }\n  }\n\n': {
+    return: CustomerProfileQuery;
+    variables: CustomerProfileQueryVariables;
+  };
 }
 
 interface GeneratedMutationTypes {
+  '#graphql\n  mutation customerAddressCreate(\n    $address: CustomerAddressInput!\n    $defaultAddress: Boolean\n  ) {\n    customerAddressCreate(\n      address: $address\n      defaultAddress: $defaultAddress\n    ) {\n      customerAddress {\n        id\n      }\n      userErrors {\n        code\n        field\n        message\n      }\n    }\n  }\n': {
+    return: CustomerAddressCreateMutation;
+    variables: CustomerAddressCreateMutationVariables;
+  };
   '#graphql\n  mutation customerAddressUpdate(\n    $address: CustomerAddressInput!\n    $addressId: ID!\n    $defaultAddress: Boolean\n ) {\n    customerAddressUpdate(\n      address: $address\n      addressId: $addressId\n      defaultAddress: $defaultAddress\n    ) {\n      customerAddress {\n        id\n      }\n      userErrors {\n        code\n        field\n        message\n      }\n    }\n  }\n': {
     return: CustomerAddressUpdateMutation;
     variables: CustomerAddressUpdateMutationVariables;
@@ -527,10 +530,6 @@ interface GeneratedMutationTypes {
   '#graphql\n  mutation customerAddressDelete(\n    $addressId: ID!,\n  ) {\n    customerAddressDelete(addressId: $addressId) {\n      deletedAddressId\n      userErrors {\n        code\n        field\n        message\n      }\n    }\n  }\n': {
     return: CustomerAddressDeleteMutation;
     variables: CustomerAddressDeleteMutationVariables;
-  };
-  '#graphql\n  mutation customerAddressCreate(\n    $address: CustomerAddressInput!\n    $defaultAddress: Boolean\n  ) {\n    customerAddressCreate(\n      address: $address\n      defaultAddress: $defaultAddress\n    ) {\n      customerAddress {\n        id\n      }\n      userErrors {\n        code\n        field\n        message\n      }\n    }\n  }\n': {
-    return: CustomerAddressCreateMutation;
-    variables: CustomerAddressCreateMutationVariables;
   };
   '#graphql\n  # https://shopify.dev/docs/api/customer/latest/mutations/customerUpdate\n  mutation customerUpdate(\n    $customer: CustomerUpdateInput!\n  ){\n    customerUpdate(input: $customer) {\n      customer {\n        firstName\n        lastName\n        emailAddress {\n          emailAddress\n        }\n        phoneNumber {\n          phoneNumber\n        }\n      }\n      userErrors {\n        code\n        field\n        message\n      }\n    }\n  }\n': {
     return: CustomerUpdateMutation;
