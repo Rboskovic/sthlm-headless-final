@@ -26,8 +26,8 @@ export default function AccountDashboard() {
         margin: '0 auto'
       }}
     >
-      {/* ✅ ENHANCED: Added "My Account" heading (Issue #3) */}
-      <div style={{ marginBottom: '30px' }}>
+      {/* ✅ FIXED: Centered "My Account" heading (Issue #2) */}
+      <div style={{ marginBottom: '30px', textAlign: 'center' }}>
         <h1 style={{ 
           margin: '0 0 8px 0', 
           fontSize: '28px', 
