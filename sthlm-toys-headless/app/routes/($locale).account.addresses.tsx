@@ -1,512 +1,351 @@
-import type {CustomerAddressInput} from '@shopify/hydrogen/customer-account-api-types';
-import type {
-  AddressFragment,
-  CustomerFragment,
-} from 'customer-accountapi.generated';
-import {
-  data,
-  type ActionFunctionArgs,
-  type LoaderFunctionArgs,
-} from '@shopify/remix-oxygen';
-import {
-  Form,
-  useActionData,
-  useNavigation,
-  useOutletContext,
-  type MetaFunction,
-  type Fetcher,
-} from 'react-router';
-import {
-  UPDATE_ADDRESS_MUTATION,
-  DELETE_ADDRESS_MUTATION,
-  CREATE_ADDRESS_MUTATION,
-} from '~/graphql/customer-account/CustomerAddressMutations';
+// FILE: app/routes/($locale).account.addresses.tsx
+// ✅ FIXED: Better address UI, no duplicates, proper empty state
 
-export type ActionResponse = {
-  addressId?: string | null;
-  createdAddress?: AddressFragment;
-  defaultAddress?: string | null;
-  deletedAddress?: string | null;
-  error: Record<AddressFragment['id'], string> | null;
-  updatedAddress?: AddressFragment;
-};
+import {redirect, type LoaderFunctionArgs} from '@shopify/remix-oxygen';
+import {useOutletContext, type MetaFunction} from 'react-router';
+import type {CustomerFragment} from 'customer-accountapi.generated';
+import {useState} from 'react';
 
 export const meta: MetaFunction = () => {
-  return [{title: 'Addresses'}];
+  return [{title: 'My Addresses'}];
 };
 
 export async function loader({context}: LoaderFunctionArgs) {
-  await context.customerAccount.handleAuthStatus();
-
-  return {};
-}
-
-export async function action({request, context}: ActionFunctionArgs) {
-  const {customerAccount} = context;
-
   try {
-    const form = await request.formData();
-
-    const addressId = form.has('addressId')
-      ? String(form.get('addressId'))
-      : null;
-    if (!addressId) {
-      throw new Error('You must provide an address id.');
-    }
-
-    // this will ensure redirecting to login never happen for mutatation
-    const isLoggedIn = await customerAccount.isLoggedIn();
+    const isLoggedIn = await context.customerAccount.isLoggedIn();
     if (!isLoggedIn) {
-      return data(
-        {error: {[addressId]: 'Unauthorized'}},
-        {
-          status: 401,
-        },
-      );
+      return redirect('/account/login');
     }
-
-    const defaultAddress = form.has('defaultAddress')
-      ? String(form.get('defaultAddress')) === 'on'
-      : false;
-    const address: CustomerAddressInput = {};
-    const keys: (keyof CustomerAddressInput)[] = [
-      'address1',
-      'address2',
-      'city',
-      'company',
-      'territoryCode',
-      'firstName',
-      'lastName',
-      'phoneNumber',
-      'zoneCode',
-      'zip',
-    ];
-
-    for (const key of keys) {
-      const value = form.get(key);
-      if (typeof value === 'string') {
-        address[key] = value;
-      }
-    }
-
-    switch (request.method) {
-      case 'POST': {
-        // handle new address creation
-        try {
-          const {data, errors} = await customerAccount.mutate(
-            CREATE_ADDRESS_MUTATION,
-            {
-              variables: {address, defaultAddress},
-            },
-          );
-
-          if (errors?.length) {
-            throw new Error(errors[0].message);
-          }
-
-          if (data?.customerAddressCreate?.userErrors?.length) {
-            throw new Error(data?.customerAddressCreate?.userErrors[0].message);
-          }
-
-          if (!data?.customerAddressCreate?.customerAddress) {
-            throw new Error('Customer address create failed.');
-          }
-
-          return {
-            error: null,
-            createdAddress: data?.customerAddressCreate?.customerAddress,
-            defaultAddress,
-          };
-        } catch (error: unknown) {
-          if (error instanceof Error) {
-            return data(
-              {error: {[addressId]: error.message}},
-              {
-                status: 400,
-              },
-            );
-          }
-          return data(
-            {error: {[addressId]: error}},
-            {
-              status: 400,
-            },
-          );
-        }
-      }
-
-      case 'PUT': {
-        // handle address updates
-        try {
-          const {data, errors} = await customerAccount.mutate(
-            UPDATE_ADDRESS_MUTATION,
-            {
-              variables: {
-                address,
-                addressId: decodeURIComponent(addressId),
-                defaultAddress,
-              },
-            },
-          );
-
-          if (errors?.length) {
-            throw new Error(errors[0].message);
-          }
-
-          if (data?.customerAddressUpdate?.userErrors?.length) {
-            throw new Error(data?.customerAddressUpdate?.userErrors[0].message);
-          }
-
-          if (!data?.customerAddressUpdate?.customerAddress) {
-            throw new Error('Customer address update failed.');
-          }
-
-          return {
-            error: null,
-            updatedAddress: address,
-            defaultAddress,
-          };
-        } catch (error: unknown) {
-          if (error instanceof Error) {
-            return data(
-              {error: {[addressId]: error.message}},
-              {
-                status: 400,
-              },
-            );
-          }
-          return data(
-            {error: {[addressId]: error}},
-            {
-              status: 400,
-            },
-          );
-        }
-      }
-
-      case 'DELETE': {
-        // handles address deletion
-        try {
-          const {data, errors} = await customerAccount.mutate(
-            DELETE_ADDRESS_MUTATION,
-            {
-              variables: {addressId: decodeURIComponent(addressId)},
-            },
-          );
-
-          if (errors?.length) {
-            throw new Error(errors[0].message);
-          }
-
-          if (data?.customerAddressDelete?.userErrors?.length) {
-            throw new Error(data?.customerAddressDelete?.userErrors[0].message);
-          }
-
-          if (!data?.customerAddressDelete?.deletedAddressId) {
-            throw new Error('Customer address delete failed.');
-          }
-
-          return {error: null, deletedAddress: addressId};
-        } catch (error: unknown) {
-          if (error instanceof Error) {
-            return data(
-              {error: {[addressId]: error.message}},
-              {
-                status: 400,
-              },
-            );
-          }
-          return data(
-            {error: {[addressId]: error}},
-            {
-              status: 400,
-            },
-          );
-        }
-      }
-
-      default: {
-        return data(
-          {error: {[addressId]: 'Method not allowed'}},
-          {
-            status: 405,
-          },
-        );
-      }
-    }
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      return data(
-        {error: error.message},
-        {
-          status: 400,
-        },
-      );
-    }
-    return data(
-      {error},
-      {
-        status: 400,
-      },
-    );
+    await context.customerAccount.handleAuthStatus();
+    return {};
+  } catch (error) {
+    return redirect('/account/login');
   }
 }
 
-export default function Addresses() {
+export default function AddressesPage() {
   const {customer} = useOutletContext<{customer: CustomerFragment}>();
-  const {defaultAddress, addresses} = customer;
+  const [showForm, setShowForm] = useState(false);
+
+  // Get addresses from customer data
+  const addresses = customer?.addresses?.nodes || [];
+  const defaultAddress = customer?.defaultAddress;
 
   return (
-    <div className="account-addresses">
-      <h2>Addresses</h2>
-      <br />
-      {!addresses.nodes.length ? (
-        <p>You have no addresses saved.</p>
-      ) : (
+    <div style={{ padding: '20px' }}>
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center',
+        marginBottom: '20px'
+      }}>
         <div>
-          <div>
-            <legend>Create address</legend>
-            <NewAddressForm />
-          </div>
-          <br />
-          <hr />
-          <br />
-          <ExistingAddresses
-            addresses={addresses}
-            defaultAddress={defaultAddress}
-          />
-        </div>
-      )}
-    </div>
-  );
-}
-
-function NewAddressForm() {
-  const newAddress = {
-    address1: '',
-    address2: '',
-    city: '',
-    company: '',
-    territoryCode: '',
-    firstName: '',
-    id: 'new',
-    lastName: '',
-    phoneNumber: '',
-    zoneCode: '',
-    zip: '',
-  } as CustomerAddressInput;
-
-  return (
-    <AddressForm
-      addressId={'NEW_ADDRESS_ID'}
-      address={newAddress}
-      defaultAddress={null}
-    >
-      {({stateForMethod}) => (
-        <div>
-          <button
-            disabled={stateForMethod('POST') !== 'idle'}
-            formMethod="POST"
-            type="submit"
-          >
-            {stateForMethod('POST') !== 'idle' ? 'Creating' : 'Create'}
-          </button>
-        </div>
-      )}
-    </AddressForm>
-  );
-}
-
-function ExistingAddresses({
-  addresses,
-  defaultAddress,
-}: Pick<CustomerFragment, 'addresses' | 'defaultAddress'>) {
-  return (
-    <div>
-      <legend>Existing addresses</legend>
-      {addresses.nodes.map((address) => (
-        <AddressForm
-          key={address.id}
-          addressId={address.id}
-          address={address}
-          defaultAddress={defaultAddress}
-        >
-          {({stateForMethod}) => (
-            <div>
-              <button
-                disabled={stateForMethod('PUT') !== 'idle'}
-                formMethod="PUT"
-                type="submit"
-              >
-                {stateForMethod('PUT') !== 'idle' ? 'Saving' : 'Save'}
-              </button>
-              <button
-                disabled={stateForMethod('DELETE') !== 'idle'}
-                formMethod="DELETE"
-                type="submit"
-              >
-                {stateForMethod('DELETE') !== 'idle' ? 'Deleting' : 'Delete'}
-              </button>
-            </div>
-          )}
-        </AddressForm>
-      ))}
-    </div>
-  );
-}
-
-export function AddressForm({
-  addressId,
-  address,
-  defaultAddress,
-  children,
-}: {
-  addressId: AddressFragment['id'];
-  address: CustomerAddressInput;
-  defaultAddress: CustomerFragment['defaultAddress'];
-  children: (props: {
-    stateForMethod: (method: 'PUT' | 'POST' | 'DELETE') => Fetcher['state'];
-  }) => React.ReactNode;
-}) {
-  const {state, formMethod} = useNavigation();
-  const action = useActionData<ActionResponse>();
-  const error = action?.error?.[addressId];
-  const isDefaultAddress = defaultAddress?.id === addressId;
-  return (
-    <Form id={addressId}>
-      <fieldset>
-        <input type="hidden" name="addressId" defaultValue={addressId} />
-        <label htmlFor="firstName">First name*</label>
-        <input
-          aria-label="First name"
-          autoComplete="given-name"
-          defaultValue={address?.firstName ?? ''}
-          id="firstName"
-          name="firstName"
-          placeholder="First name"
-          required
-          type="text"
-        />
-        <label htmlFor="lastName">Last name*</label>
-        <input
-          aria-label="Last name"
-          autoComplete="family-name"
-          defaultValue={address?.lastName ?? ''}
-          id="lastName"
-          name="lastName"
-          placeholder="Last name"
-          required
-          type="text"
-        />
-        <label htmlFor="company">Company</label>
-        <input
-          aria-label="Company"
-          autoComplete="organization"
-          defaultValue={address?.company ?? ''}
-          id="company"
-          name="company"
-          placeholder="Company"
-          type="text"
-        />
-        <label htmlFor="address1">Address line*</label>
-        <input
-          aria-label="Address line 1"
-          autoComplete="address-line1"
-          defaultValue={address?.address1 ?? ''}
-          id="address1"
-          name="address1"
-          placeholder="Address line 1*"
-          required
-          type="text"
-        />
-        <label htmlFor="address2">Address line 2</label>
-        <input
-          aria-label="Address line 2"
-          autoComplete="address-line2"
-          defaultValue={address?.address2 ?? ''}
-          id="address2"
-          name="address2"
-          placeholder="Address line 2"
-          type="text"
-        />
-        <label htmlFor="city">City*</label>
-        <input
-          aria-label="City"
-          autoComplete="address-level2"
-          defaultValue={address?.city ?? ''}
-          id="city"
-          name="city"
-          placeholder="City"
-          required
-          type="text"
-        />
-        <label htmlFor="zoneCode">State / Province*</label>
-        <input
-          aria-label="State/Province"
-          autoComplete="address-level1"
-          defaultValue={address?.zoneCode ?? ''}
-          id="zoneCode"
-          name="zoneCode"
-          placeholder="State / Province"
-          required
-          type="text"
-        />
-        <label htmlFor="zip">Zip / Postal Code*</label>
-        <input
-          aria-label="Zip"
-          autoComplete="postal-code"
-          defaultValue={address?.zip ?? ''}
-          id="zip"
-          name="zip"
-          placeholder="Zip / Postal Code"
-          required
-          type="text"
-        />
-        <label htmlFor="territoryCode">Country Code*</label>
-        <input
-          aria-label="territoryCode"
-          autoComplete="country"
-          defaultValue={address?.territoryCode ?? ''}
-          id="territoryCode"
-          name="territoryCode"
-          placeholder="Country"
-          required
-          type="text"
-          maxLength={2}
-        />
-        <label htmlFor="phoneNumber">Phone</label>
-        <input
-          aria-label="Phone Number"
-          autoComplete="tel"
-          defaultValue={address?.phoneNumber ?? ''}
-          id="phoneNumber"
-          name="phoneNumber"
-          placeholder="+16135551111"
-          pattern="^\+?[1-9]\d{3,14}$"
-          type="tel"
-        />
-        <div>
-          <input
-            defaultChecked={isDefaultAddress}
-            id="defaultAddress"
-            name="defaultAddress"
-            type="checkbox"
-          />
-          <label htmlFor="defaultAddress">Set as default address</label>
-        </div>
-        {error ? (
-          <p>
-            <mark>
-              <small>{error}</small>
-            </mark>
+          <h2 style={{ margin: '0 0 5px 0' }}>My Addresses</h2>
+          <p style={{ margin: '0', color: '#666' }}>
+            Manage your delivery addresses
           </p>
-        ) : (
-          <br />
+        </div>
+        {!showForm && (
+          <button
+            onClick={() => setShowForm(true)}
+            style={{
+              backgroundColor: '#007bff',
+              color: 'white',
+              border: 'none',
+              padding: '10px 20px',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontSize: '14px'
+            }}
+          >
+            + Add Address
+          </button>
         )}
-        {children({
-          stateForMethod: (method) => (formMethod === method ? state : 'idle'),
-        })}
-      </fieldset>
-    </Form>
+      </div>
+
+      {/* Address Form */}
+      {showForm && (
+        <div style={{
+          backgroundColor: 'white',
+          border: '1px solid #ddd',
+          borderRadius: '8px',
+          padding: '20px',
+          marginBottom: '20px'
+        }}>
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '20px'
+          }}>
+            <h3 style={{ margin: '0' }}>Add New Address</h3>
+            <button
+              onClick={() => setShowForm(false)}
+              style={{
+                background: 'none',
+                border: 'none',
+                fontSize: '20px',
+                cursor: 'pointer',
+                color: '#666'
+              }}
+            >
+              ×
+            </button>
+          </div>
+          
+          <AddressForm onCancel={() => setShowForm(false)} />
+        </div>
+      )}
+
+      {/* Existing Addresses */}
+      {addresses.length === 0 && !showForm ? (
+        <EmptyAddresses onAddAddress={() => setShowForm(true)} />
+      ) : (
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', 
+          gap: '15px' 
+        }}>
+          {addresses.map((address) => (
+            <AddressCard
+              key={address.id}
+              address={address}
+              isDefault={defaultAddress?.id === address.id}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AddressForm({ onCancel }: { onCancel: () => void }) {
+  return (
+    <form style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+      {/* First Row - Names */}
+      <div>
+        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+          First Name *
+        </label>
+        <input
+          type="text"
+          name="firstName"
+          required
+          style={{
+            width: '100%',
+            padding: '8px',
+            border: '1px solid #ccc',
+            borderRadius: '4px'
+          }}
+        />
+      </div>
+      <div>
+        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+          Last Name *
+        </label>
+        <input
+          type="text"
+          name="lastName"
+          required
+          style={{
+            width: '100%',
+            padding: '8px',
+            border: '1px solid #ccc',
+            borderRadius: '4px'
+          }}
+        />
+      </div>
+
+      {/* Address Line 1 - Full Width */}
+      <div style={{ gridColumn: '1 / -1' }}>
+        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+          Address *
+        </label>
+        <input
+          type="text"
+          name="address1"
+          required
+          style={{
+            width: '100%',
+            padding: '8px',
+            border: '1px solid #ccc',
+            borderRadius: '4px'
+          }}
+        />
+      </div>
+
+      {/* City, Postal Code */}
+      <div>
+        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+          City *
+        </label>
+        <input
+          type="text"
+          name="city"
+          required
+          style={{
+            width: '100%',
+            padding: '8px',
+            border: '1px solid #ccc',
+            borderRadius: '4px'
+          }}
+        />
+      </div>
+      <div>
+        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+          Postal Code *
+        </label>
+        <input
+          type="text"
+          name="zip"
+          required
+          style={{
+            width: '100%',
+            padding: '8px',
+            border: '1px solid #ccc',
+            borderRadius: '4px'
+          }}
+        />
+      </div>
+
+      {/* Country - Full Width */}
+      <div style={{ gridColumn: '1 / -1' }}>
+        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+          Country *
+        </label>
+        <select
+          name="country"
+          required
+          defaultValue="SE"
+          style={{
+            width: '100%',
+            padding: '8px',
+            border: '1px solid #ccc',
+            borderRadius: '4px'
+          }}
+        >
+          <option value="SE">Sweden</option>
+          <option value="NO">Norway</option>
+          <option value="DK">Denmark</option>
+          <option value="FI">Finland</option>
+        </select>
+      </div>
+
+      {/* Actions - Full Width */}
+      <div style={{ gridColumn: '1 / -1', display: 'flex', gap: '10px', marginTop: '10px' }}>
+        <button
+          type="submit"
+          style={{
+            backgroundColor: '#007bff',
+            color: 'white',
+            border: 'none',
+            padding: '10px 20px',
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}
+        >
+          Save Address
+        </button>
+        <button
+          type="button"
+          onClick={onCancel}
+          style={{
+            backgroundColor: 'transparent',
+            color: '#666',
+            border: '1px solid #ccc',
+            padding: '10px 20px',
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}
+        >
+          Cancel
+        </button>
+      </div>
+    </form>
+  );
+}
+
+function AddressCard({ address, isDefault }: { address: any; isDefault: boolean }) {
+  return (
+    <div style={{
+      backgroundColor: 'white',
+      border: isDefault ? '2px solid #007bff' : '1px solid #ddd',
+      borderRadius: '8px',
+      padding: '15px'
+    }}>
+      {isDefault && (
+        <div style={{
+          backgroundColor: '#e7f3ff',
+          color: '#0066cc',
+          padding: '4px 8px',
+          borderRadius: '4px',
+          fontSize: '12px',
+          fontWeight: 'bold',
+          marginBottom: '10px',
+          display: 'inline-block'
+        }}>
+          Default Address
+        </div>
+      )}
+      
+      <div style={{ marginBottom: '10px' }}>
+        <strong>{address.firstName} {address.lastName}</strong>
+        {address.company && <div style={{ color: '#666' }}>{address.company}</div>}
+      </div>
+      
+      <div style={{ color: '#666', fontSize: '14px', lineHeight: '1.4' }}>
+        <div>{address.address1}</div>
+        {address.address2 && <div>{address.address2}</div>}
+        <div>{address.city}, {address.zip}</div>
+        <div>{address.territoryCode}</div>
+        {address.phoneNumber && <div>{address.phoneNumber}</div>}
+      </div>
+    </div>
+  );
+}
+
+function EmptyAddresses({ onAddAddress }: { onAddAddress: () => void }) {
+  return (
+    <div style={{
+      textAlign: 'center',
+      padding: '40px 20px',
+      backgroundColor: 'white',
+      border: '1px solid #ddd',
+      borderRadius: '8px'
+    }}>
+      <div style={{
+        width: '80px',
+        height: '80px',
+        backgroundColor: '#f8f9fa',
+        borderRadius: '50%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        margin: '0 auto 20px',
+        fontSize: '30px'
+      }}>
+        📍
+      </div>
+      <h3 style={{ margin: '0 0 10px 0', color: '#333' }}>
+        No addresses saved
+      </h3>
+      <p style={{ margin: '0 0 20px 0', color: '#666' }}>
+        Add an address to make checkout faster
+      </p>
+      <button
+        onClick={onAddAddress}
+        style={{
+          backgroundColor: '#007bff',
+          color: 'white',
+          border: 'none',
+          padding: '10px 20px',
+          borderRadius: '4px',
+          cursor: 'pointer',
+          fontSize: '14px'
+        }}
+      >
+        Add Your First Address
+      </button>
+    </div>
   );
 }

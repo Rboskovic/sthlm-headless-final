@@ -1,13 +1,8 @@
+// FILE: app/routes/($locale).account._index.tsx
+// ✅ FIXED: Invalid date display + proper contact info + better layout
+
 import {redirect, type LoaderFunctionArgs} from '@shopify/remix-oxygen';
 import {Link, useOutletContext, type MetaFunction} from 'react-router';
-import {
-  User,
-  Clock,
-  CreditCard,
-  MapPin,
-  Mail,
-  ChevronRight,
-} from 'lucide-react';
 import type {CustomerFragment} from 'customer-accountapi.generated';
 
 export const meta: MetaFunction = () => {
@@ -15,166 +10,173 @@ export const meta: MetaFunction = () => {
 };
 
 export async function loader({context}: LoaderFunctionArgs) {
-  // ✅ SHOPIFY HYDROGEN: Auth is handled by parent layout
-  // This loader just ensures we're ready to render
+  // Auth is handled by parent layout
   return {};
 }
 
 export default function AccountDashboard() {
   const {customer} = useOutletContext<{customer: CustomerFragment}>();
 
+  // ✅ FIXED: Proper date formatting with fallback
+  const formatMemberSince = (dateString?: string) => {
+    if (!dateString) return 'Unknown';
+    try {
+      return new Date(dateString).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+      });
+    } catch (error) {
+      return 'Unknown';
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="py-6">
-            <h1 className="text-2xl font-semibold text-gray-900">My Account</h1>
-          </div>
-        </div>
+    <div style={{ padding: '20px' }}>
+      <h2>My Account</h2>
+
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', 
+        gap: '20px',
+        marginTop: '20px'
+      }}>
+        {/* Account Details Card */}
+        <AccountCard
+          title="Account details"
+          description="Change your name, log-in details, and contact information."
+          href="/account/profile"
+          details={[
+            `Name: ${customer?.firstName || ''} ${customer?.lastName || ''}`.trim() || 'Not set',
+            `Email: ${customer?.emailAddress?.emailAddress || 'Not set'}`,
+            `Phone: ${customer?.phoneNumber?.phoneNumber || 'Not set'}`,
+          ]}
+        />
+
+        {/* Order History Card */}
+        <AccountCard
+          title="Order history"
+          description="You'll find your order history here after your first purchase with us. Happy shopping!"
+          href="/account/orders"
+        />
+
+        {/* My Addresses Card */}
+        <AccountCard
+          title="My addresses"
+          description="Please add an address for faster future orders."
+          href="/account/addresses"
+        />
+
+        {/* Wishlist Card */}
+        <AccountCard
+          title="My wishlist"
+          description="Save your favorite items for later."
+          href="/account/wishlist"
+        />
       </div>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Account Details Card */}
-          <AccountCard
-            title="Account details"
-            description="Change your name, log-in details, and contact information."
-            icon={<User className="w-6 h-6 text-blue-600" />}
-            href="/account/profile"
-            details={[
-              `Name: ${customer.firstName || ''} ${customer.lastName || ''}`,
-              `Email: ${customer.emailAddress?.emailAddress || ''}`,
-              `Phone: ${customer.phoneNumber?.phoneNumber || ''}`,
-            ]}
-          />
-
-          {/* Order History Card */}
-          <AccountCard
-            title="Order history"
-            description="You'll find your order history here after your first purchase with us. Happy shopping!"
-            icon={<Clock className="w-6 h-6 text-blue-600" />}
-            href="/account/orders"
-          />
-
-          {/* Payment Details Card */}
-          <AccountCard
-            title="Payment details"
-            description="Add payment options for faster checkouts."
-            icon={<CreditCard className="w-6 h-6 text-blue-600" />}
-            href="/account/payment"
-          />
-
-          {/* My Addresses Card */}
-          <AccountCard
-            title="My addresses"
-            description="Please add an address for faster future orders."
-            icon={<MapPin className="w-6 h-6 text-blue-600" />}
-            href="/account/addresses"
-          />
-        </div>
-
-        {/* Marketing Section */}
-        <div className="mt-8">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center mb-4">
-              <Mail className="w-6 h-6 text-blue-600 mr-3" />
-              <h2 className="text-lg font-semibold text-gray-900">Marketing</h2>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-base font-medium text-gray-900 mb-2">
-                  Emails
-                </h3>
-                <p className="text-sm text-gray-600 mb-4">
-                  Receive special offers, promotions and new product information
-                  by email. Please select your preference by ticking the
-                  checkbox below.
-                </p>
-
-                <div className="space-y-3">
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                      defaultChecked
-                    />
-                    <span className="ml-3 text-sm text-gray-700">New Toys</span>
-                  </label>
-
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                      defaultChecked
-                    />
-                    <span className="ml-3 text-sm text-gray-700">
-                      Promotions
-                    </span>
-                  </label>
-                </div>
-              </div>
-
-              <div className="pt-4">
-                <Link
-                  to="/account/marketing"
-                  className="text-blue-600 hover:text-blue-700 text-sm font-medium"
-                >
-                  Manage preferences →
-                </Link>
-              </div>
-            </div>
-          </div>
+      {/* ✅ FIXED: Account Information with Proper Date */}
+      <div style={{
+        marginTop: '30px',
+        backgroundColor: '#e7f3ff',
+        padding: '20px',
+        border: '1px solid #b3d9ff',
+        borderRadius: '8px'
+      }}>
+        <h3 style={{ color: '#0066cc', marginBottom: '15px' }}>Account Information</h3>
+        <div style={{ color: '#0066cc' }}>
+          <p style={{ margin: '5px 0' }}>
+            <strong>Account Status:</strong> Active
+          </p>
+          <p style={{ margin: '5px 0' }}>
+            <strong>Member Since:</strong> {formatMemberSince(customer?.createdAt)}
+          </p>
+          <p style={{ margin: '5px 0' }}>
+            <strong>Customer ID:</strong> {customer?.id?.split('/').pop() || 'Unknown'}
+          </p>
         </div>
       </div>
     </div>
   );
 }
 
-// ✅ REUSABLE COMPONENT: Following component consistency standards
 interface AccountCardProps {
   title: string;
   description: string;
-  icon: React.ReactNode;
   href: string;
   details?: string[];
 }
 
-function AccountCard({
-  title,
-  description,
-  icon,
-  href,
-  details,
-}: AccountCardProps) {
+function AccountCard({ title, description, href, details }: AccountCardProps) {
   return (
-    <Link to={href} className="block group">
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow duration-200">
-        <div className="flex items-start justify-between">
-          <div className="flex items-start space-x-3">
-            <div className="flex-shrink-0">{icon}</div>
-            <div className="flex-grow">
-              <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600">
-                {title}
-              </h3>
-              <p className="text-sm text-gray-600 mt-1">{description}</p>
-
-              {details && (
-                <div className="mt-3 space-y-1">
-                  {details.map((detail, index) => (
-                    <p key={index} className="text-sm text-gray-800">
-                      {detail}
-                    </p>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-          <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600" />
-        </div>
+    <div style={{
+      backgroundColor: 'white',
+      border: '1px solid #ddd',
+      borderRadius: '8px',
+      padding: '20px',
+      display: 'flex',
+      flexDirection: 'column',
+      height: '100%'
+    }}>
+      <div style={{ marginBottom: '10px' }}>
+        <h3 style={{ 
+          margin: '0 0 10px 0', 
+          color: '#333',
+          fontSize: '18px'
+        }}>
+          {title}
+        </h3>
+        <p style={{ 
+          margin: '0 0 15px 0', 
+          color: '#666',
+          fontSize: '14px',
+          lineHeight: '1.4'
+        }}>
+          {description}
+        </p>
       </div>
-    </Link>
+
+      {/* Details Section */}
+      {details && (
+        <div style={{ marginBottom: '15px' }}>
+          {details.map((detail, index) => (
+            <p key={index} style={{ 
+              margin: '5px 0', 
+              fontSize: '13px', 
+              color: '#555'
+            }}>
+              {detail}
+            </p>
+          ))}
+        </div>
+      )}
+
+      {/* Action Link */}
+      <div style={{ marginTop: 'auto' }}>
+        <Link 
+          to={href}
+          style={{
+            display: 'inline-block',
+            color: '#007bff',
+            textDecoration: 'none',
+            fontSize: '14px',
+            fontWeight: 'bold',
+            padding: '8px 16px',
+            border: '1px solid #007bff',
+            borderRadius: '4px',
+            transition: 'all 0.2s'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = '#007bff';
+            e.currentTarget.style.color = 'white';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'transparent';
+            e.currentTarget.style.color = '#007bff';
+          }}
+        >
+          Manage →
+        </Link>
+      </div>
+    </div>
   );
 }
