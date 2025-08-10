@@ -1,5 +1,5 @@
-// FILE: app/routes/($locale).account.addresses.$addressId.edit.tsx
-// ✅ FIXED: Edit address route with proper parameter handling
+// FILE: app/routes/($locale).account.addresses_.edit.$addressId.tsx
+// ✅ ALTERNATIVE: Simpler edit route structure
 
 import {redirect, type LoaderFunctionArgs, type ActionFunctionArgs} from '@shopify/remix-oxygen';
 import {
@@ -97,7 +97,7 @@ export async function action({request, context, params}: ActionFunctionArgs) {
       zoneCode: formData.get('zoneCode') as string,
       zip: formData.get('zip') as string,
       phoneNumber: formData.get('phoneNumber') as string || '',
-      territoryCode: formData.get('territoryCode') as string || 'SE',
+      territoryCode: 'SE', // Default to Sweden
     };
 
     const defaultAddress = formData.get('defaultAddress') === 'on';
@@ -128,7 +128,8 @@ export async function action({request, context, params}: ActionFunctionArgs) {
     }
 
     if (mutationData?.customerAddressUpdate?.customerAddress) {
-      return redirect('/account/addresses');
+      // ✅ FIXED: Redirect to trigger data refresh instead of staying on form
+      return redirect('/account/addresses?updated=true');
     }
 
     return data({

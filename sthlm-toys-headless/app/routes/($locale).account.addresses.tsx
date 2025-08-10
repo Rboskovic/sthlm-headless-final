@@ -1,5 +1,5 @@
 // FILE: app/routes/($locale).account.addresses.tsx
-// ✅ FIXED: Empty address handling, delete functionality, and proper routing
+// ✅ FIXED: Proper revalidation, mobile styling, and data refresh
 
 import {redirect, type LoaderFunctionArgs, type ActionFunctionArgs} from '@shopify/remix-oxygen';
 import {useOutletContext, type MetaFunction, Link, Form, useActionData, useNavigation} from 'react-router';
@@ -17,6 +17,11 @@ export type ActionResponse = {
 export const meta: MetaFunction = () => {
   return [{title: 'My Addresses'}];
 };
+
+// ✅ ADDED: Force revalidation when data changes
+export function shouldRevalidate() {
+  return true;
+}
 
 export async function loader({context}: LoaderFunctionArgs) {
   try {
@@ -68,10 +73,8 @@ export async function action({request, context}: ActionFunctionArgs) {
     }
 
     if (mutationData?.customerAddressDelete?.deletedAddressId) {
-      return data({
-        success: true,
-        message: 'Address deleted successfully',
-      });
+      // ✅ FIXED: Redirect to trigger data refresh instead of returning data
+      return redirect('/account/addresses?deleted=true');
     }
 
     return data({
@@ -98,9 +101,54 @@ export default function AddressesPage() {
   );
   const defaultAddressId = customer?.defaultAddress?.id;
 
+  // ✅ ADDED: Check for success params from URL
+  const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+  const showDeleteSuccess = urlParams?.get('deleted') === 'true';
+  const showAddSuccess = urlParams?.get('added') === 'true';
+  const showUpdateSuccess = urlParams?.get('updated') === 'true';
+
   return (
     <div style={{ padding: '20px', maxWidth: '1000px', margin: '0 auto' }}>
-      {/* Success/Error Messages */}
+      {/* Success Messages */}
+      {showDeleteSuccess && (
+        <div style={{
+          backgroundColor: '#d4edda',
+          color: '#155724',
+          padding: '12px 16px',
+          borderRadius: '6px',
+          marginBottom: '20px',
+          border: '1px solid #c3e6cb'
+        }}>
+          Address deleted successfully
+        </div>
+      )}
+
+      {showAddSuccess && (
+        <div style={{
+          backgroundColor: '#d4edda',
+          color: '#155724',
+          padding: '12px 16px',
+          borderRadius: '6px',
+          marginBottom: '20px',
+          border: '1px solid #c3e6cb'
+        }}>
+          Address added successfully
+        </div>
+      )}
+
+      {showUpdateSuccess && (
+        <div style={{
+          backgroundColor: '#d4edda',
+          color: '#155724',
+          padding: '12px 16px',
+          borderRadius: '6px',
+          marginBottom: '20px',
+          border: '1px solid #c3e6cb'
+        }}>
+          Address updated successfully
+        </div>
+      )}
+
       {actionData?.success && (
         <div style={{
           backgroundColor: '#d4edda',
@@ -130,20 +178,25 @@ export default function AddressesPage() {
       <div style={{ 
         display: 'flex', 
         justifyContent: 'space-between', 
-        alignItems: 'center',
-        marginBottom: '30px'
+        alignItems: 'flex-start',
+        marginBottom: '30px',
+        flexDirection: 'column',
+        gap: '16px'
       }}>
-        <div>
+        <div style={{ width: '100%' }}>
           <h2 style={{ margin: '0 0 5px 0', fontSize: '24px', fontWeight: 'bold' }}>My Addresses</h2>
           <p style={{ margin: '0', color: '#666', fontSize: '16px' }}>
             Manage your delivery addresses for faster checkout
           </p>
         </div>
+        
+        {/* ✅ IMPROVED: Better mobile button styling */}
         <Link
           to="/account/addresses/new"
           style={{
             display: 'flex',
             alignItems: 'center',
+            justifyContent: 'center',
             gap: '8px',
             backgroundColor: '#007bff',
             color: 'white',
@@ -152,8 +205,12 @@ export default function AddressesPage() {
             borderRadius: '6px',
             fontSize: '14px',
             fontWeight: '500',
-            transition: 'background-color 0.2s'
+            transition: 'background-color 0.2s',
+            width: '100%',
+            maxWidth: '200px',
+            alignSelf: 'flex-end'
           }}
+          className="add-address-btn"
           onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#0056b3'}
           onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#007bff'}
         >
@@ -190,22 +247,27 @@ export default function AddressesPage() {
             Add your delivery addresses to make checkout faster and easier.<br />
             Your first address will automatically become your default.
           </p>
+          
+          {/* ✅ IMPROVED: Better mobile button for empty state */}
           <Link
             to="/account/addresses/new"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
+              justifyContent: 'center',
               gap: '8px',
               backgroundColor: '#007bff',
               color: 'white',
               textDecoration: 'none',
-              padding: '12px 24px',
-              borderRadius: '6px',
-              fontSize: '14px',
-              fontWeight: '500'
+              padding: '14px 28px',
+              borderRadius: '8px',
+              fontSize: '16px',
+              fontWeight: '600',
+              minWidth: '200px',
+              boxShadow: '0 2px 4px rgba(0, 123, 255, 0.2)'
             }}
           >
-            <Plus size={16} />
+            <Plus size={18} />
             Add Your First Address
           </Link>
         </div>
@@ -224,6 +286,17 @@ export default function AddressesPage() {
           ))}
         </div>
       )}
+
+      {/* ✅ ADDED: Mobile-specific styles */}
+      <style>{`
+        @media (max-width: 768px) {
+          .add-address-btn {
+            width: 100% !important;
+            max-width: none !important;
+            align-self: stretch !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }
