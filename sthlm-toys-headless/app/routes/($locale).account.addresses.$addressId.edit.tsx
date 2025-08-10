@@ -1,5 +1,5 @@
 // FILE: app/routes/($locale).account.addresses.$addressId.edit.tsx
-// ✅ NEW: Edit address route
+// ✅ FIXED: Edit address route with proper parameter handling
 
 import {redirect, type LoaderFunctionArgs, type ActionFunctionArgs} from '@shopify/remix-oxygen';
 import {

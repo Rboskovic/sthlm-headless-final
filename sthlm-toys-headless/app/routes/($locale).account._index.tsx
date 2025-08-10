@@ -18,6 +18,12 @@ export async function loader({context}: LoaderFunctionArgs) {
 export default function AccountDashboard() {
   const {customer} = useOutletContext<{customer: CustomerFragment}>();
 
+  // ✅ FIXED: Filter out empty addresses like in addresses page
+  const allAddresses = customer?.addresses?.nodes || [];
+  const validAddresses = allAddresses.filter(address => 
+    address && address.id && (address.address1 || address.city)
+  );
+
   return (
     <div 
       style={{ 
@@ -77,16 +83,16 @@ export default function AccountDashboard() {
           icon={<MapPin size={24} className="text-blue-600" />}
           title="My addresses"
           description={
-            customer?.addresses?.nodes?.length > 0 
+            validAddresses.length > 0 
               ? "Manage your delivery addresses for faster checkout."
               : "Please add an address for faster future orders."
           }
           href="/account/addresses"
           details={
-            customer?.addresses?.nodes?.length > 0 
+            validAddresses.length > 0 
               ? [
-                  `Addresses: ${customer.addresses.nodes.length}`,
-                  customer?.defaultAddress 
+                  `Addresses: ${validAddresses.length}`,
+                  customer?.defaultAddress && (customer.defaultAddress.address1 || customer.defaultAddress.city)
                     ? `Default: ${customer.defaultAddress.city}${customer.defaultAddress.zoneCode ? `, ${customer.defaultAddress.zoneCode}` : ''}`
                     : 'No default address set'
                 ].filter(Boolean)

@@ -1,10 +1,18 @@
 // FILE: app/routes/($locale).account.addresses.tsx
-// ✅ FIXED: Proper default address, empty state, and address display
+// ✅ FIXED: Empty address handling, delete functionality, and proper routing
 
-import {redirect, type LoaderFunctionArgs} from '@shopify/remix-oxygen';
-import {useOutletContext, type MetaFunction, Link} from 'react-router';
+import {redirect, type LoaderFunctionArgs, type ActionFunctionArgs} from '@shopify/remix-oxygen';
+import {useOutletContext, type MetaFunction, Link, Form, useActionData, useNavigation} from 'react-router';
 import {MapPin, Plus, Edit, Trash2, Star} from 'lucide-react';
 import type {CustomerFragment} from 'customer-accountapi.generated';
+import {DELETE_ADDRESS_MUTATION} from '~/graphql/customer-account/CustomerAddressMutations';
+import {data} from '@shopify/remix-oxygen';
+
+export type ActionResponse = {
+  error?: string;
+  success?: boolean;
+  message?: string;
+};
 
 export const meta: MetaFunction = () => {
   return [{title: 'My Addresses'}];
@@ -23,15 +31,102 @@ export async function loader({context}: LoaderFunctionArgs) {
   }
 }
 
+export async function action({request, context}: ActionFunctionArgs) {
+  const {customerAccount} = context;
+
+  if (request.method !== 'DELETE') {
+    return data({error: 'Method not allowed'}, {status: 405});
+  }
+
+  const formData = await request.formData();
+  const addressId = formData.get('addressId') as string;
+
+  if (!addressId) {
+    return data({error: 'Address ID is required'}, {status: 400});
+  }
+
+  try {
+    const {data: mutationData, errors} = await customerAccount.mutate(
+      DELETE_ADDRESS_MUTATION,
+      {
+        variables: { addressId },
+      }
+    );
+
+    if (errors?.length) {
+      return data({
+        error: errors[0].message,
+        success: false,
+      });
+    }
+
+    if (mutationData?.customerAddressDelete?.userErrors?.length) {
+      return data({
+        error: mutationData.customerAddressDelete.userErrors[0].message,
+        success: false,
+      });
+    }
+
+    if (mutationData?.customerAddressDelete?.deletedAddressId) {
+      return data({
+        success: true,
+        message: 'Address deleted successfully',
+      });
+    }
+
+    return data({
+      error: 'Failed to delete address',
+      success: false,
+    });
+
+  } catch (error: any) {
+    return data({
+      error: error.message || 'An unexpected error occurred',
+      success: false,
+    });
+  }
+}
+
 export default function AddressesPage() {
   const {customer} = useOutletContext<{customer: CustomerFragment}>();
+  const actionData = useActionData<ActionResponse>();
 
-  // ✅ FIXED: Get actual addresses and default from customer data
-  const addresses = customer?.addresses?.nodes || [];
+  // ✅ FIXED: Filter out empty addresses and get valid addresses
+  const allAddresses = customer?.addresses?.nodes || [];
+  const validAddresses = allAddresses.filter(address => 
+    address && address.id && (address.address1 || address.city)
+  );
   const defaultAddressId = customer?.defaultAddress?.id;
 
   return (
     <div style={{ padding: '20px', maxWidth: '1000px', margin: '0 auto' }}>
+      {/* Success/Error Messages */}
+      {actionData?.success && (
+        <div style={{
+          backgroundColor: '#d4edda',
+          color: '#155724',
+          padding: '12px 16px',
+          borderRadius: '6px',
+          marginBottom: '20px',
+          border: '1px solid #c3e6cb'
+        }}>
+          {actionData.message}
+        </div>
+      )}
+      
+      {actionData?.error && (
+        <div style={{
+          backgroundColor: '#f8d7da',
+          color: '#721c24',
+          padding: '12px 16px',
+          borderRadius: '6px',
+          marginBottom: '20px',
+          border: '1px solid #f5c6cb'
+        }}>
+          {actionData.error}
+        </div>
+      )}
+
       <div style={{ 
         display: 'flex', 
         justifyContent: 'space-between', 
@@ -45,7 +140,7 @@ export default function AddressesPage() {
           </p>
         </div>
         <Link
-          to="/account/addresses/add"
+          to="/account/addresses/new"
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -67,8 +162,8 @@ export default function AddressesPage() {
         </Link>
       </div>
 
-      {/* ✅ IMPROVED: Empty state or addresses display */}
-      {addresses.length === 0 ? (
+      {/* ✅ FIXED: Show only valid addresses or empty state */}
+      {validAddresses.length === 0 ? (
         <div style={{ 
           textAlign: 'center', 
           padding: '60px 20px',
@@ -96,7 +191,7 @@ export default function AddressesPage() {
             Your first address will automatically become your default.
           </p>
           <Link
-            to="/account/addresses/add"
+            to="/account/addresses/new"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -120,7 +215,7 @@ export default function AddressesPage() {
           gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', 
           gap: '20px'
         }}>
-          {addresses.map((address) => (
+          {validAddresses.map((address) => (
             <AddressCard 
               key={address.id} 
               address={address} 
@@ -150,6 +245,9 @@ interface AddressCardProps {
 }
 
 function AddressCard({ address, isDefault }: AddressCardProps) {
+  const navigation = useNavigation();
+  const isDeleting = navigation.state === 'submitting' && navigation.formData?.get('addressId') === address.id;
+
   return (
     <div style={{
       backgroundColor: 'white',
@@ -225,7 +323,7 @@ function AddressCard({ address, isDefault }: AddressCardProps) {
         paddingTop: '16px'
       }}>
         <Link
-          to={`/account/addresses/${address.id}/edit`}
+          to={`/account/addresses/edit/${address.id}`}
           style={{
             flex: '1',
             display: 'flex',
@@ -254,40 +352,48 @@ function AddressCard({ address, isDefault }: AddressCardProps) {
           Edit
         </Link>
         
-        <button
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '6px',
-            padding: '8px 12px',
-            borderRadius: '6px',
-            border: '1px solid #fecaca',
-            backgroundColor: 'transparent',
-            color: '#dc2626',
-            fontSize: '13px',
-            fontWeight: '500',
-            cursor: 'pointer',
-            transition: 'all 0.2s ease'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = '#fef2f2';
-            e.currentTarget.style.borderColor = '#f87171';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'transparent';
-            e.currentTarget.style.borderColor = '#fecaca';
-          }}
-          onClick={() => {
-            if (confirm('Are you sure you want to delete this address?')) {
-              // TODO: Implement delete functionality
-              console.log('Delete address:', address.id);
-            }
-          }}
-        >
-          <Trash2 size={14} />
-          Delete
-        </button>
+        <Form method="delete" style={{ display: 'contents' }}>
+          <input type="hidden" name="addressId" value={address.id} />
+          <button
+            type="submit"
+            disabled={isDeleting}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              padding: '8px 12px',
+              borderRadius: '6px',
+              border: '1px solid #fecaca',
+              backgroundColor: 'transparent',
+              color: isDeleting ? '#9ca3af' : '#dc2626',
+              fontSize: '13px',
+              fontWeight: '500',
+              cursor: isDeleting ? 'not-allowed' : 'pointer',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={(e) => {
+              if (!isDeleting) {
+                e.currentTarget.style.backgroundColor = '#fef2f2';
+                e.currentTarget.style.borderColor = '#f87171';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!isDeleting) {
+                e.currentTarget.style.backgroundColor = 'transparent';
+                e.currentTarget.style.borderColor = '#fecaca';
+              }
+            }}
+            onClick={(e) => {
+              if (!isDeleting && !confirm('Are you sure you want to delete this address?')) {
+                e.preventDefault();
+              }
+            }}
+          >
+            <Trash2 size={14} />
+            {isDeleting ? 'Deleting...' : 'Delete'}
+          </button>
+        </Form>
       </div>
     </div>
   );
