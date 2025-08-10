@@ -1,10 +1,11 @@
 // FILE: app/routes/($locale).account.profile.tsx
-// ✅ ENHANCED: Added marketing preferences + customer since + removed email/phone fields
+// ✅ ENHANCED: Added marketing preferences + customer since + removed email/phone fields + separate profile query
 
 import type {CustomerFragment} from 'customer-accountapi.generated';
 import type {CustomerUpdateInput} from '@shopify/hydrogen/customer-account-api-types';
 import {CUSTOMER_UPDATE_MUTATION} from '~/graphql/customer-account/CustomerUpdateMutation';
 import {CUSTOMER_MARKETING_UPDATE_MUTATION} from '~/graphql/customer-account/CustomerMarketingUpdateMutation';
+import {CUSTOMER_PROFILE_QUERY} from '~/graphql/customer-account/CustomerProfileQuery';
 import {
   data,
   type ActionFunctionArgs,
@@ -13,14 +14,29 @@ import {
 import {
   Form,
   useActionData,
+  useLoaderData,
   useNavigation,
-  useOutletContext,
   type MetaFunction,
 } from 'react-router';
 
+// Enhanced customer type for profile page
+export type CustomerProfileData = {
+  id: string;
+  firstName?: string;
+  lastName?: string;
+  createdAt?: string;
+  acceptsMarketing?: boolean;
+  emailAddress?: {
+    emailAddress?: string;
+  };
+  phoneNumber?: {
+    phoneNumber?: string;
+  };
+};
+
 export type ActionResponse = {
   error: string | null;
-  customer: CustomerFragment | null;
+  customer: CustomerProfileData | null;
   success?: boolean;
   message?: string;
   actionType?: 'profile' | 'marketing';
@@ -32,7 +48,23 @@ export const meta: MetaFunction = () => {
 
 export async function loader({context}: LoaderFunctionArgs) {
   await context.customerAccount.handleAuthStatus();
-  return {};
+  
+  // Fetch enhanced customer data for profile page
+  try {
+    const {data: customerData, errors} = await context.customerAccount.query(
+      CUSTOMER_PROFILE_QUERY,
+    );
+
+    if (errors?.length || !customerData?.customer) {
+      // Fallback to basic customer data if enhanced query fails
+      return {customer: null};
+    }
+
+    return {customer: customerData.customer};
+  } catch (error) {
+    // Fallback to basic customer data if enhanced query fails
+    return {customer: null};
+  }
 }
 
 export async function action({request, context}: ActionFunctionArgs) {
@@ -145,19 +177,24 @@ export async function action({request, context}: ActionFunctionArgs) {
 }
 
 export default function AccountProfile() {
-  const account = useOutletContext<{customer: CustomerFragment}>();
+  const {customer: profileCustomer} = useLoaderData<typeof loader>();
   const {state} = useNavigation();
   const actionData = useActionData<ActionResponse>();
-  const customer = actionData?.customer ?? account?.customer;
+  const customer = actionData?.customer ?? profileCustomer;
   const isSubmitting = state === 'submitting';
 
   // Format customer since date
-  const formatCustomerSince = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'long'
-    });
+  const formatCustomerSince = (dateString?: string) => {
+    if (!dateString) return null;
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'long'
+      });
+    } catch {
+      return null;
+    }
   };
 
   return (
@@ -192,7 +229,7 @@ export default function AccountProfile() {
       )}
 
       {/* ✅ NEW: Customer Since Information */}
-      {customer?.createdAt && (
+      {customer?.createdAt && formatCustomerSince(customer.createdAt) && (
         <div style={{
           backgroundColor: 'white',
           padding: '20px',

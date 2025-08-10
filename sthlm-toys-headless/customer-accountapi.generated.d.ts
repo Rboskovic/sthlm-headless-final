@@ -66,17 +66,11 @@ export type CustomerAddressCreateMutation = {
   }>;
 };
 
-// ✅ UPDATED: Enhanced CustomerFragment with new fields
+// ✅ RESTORED: Original CustomerFragment with new CustomerProfileFragment added
 export type CustomerFragment = Pick<
   CustomerAccountAPI.Customer,
-  'id' | 'firstName' | 'lastName' | 'createdAt' | 'acceptsMarketing'
+  'id' | 'firstName' | 'lastName'
 > & {
-  emailAddress?: CustomerAccountAPI.Maybe<
-    Pick<CustomerAccountAPI.CustomerEmailAddress, 'emailAddress'>
-  >;
-  phoneNumber?: CustomerAccountAPI.Maybe<
-    Pick<CustomerAccountAPI.CustomerPhoneNumber, 'phoneNumber'>
-  >;
   defaultAddress?: CustomerAccountAPI.Maybe<
     Pick<
       CustomerAccountAPI.CustomerAddress,
@@ -115,6 +109,19 @@ export type CustomerFragment = Pick<
   };
 };
 
+// ✅ NEW: Enhanced fragment for profile page only
+export type CustomerProfileFragment = Pick<
+  CustomerAccountAPI.Customer,
+  'id' | 'firstName' | 'lastName' | 'createdAt' | 'acceptsMarketing'
+> & {
+  emailAddress?: CustomerAccountAPI.Maybe<
+    Pick<CustomerAccountAPI.CustomerEmailAddress, 'emailAddress'>
+  >;
+  phoneNumber?: CustomerAccountAPI.Maybe<
+    Pick<CustomerAccountAPI.CustomerPhoneNumber, 'phoneNumber'>
+  >;
+};
+
 export type AddressFragment = Pick<
   CustomerAccountAPI.CustomerAddress,
   | 'id'
@@ -135,18 +142,12 @@ export type CustomerDetailsQueryVariables = CustomerAccountAPI.Exact<{
   [key: string]: never;
 }>;
 
-// ✅ UPDATED: Enhanced CustomerDetailsQuery with new fields
+// ✅ RESTORED: Original CustomerDetailsQuery
 export type CustomerDetailsQuery = {
   customer: Pick<
     CustomerAccountAPI.Customer,
-    'id' | 'firstName' | 'lastName' | 'createdAt' | 'acceptsMarketing'
+    'id' | 'firstName' | 'lastName'
   > & {
-    emailAddress?: CustomerAccountAPI.Maybe<
-      Pick<CustomerAccountAPI.CustomerEmailAddress, 'emailAddress'>
-    >;
-    phoneNumber?: CustomerAccountAPI.Maybe<
-      Pick<CustomerAccountAPI.CustomerPhoneNumber, 'phoneNumber'>
-    >;
     defaultAddress?: CustomerAccountAPI.Maybe<
       Pick<
         CustomerAccountAPI.CustomerAddress,
@@ -183,6 +184,25 @@ export type CustomerDetailsQuery = {
         >
       >;
     };
+  };
+};
+
+// ✅ NEW: Enhanced query for profile page
+export type CustomerProfileQueryVariables = CustomerAccountAPI.Exact<{
+  [key: string]: never;
+}>;
+
+export type CustomerProfileQuery = {
+  customer: Pick<
+    CustomerAccountAPI.Customer,
+    'id' | 'firstName' | 'lastName' | 'createdAt' | 'acceptsMarketing'
+  > & {
+    emailAddress?: CustomerAccountAPI.Maybe<
+      Pick<CustomerAccountAPI.CustomerEmailAddress, 'emailAddress'>
+    >;
+    phoneNumber?: CustomerAccountAPI.Maybe<
+      Pick<CustomerAccountAPI.CustomerPhoneNumber, 'phoneNumber'>
+    >;
   };
 };
 

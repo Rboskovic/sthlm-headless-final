@@ -1,5 +1,5 @@
 // FILE: app/routes/($locale).account._index.tsx
-// ✅ ENHANCED: Updated account details card + added customer since info
+// ✅ RESTORED: Basic account dashboard using standard customer fields
 
 import {redirect, type LoaderFunctionArgs} from '@shopify/remix-oxygen';
 import {Link, useOutletContext, type MetaFunction} from 'react-router';
@@ -17,15 +17,6 @@ export async function loader({context}: LoaderFunctionArgs) {
 
 export default function AccountDashboard() {
   const {customer} = useOutletContext<{customer: CustomerFragment}>();
-
-  // Format customer since date
-  const formatCustomerSince = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'long'
-    });
-  };
 
   return (
     <div 
@@ -70,8 +61,6 @@ export default function AccountDashboard() {
           href="/account/profile"
           details={[
             `Name: ${customer?.firstName || ''} ${customer?.lastName || ''}`.trim() || 'Not set',
-            customer?.createdAt ? `Customer since: ${formatCustomerSince(customer.createdAt)}` : '',
-            `Marketing emails: ${customer?.acceptsMarketing ? 'Subscribed' : 'Not subscribed'}`,
           ].filter(Boolean)}
         />
 
