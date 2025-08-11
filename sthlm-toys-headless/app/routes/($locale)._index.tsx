@@ -4,7 +4,9 @@
 import {type LoaderFunctionArgs} from '@shopify/remix-oxygen';
 import {Await, useLoaderData, Link, type MetaFunction} from 'react-router';
 import {Suspense, useState} from 'react';
-import {Image, Money, CartForm} from '@shopify/hydrogen';
+import {Image, Money} from '@shopify/hydrogen';
+import { AddToCartButton } from '~/components/AddToCartButton';
+import { useAside } from '~/components/Aside';
 import type {
   FeaturedCollectionFragment,
   RecommendedProductsQuery,
@@ -341,7 +343,7 @@ export default function Homepage() {
   );
 }
 
-// ✅ FIXED: Updated RecommendedProductCard with ADD TO CART BUTTON
+// ✅ FIXED: Updated RecommendedProductCard with ADD TO CART BUTTON SAME AS COLLECTION PAGE
 function RecommendedProductCard({
   product,
   loading,
@@ -351,6 +353,7 @@ function RecommendedProductCard({
   loading?: 'eager' | 'lazy';
   variant?: 'desktop' | 'mobile';
 }) {
+  const { open } = useAside();
   const productVariant = product.selectedOrFirstAvailableVariant;
   const [isAdding, setIsAdding] = useState(false);
 
@@ -365,48 +368,51 @@ function RecommendedProductCard({
   };
 
   return (
-    <Link
-      className="recommended-product group block"
-      key={product.id}
-      prefetch="intent"
-      to={`/products/${product.handle}`}
-      style={cardStyle}
-    >
+    <div className="recommended-product group" style={cardStyle}>
       {/* ✅ FIXED: Flexbox layout for consistent card heights */}
       <div className={`bg-white border border-gray-200 rounded-lg overflow-hidden group-hover:shadow-lg transition-all duration-200 h-full flex flex-col ${isAdding ? 'scale-105 shadow-xl' : ''}`}>
-        {/* ✅ FIXED: Product Image with proper containment */}
-        <div className="relative aspect-square bg-gray-50 flex-shrink-0">
-          {product.featuredImage ? (
-            <Image
-              data={product.featuredImage}
-              aspectRatio="1/1"
-              sizes={variant === 'desktop' ? "(min-width: 768px) 25vw, 50vw" : "180px"}
-              className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-200"
-              loading={loading}
-              style={{
-                padding: '8px', // Add padding to ensure full product visibility
-              }}
-            />
-          ) : (
-            <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-              <span className="text-gray-400 text-sm">Ingen bild</span>
-            </div>
-          )}
-        </div>
+        {/* Product Image */}
+        <Link
+          key={product.id}
+          prefetch="intent"
+          to={`/products/${product.handle}`}
+          className="block relative flex-shrink-0"
+        >
+          <div className="relative aspect-square bg-gray-50">
+            {product.featuredImage ? (
+              <Image
+                data={product.featuredImage}
+                aspectRatio="1/1"
+                sizes={variant === 'desktop' ? "(min-width: 768px) 25vw, 50vw" : "180px"}
+                className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-200"
+                loading={loading}
+                style={{
+                  padding: '8px', // Add padding to ensure full product visibility
+                }}
+              />
+            ) : (
+              <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                <span className="text-gray-400 text-sm">Ingen bild</span>
+              </div>
+            )}
+          </div>
+        </Link>
 
         {/* ✅ FIXED: Product Info with flex-grow to fill remaining space */}
         <div className="p-4 flex flex-col flex-grow">
-          <h4 
-            className="font-medium text-gray-900 mb-2 line-clamp-2"
-            style={{
-              fontSize: variant === 'desktop' ? '16px' : '14px',
-              lineHeight: variant === 'desktop' ? '20px' : '18px',
-              fontFamily:
-                "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-            }}
-          >
-            {product.title}
-          </h4>
+          <Link to={`/products/${product.handle}`} prefetch="intent">
+            <h4 
+              className="font-medium text-gray-900 mb-2 line-clamp-2 hover:text-blue-600 transition-colors"
+              style={{
+                fontSize: variant === 'desktop' ? '16px' : '14px',
+                lineHeight: variant === 'desktop' ? '20px' : '18px',
+                fontFamily:
+                  "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+              }}
+            >
+              {product.title}
+            </h4>
+          </Link>
 
           {/* Price */}
           {productVariant?.price && (
@@ -426,52 +432,43 @@ function RecommendedProductCard({
           {/* ✅ FIXED: Spacer to push button to bottom */}
           <div className="flex-grow"></div>
 
-          {/* ✅ NEW: Working Add to Cart Button */}
+          {/* ✅ FIXED: Working Add to Cart Button - SAME AS COLLECTION PAGE */}
           {productVariant && (
-            <CartForm
-              route="/cart"
-              inputs={{
-                lines: [{
+            <AddToCartButton
+              disabled={!productVariant.availableForSale}
+              onClick={() => {
+                handleAddToCart();
+                open('cart');
+              }}
+              lines={[
+                {
                   merchandiseId: productVariant.id,
                   quantity: 1,
-                }],
+                },
+              ]}
+              analytics={{
+                products: [
+                  {
+                    productGid: product.id,
+                    variantGid: productVariant.id,
+                    name: product.title,
+                    variantName: productVariant.title || product.title,
+                    brand: product.vendor,
+                    price: productVariant.price.amount,
+                    quantity: 1,
+                  },
+                ],
               }}
-              action={CartForm.ACTIONS.LinesAdd}
+              variant="addToCart"
+              size={variant === 'desktop' ? 'md' : 'sm'}
+              className="w-full"
             >
-              {(fetcher) => (
-                <button
-                  type="submit"
-                  disabled={!productVariant.availableForSale || fetcher.state === 'submitting'}
-                  className={`w-full py-3 px-4 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 shadow-sm hover:shadow-md ${
-                    productVariant.availableForSale 
-                      ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                      : 'bg-gray-400 text-gray-600 cursor-not-allowed'
-                  }`}
-                  style={{
-                    fontSize: variant === 'desktop' ? '14px' : '13px',
-                    fontFamily:
-                      "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                  }}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    if (productVariant.availableForSale && fetcher.state !== 'submitting') {
-                      handleAddToCart();
-                      fetcher.submit({});
-                    }
-                  }}
-                >
-                  {fetcher.state === 'submitting' 
-                    ? 'Lägger till...' 
-                    : (productVariant.availableForSale ? 'Lägg i varukorg' : 'Slutsåld')
-                  }
-                </button>
-              )}
-            </CartForm>
+              {productVariant.availableForSale ? 'Lägg i varukorg' : 'Slutsåld'}
+            </AddToCartButton>
           )}
         </div>
       </div>
-    </Link>
+    </div>
   );
 }
 

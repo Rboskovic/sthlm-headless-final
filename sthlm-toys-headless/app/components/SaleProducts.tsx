@@ -3,8 +3,10 @@
 
 import { useState, useRef } from 'react';
 import { Link } from 'react-router';
-import { Image, Money, CartForm } from '@shopify/hydrogen';
+import { Image, Money } from '@shopify/hydrogen';
 import { Percent, Clock } from 'lucide-react';
+import { AddToCartButton } from './AddToCartButton';
+import { useAside } from './Aside';
 import type { ProductFragment } from 'storefrontapi.generated';
 
 interface SaleProductsProps {
@@ -171,10 +173,6 @@ export function SaleProducts({
                   <span>{productsOnSale.length} med rabatt</span>
                 </div>
               )}
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span>Fri frakt över 500 kr</span>
-              </div>
             </div>
           </div>
 
@@ -254,7 +252,7 @@ export function SaleProducts({
               <div className="text-center">
                 <Link
                   to="/collections/sale-homepage-products"
-                  className="inline-flex items-center justify-center px-6 py-3 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-all duration-200 transform hover:scale-105 shadow-sm hover:shadow-md"
+                  className="inline-flex items-center justify-center px-6 py-3 bg-red-600 !text-white rounded-lg font-medium hover:bg-red-700 transition-all duration-200 transform hover:scale-105 shadow-sm hover:shadow-md"
                   style={{
                     fontSize: '16px',
                     fontFamily:
@@ -285,6 +283,7 @@ function SaleProductCard({
   variant: 'desktop' | 'mobile';
   hasActuallyDragged?: boolean;
 }) {
+  const { open } = useAside();
   const firstVariant = product.selectedOrFirstAvailableVariant;
   const isOnSale = firstVariant?.compareAtPrice && 
     parseFloat(firstVariant.compareAtPrice.amount) > parseFloat(firstVariant.price.amount);
@@ -311,18 +310,17 @@ function SaleProductCard({
   };
 
   return (
-    <Link
-      to={`/products/${product.handle}`}
+    <div
       className="group block"
       style={{
         ...cardStyle,
         pointerEvents: hasActuallyDragged ? 'none' : 'auto',
       }}
     >
-      {/* ✅ FIXED: Flexbox layout for consistent card heights */}
+      {/* ✅ FIXED: Flexbox layout for consistent card heights + Loading animation */}
       <div className={`bg-white border border-gray-200 rounded-lg overflow-hidden group-hover:shadow-lg transition-all duration-200 h-full flex flex-col ${isAdding ? 'scale-105 shadow-xl' : ''}`}>
-        {/* Product Image */}
-        <div className="relative aspect-square bg-gray-50 flex-shrink-0">
+        {/* ✅ FIXED: Only image wrapped in Link - NOT the entire card */}
+        <Link to={`/products/${product.handle}`} className="relative aspect-square bg-gray-50 flex-shrink-0 block">
           {firstVariant?.image?.url ? (
             <Image
               data={firstVariant.image}
@@ -351,21 +349,24 @@ function SaleProductCard({
               -{discountPercentage}%
             </div>
           )}
-        </div>
+        </Link>
 
         {/* ✅ FIXED: Product Info with flex-grow to fill remaining space */}
         <div className="p-4 flex flex-col flex-grow">
-          <h3 
-            className="font-medium text-gray-900 mb-2 line-clamp-2"
-            style={{
-              fontSize: variant === 'desktop' ? '16px' : '14px',
-              lineHeight: variant === 'desktop' ? '20px' : '18px',
-              fontFamily:
-                "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-            }}
-          >
-            {product.title}
-          </h3>
+          {/* ✅ FIXED: Only title wrapped in Link */}
+          <Link to={`/products/${product.handle}`}>
+            <h3 
+              className="font-medium text-gray-900 mb-2 line-clamp-2 hover:text-red-600 transition-colors"
+              style={{
+                fontSize: variant === 'desktop' ? '16px' : '14px',
+                lineHeight: variant === 'desktop' ? '20px' : '18px',
+                fontFamily:
+                  "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+              }}
+            >
+              {product.title}
+            </h3>
+          </Link>
 
           {/* Price */}
           {firstVariant?.price && (
@@ -391,52 +392,43 @@ function SaleProductCard({
           {/* ✅ FIXED: Spacer to push button to bottom */}
           <div className="flex-grow"></div>
 
-          {/* ✅ FIXED: Working Add to Cart Button - NOW ON MOBILE TOO */}
+          {/* ✅ FIXED: Add to Cart Button - SEPARATE from Link */}
           {firstVariant && (
-            <CartForm
-              route="/cart"
-              inputs={{
-                lines: [{
+            <AddToCartButton
+              disabled={!firstVariant.availableForSale}
+              onClick={() => {
+                handleAddToCart();
+                open('cart');
+              }}
+              lines={[
+                {
                   merchandiseId: firstVariant.id,
                   quantity: 1,
-                }],
+                },
+              ]}
+              analytics={{
+                products: [
+                  {
+                    productGid: product.id,
+                    variantGid: firstVariant.id,
+                    name: product.title,
+                    variantName: firstVariant.title || product.title,
+                    brand: product.vendor,
+                    price: firstVariant.price.amount,
+                    quantity: 1,
+                  },
+                ],
               }}
-              action={CartForm.ACTIONS.LinesAdd}
+              variant="addToCart"
+              size={variant === 'desktop' ? 'md' : 'sm'}
+              className="w-full"
             >
-              {(fetcher) => (
-                <button
-                  type="submit"
-                  disabled={!firstVariant.availableForSale || fetcher.state === 'submitting'}
-                  className={`w-full py-3 px-4 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 shadow-sm hover:shadow-md ${
-                    firstVariant.availableForSale 
-                      ? 'bg-red-600 text-white hover:bg-red-700' 
-                      : 'bg-gray-400 text-gray-600 cursor-not-allowed'
-                  }`}
-                  style={{
-                    fontSize: variant === 'desktop' ? '14px' : '13px',
-                    fontFamily:
-                      "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                  }}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    if (firstVariant.availableForSale && fetcher.state !== 'submitting') {
-                      handleAddToCart();
-                      fetcher.submit({});
-                    }
-                  }}
-                >
-                  {fetcher.state === 'submitting' 
-                    ? 'Lägger till...' 
-                    : (firstVariant.availableForSale ? 'Lägg i varukorg' : 'Slutsåld')
-                  }
-                </button>
-              )}
-            </CartForm>
+              {firstVariant.availableForSale ? 'Lägg i varukorg' : 'Slutsåld'}
+            </AddToCartButton>
           )}
         </div>
       </div>
-    </Link>
+    </div>
   );
 }
 
