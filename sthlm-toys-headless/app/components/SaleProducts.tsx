@@ -1,5 +1,5 @@
 // FILE: app/components/SaleProducts.tsx
-// ✅ SHOPIFY HYDROGEN STANDARDS: Sale products section for homepage
+// ✅ SHOPIFY HYDROGEN STANDARDS: FIXED - Correct SectionHeading props
 
 import { Link } from 'react-router';
 import { ProductGrid } from '~/components/ui/ProductCard';
@@ -84,18 +84,29 @@ export function SaleProducts({
               )}
             </div>
             
-            {/* ✅ FIXED: Use safe props for SectionHeading */}
+            {/* ✅ FIXED: Use correct SectionHeading props */}
             <SectionHeading
               title={safeTitle}
               subtitle={safeSubtitle}
-              align="left"
-              size="lg"
-              action={showViewAll ? {
-                label: "View All Sale Items",
-                href: "/collections/sale-homepage-products"
-              } : undefined}
-              spacing="lg"
+              alignment="left"
+              size="large"
+              className="mb-8 lg:mb-12"
             />
+            
+            {/* View All Link - positioned after heading */}
+            {showViewAll && (
+              <div className="flex justify-end mb-6">
+                <Link
+                  to="/collections/sale-homepage-products"
+                  className="text-red-600 hover:text-red-700 font-medium text-sm flex items-center gap-1 hover:underline"
+                >
+                  View All Sale Items
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </Link>
+              </div>
+            )}
           </div>
 
           {/* Products Grid */}
@@ -161,22 +172,19 @@ export function SaleProductsSkeleton() {
                 {/* Sale Badge Skeleton */}
                 <div className="relative">
                   <div className="aspect-square bg-gray-200"></div>
-                  <div className="absolute top-2 left-2 h-6 w-12 bg-red-200 rounded"></div>
+                  <div className="absolute top-2 left-2 h-6 w-16 bg-gray-300 rounded-full"></div>
                 </div>
                 <div className="p-4">
                   <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                  <div className="flex items-center gap-2">
-                    <div className="h-5 bg-gray-200 rounded w-1/3"></div>
-                    <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-                  </div>
+                  <div className="h-3 bg-gray-200 rounded w-16 mb-3"></div>
+                  <div className="h-8 bg-gray-200 rounded"></div>
                 </div>
               </div>
             ))}
           </div>
 
           {/* Stats Skeleton */}
-          <div className="flex flex-wrap items-center justify-center gap-6 mb-8">
+          <div className="flex flex-wrap items-center justify-center gap-6 mb-8 text-sm">
             {[...Array(3)].map((_, i) => (
               <div key={i} className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-gray-200 rounded-full"></div>
@@ -184,15 +192,8 @@ export function SaleProductsSkeleton() {
               </div>
             ))}
           </div>
-
-          {/* Mobile Button Skeleton */}
-          <div className="block sm:hidden pb-12">
-            <div className="h-12 bg-gray-200 rounded"></div>
-          </div>
         </div>
       </div>
     </section>
   );
 }
-
-export type { SaleProductsProps };

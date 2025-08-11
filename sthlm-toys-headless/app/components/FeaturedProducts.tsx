@@ -1,5 +1,5 @@
 // FILE: app/components/FeaturedProducts.tsx
-// ✅ SHOPIFY HYDROGEN STANDARDS: Featured products section for homepage
+// ✅ SHOPIFY HYDROGEN STANDARDS: FIXED - Correct SectionHeading props
 
 import { Link } from 'react-router';
 import { ProductGrid } from '~/components/ui/ProductCard';
@@ -56,18 +56,29 @@ export function FeaturedProducts({
           </span>
         </div>
         
-        {/* ✅ FIXED: Use safe props for SectionHeading */}
+        {/* ✅ FIXED: Use correct SectionHeading props */}
         <SectionHeading
           title={safeTitle}
           subtitle={safeSubtitle}
-          align="left"
-          size="lg"
-          action={showViewAll ? {
-            label: "View All Featured",
-            href: "/collections/featured-homepage-products"
-          } : undefined}
-          spacing="lg"
+          alignment="left"
+          size="large"
+          className="mb-8 lg:mb-12"
         />
+        
+        {/* View All Link - positioned after heading */}
+        {showViewAll && (
+          <div className="flex justify-end mb-6">
+            <Link
+              to="/collections/featured-homepage-products"
+              className="text-blue-600 hover:text-blue-700 font-medium text-sm flex items-center gap-1 hover:underline"
+            >
+              View All Featured Products
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </Link>
+          </div>
+        )}
 
         {/* Products Grid */}
         <ProductGrid
@@ -78,11 +89,20 @@ export function FeaturedProducts({
           className="gap-4 lg:gap-6"
         />
 
-        {/* Product Count Badge */}
-        <div className="text-center mt-6">
-          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-            {products.length} featured products
-          </span>
+        {/* Featured Stats */}
+        <div className="flex flex-wrap items-center justify-center gap-6 mt-8 text-sm text-gray-600">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+            <span>{products.length} featured items</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+            <span>Hand-picked by our team</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+            <span>Customer favorites</span>
+          </div>
         </div>
       </div>
     </section>
@@ -101,34 +121,44 @@ export function FeaturedProductsSkeleton() {
         {/* Header Skeleton */}
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between mb-8 lg:mb-12">
           <div className="mb-4 sm:mb-0">
-            <div className="h-4 w-20 bg-gray-200 rounded mb-2"></div>
+            <div className="flex items-center gap-2 mb-2">
+              <div className="h-5 w-5 bg-gray-200 rounded"></div>
+              <div className="h-4 w-16 bg-gray-200 rounded"></div>
+            </div>
             <div className="h-8 w-64 bg-gray-200 rounded mb-2"></div>
             <div className="h-4 w-48 bg-gray-200 rounded"></div>
           </div>
-          <div className="hidden sm:block h-10 w-32 bg-gray-200 rounded"></div>
+          <div className="hidden sm:block h-10 w-36 bg-gray-200 rounded"></div>
         </div>
 
         {/* Products Grid Skeleton */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6 mb-8">
           {[...Array(8)].map((_, i) => (
             <div key={i} className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-              <div className="aspect-square bg-gray-200"></div>
+              {/* Featured Badge Skeleton */}
+              <div className="relative">
+                <div className="aspect-square bg-gray-200"></div>
+                <div className="absolute top-2 left-2 h-6 w-16 bg-gray-300 rounded-full"></div>
+              </div>
               <div className="p-4">
                 <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                <div className="h-5 bg-gray-200 rounded w-1/2"></div>
+                <div className="h-3 bg-gray-200 rounded w-16 mb-3"></div>
+                <div className="h-8 bg-gray-200 rounded"></div>
               </div>
             </div>
           ))}
         </div>
 
-        {/* Mobile Button Skeleton */}
-        <div className="block sm:hidden">
-          <div className="h-12 bg-gray-200 rounded"></div>
+        {/* Stats Skeleton */}
+        <div className="flex flex-wrap items-center justify-center gap-6 text-sm">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-gray-200 rounded-full"></div>
+              <div className="h-4 w-20 bg-gray-200 rounded"></div>
+            </div>
+          ))}
         </div>
       </div>
     </section>
   );
 }
-
-export type { FeaturedProductsProps };

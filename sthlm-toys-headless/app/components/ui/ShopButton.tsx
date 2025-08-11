@@ -1,5 +1,5 @@
 // FILE: app/components/ui/ShopButton.tsx
-// ✅ SHOPIFY HYDROGEN STANDARDS: Reusable button component with consistent styling
+// ✅ SHOPIFY HYDROGEN STANDARDS: FIXED - asChild prop support
 
 import {forwardRef} from 'react';
 import {Link} from 'react-router';
@@ -30,10 +30,8 @@ const buttonVariants = cva(
                   shadow-sm hover:shadow-md`,
         link: `text-blue-600 underline-offset-4 hover:underline hover:text-blue-700
                focus-visible:ring-blue-600 p-0 h-auto`,
-        // ✅ ADDED: Missing addToCart variant
         addToCart: `bg-blue-600 text-white hover:bg-blue-700 focus-visible:ring-blue-600
                     shadow-sm hover:shadow-md font-semibold tracking-wide`,
-        // ✅ ADDED: Missing cta variant  
         cta: `bg-yellow-500 text-black hover:bg-yellow-600 focus-visible:ring-yellow-500
               shadow-sm hover:shadow-md font-bold tracking-wide border-2 border-transparent
               hover:border-yellow-700`,
@@ -84,37 +82,7 @@ export interface ShopLinkButtonProps
 
 /**
  * ShopButton Component
- * 
- * @example
- * // Primary button
- * <ShopButton variant="primary" size="lg">
- *   Add to Cart
- * </ShopButton>
- * 
- * // Add to cart button
- * <ShopButton variant="addToCart" size="lg">
- *   LÄGG I VARUKORGEN
- * </ShopButton>
- * 
- * // CTA button
- * <ShopButton variant="cta" size="md">
- *   Handla nu
- * </ShopButton>
- * 
- * // Button with icon
- * <ShopButton leftIcon={<ShoppingCart />}>
- *   Shop Now
- * </ShopButton>
- * 
- * // Loading state
- * <ShopButton loading={true}>
- *   Processing...
- * </ShopButton>
- * 
- * // As a link
- * <ShopLinkButton to="/collections/all" variant="outline">
- *   View All Products
- * </ShopLinkButton>
+ * ✅ FIXED: Properly handles asChild prop
  */
 export const ShopButton = forwardRef<HTMLButtonElement, ShopButtonProps>(
   (
@@ -128,15 +96,31 @@ export const ShopButton = forwardRef<HTMLButtonElement, ShopButtonProps>(
       leftIcon,
       rightIcon,
       children,
+      asChild = false,
       ...props
     },
     ref
   ) => {
+    const buttonClasses = cn(buttonVariants({ variant, size, fullWidth, loading, className }));
+    
+    // ✅ FIXED: Handle asChild prop properly
+    if (asChild) {
+      // When asChild is true, render children directly with button styles
+      // This allows for <a> tags or other elements to inherit button styling
+      const childElement = children as React.ReactElement;
+      if (React.isValidElement(childElement)) {
+        return React.cloneElement(childElement, {
+          className: cn(buttonClasses, childElement.props.className),
+          ...props,
+        });
+      }
+    }
+
     return (
       <button
         ref={ref}
         disabled={disabled || loading}
-        className={cn(buttonVariants({ variant, size, fullWidth, loading, className }))}
+        className={buttonClasses}
         {...props}
       >
         {loading ? (
@@ -213,6 +197,9 @@ function LoadingIcon({className}: {className?: string}) {
     </svg>
   );
 }
+
+// ✅ FIXED: Add React import for cloneElement
+import React from 'react';
 
 // Export utility function for combining class names
 export {cn};
