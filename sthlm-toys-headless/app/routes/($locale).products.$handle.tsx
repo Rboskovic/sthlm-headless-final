@@ -346,7 +346,6 @@ const PRODUCT_QUERY = `#graphql
       id
       vendor
     }
-    quantityAvailable
     selectedOptions {
       name
       value

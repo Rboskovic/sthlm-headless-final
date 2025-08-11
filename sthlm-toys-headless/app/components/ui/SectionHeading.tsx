@@ -1,238 +1,165 @@
 // FILE: app/components/ui/SectionHeading.tsx
-// ✅ SHOPIFY HYDROGEN STANDARDS: Consistent section headings
+// ✅ SHOPIFY HYDROGEN STANDARDS: Reusable section heading component
 
-import {Link} from 'react-router';
-import {cn} from '~/lib/utils';
-import {ChevronRight} from 'lucide-react';
+import { cn } from '~/lib/utils';
 
 interface SectionHeadingProps {
   title: string;
   subtitle?: string;
-  action?: {
-    label: string;
-    href: string;
-  };
-  align?: 'left' | 'center' | 'right';
-  size?: 'sm' | 'md' | 'lg' | 'xl';
+  alignment?: 'left' | 'center' | 'right';
+  size?: 'small' | 'medium' | 'large';
   className?: string;
-  separator?: boolean;
-  spacing?: 'none' | 'sm' | 'md' | 'lg';
+  titleClassName?: string;
+  subtitleClassName?: string;
+  as?: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
 }
 
 /**
  * SectionHeading Component
- * Consistent section headers throughout the store
+ * Consistent section headings across all pages
  * 
  * @example
- * // Simple heading
- * <SectionHeading title="Popular Categories" />
- * 
- * // With subtitle and action
+ * // Basic heading
  * <SectionHeading 
- *   title="Best Sellers"
- *   subtitle="Our most popular toys this month"
- *   action={{ label: "View All", href: "/collections/best-sellers" }}
+ *   title="Featured Products" 
+ *   subtitle="Discover our favorites"
  * />
  * 
- * // Centered large heading
+ * // Large centered heading
  * <SectionHeading 
- *   title="Featured Products"
- *   align="center"
- *   size="lg"
- *   separator
+ *   title="Sale Products"
+ *   subtitle="Limited time offers"
+ *   size="large"
+ *   alignment="center"
+ * />
+ * 
+ * // Custom heading level
+ * <SectionHeading 
+ *   title="Shop By Brand"
+ *   as="h3"
+ *   size="small"
  * />
  */
 export function SectionHeading({
   title,
   subtitle,
-  action,
-  align = 'left',
-  size = 'md',
-  className,
-  separator = false,
-  spacing = 'md',
+  alignment = 'left',
+  size = 'medium',
+  className = '',
+  titleClassName = '',
+  subtitleClassName = '',
+  as = 'h2',
 }: SectionHeadingProps) {
-  const alignClasses = {
+  
+  // Dynamic styles based on props
+  const alignmentClasses = {
     left: 'text-left',
     center: 'text-center',
     right: 'text-right',
   };
 
   const sizeClasses = {
-    sm: {
-      title: 'text-xl md:text-2xl font-semibold',
-      subtitle: 'text-sm text-gray-600 mt-1',
+    small: {
+      title: 'text-xl lg:text-2xl',
+      subtitle: 'text-sm',
+      spacing: 'mb-2',
     },
-    md: {
-      title: 'text-2xl md:text-3xl font-semibold',
-      subtitle: 'text-base text-gray-600 mt-2',
+    medium: {
+      title: 'text-2xl lg:text-3xl',
+      subtitle: 'text-base',
+      spacing: 'mb-3',
     },
-    lg: {
-      title: 'text-3xl md:text-4xl font-bold',
-      subtitle: 'text-lg text-gray-600 mt-2',
-    },
-    xl: {
-      title: 'text-4xl md:text-5xl font-bold',
-      subtitle: 'text-xl text-gray-600 mt-3',
+    large: {
+      title: 'text-3xl lg:text-4xl xl:text-5xl',
+      subtitle: 'text-lg lg:text-xl',
+      spacing: 'mb-4',
     },
   };
 
-  const spacingClasses = {
-    none: '',
-    sm: 'mb-4',
-    md: 'mb-6 md:mb-8',
-    lg: 'mb-8 md:mb-12',
-  };
-
-  const hasAction = action && align !== 'center';
+  const HeadingTag = as;
+  const styles = sizeClasses[size];
 
   return (
-    <div className={cn(spacingClasses[spacing], className)}>
-      <div
+    <div className={cn(alignmentClasses[alignment], className)}>
+      {/* Main Title */}
+      <HeadingTag 
         className={cn(
-          'section-heading',
-          hasAction && 'flex items-end justify-between',
-          !hasAction && alignClasses[align]
+          'font-bold text-gray-900 tracking-tight leading-tight',
+          styles.title,
+          styles.spacing,
+          titleClassName
         )}
       >
-        <div className={hasAction ? '' : alignClasses[align]}>
-          <h2
-            className={cn(
-              'text-gray-900',
-              sizeClasses[size].title,
-              'font-family-primary' // Will use our CSS variable
-            )}
-            style={{
-              fontFamily: 'var(--font-primary)',
-              letterSpacing: '-0.02em',
-            }}
-          >
-            {title}
-          </h2>
-          {subtitle && (
-            <p
-              className={cn(
-                sizeClasses[size].subtitle,
-                'font-family-primary'
-              )}
-              style={{
-                fontFamily: 'var(--font-primary)',
-              }}
-            >
-              {subtitle}
-            </p>
+        {title}
+      </HeadingTag>
+
+      {/* Subtitle */}
+      {subtitle && (
+        <p 
+          className={cn(
+            'text-gray-600 leading-relaxed max-w-3xl',
+            styles.subtitle,
+            alignment === 'center' && 'mx-auto',
+            subtitleClassName
           )}
-        </div>
-
-        {hasAction && (
-          <Link
-            to={action.href}
-            className={cn(
-              'inline-flex items-center gap-1',
-              'text-blue-600 hover:text-blue-700',
-              'font-medium transition-colors',
-              size === 'sm' && 'text-sm',
-              size === 'md' && 'text-base',
-              size === 'lg' && 'text-lg',
-              size === 'xl' && 'text-xl'
-            )}
-          >
-            {action.label}
-            <ChevronRight className="h-4 w-4" />
-          </Link>
-        )}
-      </div>
-
-      {/* Centered action link */}
-      {action && align === 'center' && (
-        <div className="mt-4 text-center">
-          <Link
-            to={action.href}
-            className={cn(
-              'inline-flex items-center gap-1',
-              'text-blue-600 hover:text-blue-700',
-              'font-medium transition-colors',
-              size === 'sm' && 'text-sm',
-              size === 'md' && 'text-base',
-              size === 'lg' && 'text-lg',
-              size === 'xl' && 'text-xl'
-            )}
-          >
-            {action.label}
-            <ChevronRight className="h-4 w-4" />
-          </Link>
-        </div>
-      )}
-
-      {separator && (
-        <div className="mt-4 border-b border-gray-200" />
+        >
+          {subtitle}
+        </p>
       )}
     </div>
   );
 }
 
 /**
- * PageHeader Component
- * For main page headers with breadcrumbs
+ * SectionHeadingSkeleton Component
+ * Loading state for section headings
  */
-export function PageHeader({
-  title,
-  breadcrumbs,
-  children,
-  className,
+export function SectionHeadingSkeleton({
+  size = 'medium',
+  alignment = 'left',
+  showSubtitle = true,
 }: {
-  title: string;
-  breadcrumbs?: Array<{label: string; href?: string}>;
-  children?: React.ReactNode;
-  className?: string;
+  size?: 'small' | 'medium' | 'large';
+  alignment?: 'left' | 'center' | 'right';
+  showSubtitle?: boolean;
 }) {
+  const sizeClasses = {
+    small: { title: 'h-6', subtitle: 'h-4', width: 'w-48' },
+    medium: { title: 'h-8', subtitle: 'h-5', width: 'w-64' },
+    large: { title: 'h-10', subtitle: 'h-6', width: 'w-80' },
+  };
+
+  const alignmentClasses = {
+    left: 'items-start',
+    center: 'items-center',
+    right: 'items-end',
+  };
+
+  const styles = sizeClasses[size];
+
   return (
-    <div className={cn('page-header border-b bg-gray-50', className)}>
-      <div className="container py-8">
-        {/* Breadcrumbs */}
-        {breadcrumbs && breadcrumbs.length > 0 && (
-          <nav className="mb-4" aria-label="Breadcrumb">
-            <ol className="flex items-center space-x-2 text-sm">
-              {breadcrumbs.map((crumb, index) => (
-                <li key={index} className="flex items-center">
-                  {index > 0 && (
-                    <ChevronRight className="mx-2 h-4 w-4 text-gray-400" />
-                  )}
-                  {crumb.href ? (
-                    <Link
-                      to={crumb.href}
-                      className="text-gray-600 hover:text-gray-900 transition-colors"
-                    >
-                      {crumb.label}
-                    </Link>
-                  ) : (
-                    <span className="text-gray-900 font-medium">
-                      {crumb.label}
-                    </span>
-                  )}
-                </li>
-              ))}
-            </ol>
-          </nav>
+    <div className={cn('flex flex-col', alignmentClasses[alignment])}>
+      {/* Title skeleton */}
+      <div 
+        className={cn(
+          'bg-gray-200 rounded mb-3',
+          styles.title,
+          styles.width
         )}
-
-        {/* Title */}
-        <h1
-          className="text-3xl md:text-4xl font-bold text-gray-900"
-          style={{
-            fontFamily: 'var(--font-primary)',
-            letterSpacing: '-0.02em',
-          }}
-        >
-          {title}
-        </h1>
-
-        {/* Additional content (filters, sorting, etc.) */}
-        {children && <div className="mt-4">{children}</div>}
-      </div>
+      />
+      
+      {/* Subtitle skeleton */}
+      {showSubtitle && (
+        <div 
+          className={cn(
+            'bg-gray-200 rounded',
+            styles.subtitle,
+            'w-3/4'
+          )}
+        />
+      )}
     </div>
   );
 }
 
-// Export types for TypeScript
-export type {SectionHeadingProps};
+export type { SectionHeadingProps };
