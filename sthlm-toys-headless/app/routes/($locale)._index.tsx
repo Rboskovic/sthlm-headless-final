@@ -1,10 +1,10 @@
 // FILE: app/routes/($locale)._index.tsx
-// ✅ SHOPIFY HYDROGEN STANDARDS: Swedish translation + consistent styling
+// ✅ SHOPIFY HYDROGEN STANDARDS: Added Add to Cart to last section
 
 import {type LoaderFunctionArgs} from '@shopify/remix-oxygen';
 import {Await, useLoaderData, Link, type MetaFunction} from 'react-router';
-import {Suspense} from 'react';
-import {Image, Money} from '@shopify/hydrogen';
+import {Suspense, useState} from 'react';
+import {Image, Money, CartForm} from '@shopify/hydrogen';
 import type {
   FeaturedCollectionFragment,
   RecommendedProductsQuery,
@@ -239,7 +239,7 @@ export default function Homepage() {
         {/* ✅ EXISTING: Shop By Discount Section - exactly as you had it */}
         <ShopByDiscount discounts={data.shopByDiscountData} />
 
-        {/* ✅ FIXED: Recommended Products Section - Now with consistent styling like other sections */}
+        {/* ✅ FIXED: Recommended Products Section - NOW WITH ADD TO CART */}
         <Suspense fallback={<RecommendedProductsSkeleton />}>
           <Await resolve={data.recommendedProducts}>
             {(response) => {
@@ -262,44 +262,24 @@ export default function Homepage() {
                       paddingBottom: '16px',
                     }}
                   >
-                    {/* ✅ FIXED: Now uses same styling pattern as other sections */}
+                    {/* ✅ FIXED: Desktop layout - NO "Visa alla" link */}
                     <div className="hidden md:block">
-                      {/* Header with centered title and right-aligned Shop All link */}
-                      <div className="flex items-center justify-between mb-8">
-                        <div className="flex-1"></div>
-                        <div className="flex-1 flex justify-center">
-                          <h2
-                            className="text-black font-semibold"
-                            style={{
-                              fontSize: '36px',
-                              fontWeight: 600,
-                              lineHeight: '42px',
-                              fontFamily:
-                                "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                              color: 'rgb(33, 36, 39)',
-                              textAlign: 'center',
-                            }}
-                          >
-                            Du kanske också gillar
-                          </h2>
-                        </div>
-                        <div className="flex-1 flex justify-end">
-                          <Link
-                            to="/collections"
-                            className="text-blue-600 hover:text-blue-700 transition-colors duration-200"
-                            style={{
-                              fontSize: '18px',
-                              fontWeight: 500,
-                              fontFamily:
-                                "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                              color: '#3B82F6',
-                              textDecoration: 'none',
-                              alignSelf: 'center',
-                            }}
-                          >
-                            Visa alla produkter
-                          </Link>
-                        </div>
+                      {/* Header with ONLY centered title */}
+                      <div className="flex items-center justify-center mb-8">
+                        <h2
+                          className="text-black font-semibold"
+                          style={{
+                            fontSize: '36px',
+                            fontWeight: 600,
+                            lineHeight: '42px',
+                            fontFamily:
+                              "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                            color: 'rgb(33, 36, 39)',
+                            textAlign: 'center',
+                          }}
+                        >
+                          Du kanske också gillar
+                        </h2>
                       </div>
 
                       {/* Desktop Grid */}
@@ -315,9 +295,9 @@ export default function Homepage() {
                       </div>
                     </div>
 
-                    {/* Mobile Layout */}
+                    {/* ✅ FIXED: Mobile layout - NO "Visa alla" link */}
                     <div className="block md:hidden">
-                      {/* Mobile Title */}
+                      {/* Mobile Title - NO link below */}
                       <h2
                         className="text-black font-semibold text-center mb-6"
                         style={{
@@ -335,7 +315,7 @@ export default function Homepage() {
                       </h2>
 
                       {/* Mobile Grid - same as desktop but responsive */}
-                      <div className="grid grid-cols-2 gap-4 mb-6">
+                      <div className="grid grid-cols-2 gap-4">
                         {recommendedProducts.map((product: any, index: number) => (
                           <RecommendedProductCard
                             key={product.id}
@@ -345,38 +325,11 @@ export default function Homepage() {
                           />
                         ))}
                       </div>
-
-                      {/* Mobile Shop All Link */}
-                      <div className="text-center">
-                        <Link
-                          to="/collections"
-                          className="text-blue-600 hover:text-blue-700 transition-colors duration-200"
-                          style={{
-                            fontSize: '16px',
-                            fontWeight: 500,
-                            fontFamily:
-                              "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                            textDecoration: 'none',
-                          }}
-                        >
-                          Visa alla produkter
-                        </Link>
-                      </div>
+                      
+                      {/* ✅ REMOVED: NO "Visa alla produkter" link */}
                     </div>
 
-                    {/* Subtitle below products */}
-                    <div className="text-center mt-6">
-                      <p 
-                        className="text-gray-600"
-                        style={{
-                          fontSize: '16px',
-                          fontFamily:
-                            "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                        }}
-                      >
-                        Fler produkter baserat på vad andra kunder tittar på
-                      </p>
-                    </div>
+                    {/* ✅ REMOVED: NO subtitle "Fler produkter baserat på vad andra kunder tittar på" */}
                   </div>
                 </section>
               );
@@ -388,7 +341,7 @@ export default function Homepage() {
   );
 }
 
-// ✅ FIXED: Updated RecommendedProductCard with proper image containment
+// ✅ FIXED: Updated RecommendedProductCard with ADD TO CART BUTTON
 function RecommendedProductCard({
   product,
   loading,
@@ -399,22 +352,30 @@ function RecommendedProductCard({
   variant?: 'desktop' | 'mobile';
 }) {
   const productVariant = product.selectedOrFirstAvailableVariant;
+  const [isAdding, setIsAdding] = useState(false);
 
   const cardStyle = variant === 'desktop' 
-    ? { width: '100%', minHeight: '320px' }
-    : { width: '100%' };
+    ? { width: '100%', minHeight: '420px' } // Increased for button space
+    : { width: '100%', minHeight: '350px' };
+
+  const handleAddToCart = () => {
+    setIsAdding(true);
+    // Add animation feedback
+    setTimeout(() => setIsAdding(false), 1000);
+  };
 
   return (
     <Link
-      className="recommended-product group"
+      className="recommended-product group block"
       key={product.id}
       prefetch="intent"
       to={`/products/${product.handle}`}
       style={cardStyle}
     >
-      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden group-hover:shadow-lg transition-shadow duration-200 h-full">
+      {/* ✅ FIXED: Flexbox layout for consistent card heights */}
+      <div className={`bg-white border border-gray-200 rounded-lg overflow-hidden group-hover:shadow-lg transition-all duration-200 h-full flex flex-col ${isAdding ? 'scale-105 shadow-xl' : ''}`}>
         {/* ✅ FIXED: Product Image with proper containment */}
-        <div className="relative aspect-square bg-gray-50">
+        <div className="relative aspect-square bg-gray-50 flex-shrink-0">
           {product.featuredImage ? (
             <Image
               data={product.featuredImage}
@@ -433,8 +394,8 @@ function RecommendedProductCard({
           )}
         </div>
 
-        {/* Product Info */}
-        <div className="p-4">
+        {/* ✅ FIXED: Product Info with flex-grow to fill remaining space */}
+        <div className="p-4 flex flex-col flex-grow">
           <h4 
             className="font-medium text-gray-900 mb-2 line-clamp-2"
             style={{
@@ -449,7 +410,7 @@ function RecommendedProductCard({
 
           {/* Price */}
           {productVariant?.price && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 mb-3">
               <Money 
                 data={productVariant.price}
                 className="font-semibold text-gray-900"
@@ -461,13 +422,60 @@ function RecommendedProductCard({
               />
             </div>
           )}
+
+          {/* ✅ FIXED: Spacer to push button to bottom */}
+          <div className="flex-grow"></div>
+
+          {/* ✅ NEW: Working Add to Cart Button */}
+          {productVariant && (
+            <CartForm
+              route="/cart"
+              inputs={{
+                lines: [{
+                  merchandiseId: productVariant.id,
+                  quantity: 1,
+                }],
+              }}
+              action={CartForm.ACTIONS.LinesAdd}
+            >
+              {(fetcher) => (
+                <button
+                  type="submit"
+                  disabled={!productVariant.availableForSale || fetcher.state === 'submitting'}
+                  className={`w-full py-3 px-4 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 shadow-sm hover:shadow-md ${
+                    productVariant.availableForSale 
+                      ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                      : 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                  }`}
+                  style={{
+                    fontSize: variant === 'desktop' ? '14px' : '13px',
+                    fontFamily:
+                      "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                  }}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (productVariant.availableForSale && fetcher.state !== 'submitting') {
+                      handleAddToCart();
+                      fetcher.submit({});
+                    }
+                  }}
+                >
+                  {fetcher.state === 'submitting' 
+                    ? 'Lägger till...' 
+                    : (productVariant.availableForSale ? 'Lägg i varukorg' : 'Slutsåld')
+                  }
+                </button>
+              )}
+            </CartForm>
+          )}
         </div>
       </div>
     </Link>
   );
 }
 
-// ✅ FIXED: Updated skeleton with consistent styling
+// ✅ FIXED: Updated skeleton with consistent styling - NO "Visa alla" link
 function RecommendedProductsSkeleton() {
   return (
     <section>
@@ -484,22 +492,18 @@ function RecommendedProductsSkeleton() {
       >
         {/* Desktop Skeleton */}
         <div className="hidden md:block">
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex-1"></div>
-            <div className="flex-1 flex justify-center">
-              <div className="h-10 w-64 bg-gray-200 rounded"></div>
-            </div>
-            <div className="flex-1 flex justify-end">
-              <div className="h-6 w-32 bg-gray-200 rounded"></div>
-            </div>
+          <div className="flex items-center justify-center mb-8">
+            <div className="h-10 w-64 bg-gray-200 rounded"></div>
           </div>
           <div className="grid grid-cols-4 gap-6">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+              <div key={i} className="bg-white border border-gray-200 rounded-lg overflow-hidden h-96">
                 <div className="aspect-square bg-gray-200"></div>
-                <div className="p-4">
+                <div className="p-4 flex flex-col flex-grow">
                   <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                  <div className="h-4 bg-gray-200 rounded w-16"></div>
+                  <div className="h-4 bg-gray-200 rounded w-16 mb-3"></div>
+                  <div className="flex-grow"></div>
+                  <div className="h-12 bg-gray-200 rounded-lg"></div>
                 </div>
               </div>
             ))}
@@ -509,18 +513,18 @@ function RecommendedProductsSkeleton() {
         {/* Mobile Skeleton */}
         <div className="block md:hidden">
           <div className="h-7 w-48 bg-gray-200 rounded mx-auto mb-6"></div>
-          <div className="grid grid-cols-2 gap-4 mb-6">
+          <div className="grid grid-cols-2 gap-4">
             {[...Array(4)].map((_, i) => (
               <div key={i} className="bg-white border border-gray-200 rounded-lg overflow-hidden">
                 <div className="aspect-square bg-gray-200"></div>
-                <div className="p-3">
+                <div className="p-3 flex flex-col">
                   <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                  <div className="h-3 bg-gray-200 rounded w-12"></div>
+                  <div className="h-3 bg-gray-200 rounded w-12 mb-3"></div>
+                  <div className="h-10 bg-gray-200 rounded-lg"></div>
                 </div>
               </div>
             ))}
           </div>
-          <div className="h-5 w-32 bg-gray-200 rounded mx-auto"></div>
         </div>
       </div>
     </section>

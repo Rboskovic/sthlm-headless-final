@@ -1,9 +1,9 @@
 // FILE: app/components/FeaturedProducts.tsx
-// ✅ SHOPIFY HYDROGEN STANDARDS: Swedish translation + fixed image containment
+// ✅ SHOPIFY HYDROGEN STANDARDS: Final fixes - mobile buttons, styled links, animations
 
 import { useState, useRef } from 'react';
 import { Link } from 'react-router';
-import { Image, Money } from '@shopify/hydrogen';
+import { Image, Money, CartForm } from '@shopify/hydrogen';
 import { Star } from 'lucide-react';
 import type { ProductFragment } from 'storefrontapi.generated';
 
@@ -112,18 +112,17 @@ export function FeaturedProducts({
               {showViewAll && (
                 <Link
                   to="/collections/featured-homepage-products"
-                  className="text-blue-600 hover:text-blue-700 transition-colors duration-200"
+                  className="inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-all duration-200 transform hover:scale-105 shadow-sm hover:shadow-md"
                   style={{
-                    fontSize: '18px',
-                    fontWeight: 500,
+                    fontSize: '16px',
                     fontFamily:
                       "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                    color: '#3B82F6',
-                    textDecoration: 'none',
-                    alignSelf: 'center',
                   }}
                 >
                   Visa alla utvalda
+                  <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
                 </Link>
               )}
             </div>
@@ -207,16 +206,17 @@ export function FeaturedProducts({
             <div className="text-center">
               <Link
                 to="/collections/featured-homepage-products"
-                className="text-blue-600 hover:text-blue-700 transition-colors duration-200"
+                className="inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-all duration-200 transform hover:scale-105 shadow-sm hover:shadow-md"
                 style={{
                   fontSize: '16px',
-                  fontWeight: 500,
                   fontFamily:
                     "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                  textDecoration: 'none',
                 }}
               >
                 Visa alla utvalda
+                <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
               </Link>
             </div>
           )}
@@ -240,31 +240,40 @@ function FeaturedProductCard({
   const isOnSale = firstVariant?.compareAtPrice && 
     parseFloat(firstVariant.compareAtPrice.amount) > parseFloat(firstVariant.price.amount);
 
+  const [isAdding, setIsAdding] = useState(false);
+
   const cardStyle = variant === 'desktop' 
-    ? { width: '100%', minHeight: '320px' }
-    : { width: '180px', flexShrink: 0, scrollSnapAlign: 'start' as const };
+    ? { width: '100%', minHeight: '420px' } // Increased for button space
+    : { width: '200px', flexShrink: 0, scrollSnapAlign: 'start' as const, minHeight: '350px' }; // Increased mobile size
+
+  const handleAddToCart = () => {
+    setIsAdding(true);
+    // Add animation feedback
+    setTimeout(() => setIsAdding(false), 1000);
+  };
 
   return (
     <Link
       to={`/products/${product.handle}`}
-      className="group"
+      className="group block"
       style={{
         ...cardStyle,
         pointerEvents: hasActuallyDragged ? 'none' : 'auto',
       }}
     >
-      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden group-hover:shadow-lg transition-shadow duration-200 h-full">
-        {/* ✅ FIXED: Product Image with proper containment */}
-        <div className="relative aspect-square bg-gray-50">
+      {/* ✅ FIXED: Flexbox layout for consistent card heights */}
+      <div className={`bg-white border border-gray-200 rounded-lg overflow-hidden group-hover:shadow-lg transition-all duration-200 h-full flex flex-col ${isAdding ? 'scale-105 shadow-xl' : ''}`}>
+        {/* Product Image */}
+        <div className="relative aspect-square bg-gray-50 flex-shrink-0">
           {firstVariant?.image?.url ? (
             <Image
               data={firstVariant.image}
               aspectRatio="1/1"
-              sizes={variant === 'desktop' ? "(min-width: 768px) 25vw, 50vw" : "180px"}
+              sizes={variant === 'desktop' ? "(min-width: 768px) 25vw, 50vw" : "200px"}
               className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-200"
               loading="lazy"
               style={{
-                padding: '8px', // Add padding to ensure full product visibility
+                padding: '8px',
               }}
             />
           ) : (
@@ -286,8 +295,8 @@ function FeaturedProductCard({
           )}
         </div>
 
-        {/* Product Info */}
-        <div className="p-4">
+        {/* ✅ FIXED: Product Info with flex-grow to fill remaining space */}
+        <div className="p-4 flex flex-col flex-grow">
           <h3 
             className="font-medium text-gray-900 mb-2 line-clamp-2"
             style={{
@@ -321,22 +330,51 @@ function FeaturedProductCard({
             </div>
           )}
 
-          {/* Quick Add Button */}
-          {variant === 'desktop' && (
-            <button
-              className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors duration-200"
-              style={{
-                fontFamily:
-                  "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+          {/* ✅ FIXED: Spacer to push button to bottom */}
+          <div className="flex-grow"></div>
+
+          {/* ✅ FIXED: Working Add to Cart Button - NOW ON MOBILE TOO */}
+          {firstVariant && (
+            <CartForm
+              route="/cart"
+              inputs={{
+                lines: [{
+                  merchandiseId: firstVariant.id,
+                  quantity: 1,
+                }],
               }}
-              onClick={(e) => {
-                e.preventDefault();
-                // Quick add functionality would go here
-                console.log('Quick add:', product.handle);
-              }}
+              action={CartForm.ACTIONS.LinesAdd}
             >
-              {firstVariant?.availableForSale ? 'Lägg i varukorg' : 'Slutsåld'}
-            </button>
+              {(fetcher) => (
+                <button
+                  type="submit"
+                  disabled={!firstVariant.availableForSale || fetcher.state === 'submitting'}
+                  className={`w-full py-3 px-4 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 shadow-sm hover:shadow-md ${
+                    firstVariant.availableForSale 
+                      ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                      : 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                  }`}
+                  style={{
+                    fontSize: variant === 'desktop' ? '14px' : '13px',
+                    fontFamily:
+                      "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                  }}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (firstVariant.availableForSale && fetcher.state !== 'submitting') {
+                      handleAddToCart();
+                      fetcher.submit({});
+                    }
+                  }}
+                >
+                  {fetcher.state === 'submitting' 
+                    ? 'Lägger till...' 
+                    : (firstVariant.availableForSale ? 'Lägg i varukorg' : 'Slutsåld')
+                  }
+                </button>
+              )}
+            </CartForm>
           )}
         </div>
       </div>
@@ -369,17 +407,18 @@ export function FeaturedProductsSkeleton() {
               <div className="h-10 w-48 bg-gray-200 rounded"></div>
             </div>
             <div className="flex-1 flex justify-end">
-              <div className="h-6 w-32 bg-gray-200 rounded"></div>
+              <div className="h-12 w-36 bg-gray-200 rounded-lg"></div>
             </div>
           </div>
           <div className="grid grid-cols-4 gap-6">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+              <div key={i} className="bg-white border border-gray-200 rounded-lg overflow-hidden h-96">
                 <div className="aspect-square bg-gray-200"></div>
-                <div className="p-4">
+                <div className="p-4 flex flex-col flex-grow">
                   <div className="h-4 bg-gray-200 rounded mb-2"></div>
                   <div className="h-4 bg-gray-200 rounded w-16 mb-3"></div>
-                  <div className="h-8 bg-gray-200 rounded"></div>
+                  <div className="flex-grow"></div>
+                  <div className="h-12 bg-gray-200 rounded-lg"></div>
                 </div>
               </div>
             ))}
@@ -391,11 +430,12 @@ export function FeaturedProductsSkeleton() {
           <div className="h-7 w-48 bg-gray-200 rounded mx-auto mb-6"></div>
           <div className="flex space-x-3 overflow-x-hidden pb-2">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="w-44 flex-shrink-0 bg-white border border-gray-200 rounded-lg overflow-hidden">
+              <div key={i} className="w-48 flex-shrink-0 bg-white border border-gray-200 rounded-lg overflow-hidden">
                 <div className="aspect-square bg-gray-200"></div>
-                <div className="p-3">
+                <div className="p-3 flex flex-col">
                   <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                  <div className="h-3 bg-gray-200 rounded w-12"></div>
+                  <div className="h-3 bg-gray-200 rounded w-12 mb-3"></div>
+                  <div className="h-10 bg-gray-200 rounded-lg"></div>
                 </div>
               </div>
             ))}
