@@ -1,5 +1,5 @@
 // FILE: app/routes/($locale)._index.tsx
-// ✅ SHOPIFY HYDROGEN STANDARDS: FIXED - Defensive props handling
+// ✅ SHOPIFY HYDROGEN STANDARDS: Swedish translation + consistent styling
 
 import {type LoaderFunctionArgs} from '@shopify/remix-oxygen';
 import {Await, useLoaderData, Link, type MetaFunction} from 'react-router';
@@ -19,17 +19,17 @@ import {FeaturedBanners} from '~/components/FeaturedBanners';
 import {ShopByBrand} from '~/components/ShopByBrand';
 import {ShopByCharacter} from '~/components/ShopByCharacter';
 
-// ✅ NEW: Add product section components (only add these files, don't replace anything)
+// ✅ UPDATED: New horizontal scrolling product components
 import {FeaturedProducts, FeaturedProductsSkeleton} from '~/components/FeaturedProducts';
 import {SaleProducts, SaleProductsSkeleton} from '~/components/SaleProducts';
 
-// ✅ NEW: Product queries
+// ✅ EXISTING: Product queries
 import {
   HOMEPAGE_PRODUCTS_COMBINED_QUERY,
 } from '~/lib/homepage-product-queries';
 
 export const meta: MetaFunction = () => {
-  return [{title: 'STHLM Toys & Games | Home'}];
+  return [{title: 'STHLM Toys & Games | Hem'}];
 };
 
 export async function loader(args: LoaderFunctionArgs) {
@@ -92,7 +92,7 @@ async function loadCriticalData({context}: LoaderFunctionArgs) {
 }
 
 /**
- * ✅ ENHANCED: Keep existing + add new product sections
+ * ✅ EXISTING: Keep existing + add new product sections
  * Load data for rendering content below the fold. This data is deferred and will be 
  * fetched after the initial page load. If it's unavailable, the page should still 200.
  * Make sure to not throw any errors here, as it will cause the page to 500.
@@ -106,7 +106,7 @@ function loadDeferredData({context}: LoaderFunctionArgs) {
       return null;
     });
 
-  // ✅ NEW: Add homepage product sections
+  // ✅ EXISTING: Homepage product sections
   const homepageProducts = context.storefront
     .query(HOMEPAGE_PRODUCTS_COMBINED_QUERY, {
       variables: {
@@ -168,13 +168,13 @@ export default function Homepage() {
         {/* ✅ EXISTING: Top Categories Section - exactly as you had it */}
         <TopCategories collections={data.topCategories} />
 
-        {/* ✅ NEW: Featured Products Section - positioned after categories */}
+        {/* ✅ UPDATED: Featured Products Section - Swedish translation */}
         <Suspense fallback={<FeaturedProductsSkeleton />}>
           <Await
             resolve={data.homepageProducts}
             errorElement={
               <div className="py-12 text-center text-gray-500">
-                <p>Featured products temporarily unavailable</p>
+                <p>Utvalda produkter är tillfälligt otillgängliga</p>
               </div>
             }
           >
@@ -189,8 +189,7 @@ export default function Homepage() {
               return (
                 <FeaturedProducts
                   products={featuredProducts}
-                  title="Featured Products"
-                  subtitle="Discover our hand-picked favorites from top brands"
+                  title="Utvalda Produkter"
                   showViewAll={true}
                 />
               );
@@ -201,13 +200,13 @@ export default function Homepage() {
         {/* ✅ EXISTING: Shop By Brand Section - exactly as you had it */}
         <ShopByBrand brands={data.shopByBrandData} />
 
-        {/* ✅ NEW: Sale Products Section - positioned after brands */}
+        {/* ✅ UPDATED: Sale Products Section - Swedish translation */}
         <Suspense fallback={<SaleProductsSkeleton />}>
           <Await
             resolve={data.homepageProducts}
             errorElement={
               <div className="py-12 text-center text-gray-500">
-                <p>Sale products temporarily unavailable</p>
+                <p>Rea produkter är tillfälligt otillgängliga</p>
               </div>
             }
           >
@@ -222,8 +221,7 @@ export default function Homepage() {
               return (
                 <SaleProducts
                   products={saleProducts}
-                  title="Sale Products"
-                  subtitle="Limited time offers you don't want to miss"
+                  title="Rea Produkter"
                   showViewAll={true}
                   showTimer={false}
                 />
@@ -241,7 +239,7 @@ export default function Homepage() {
         {/* ✅ EXISTING: Shop By Discount Section - exactly as you had it */}
         <ShopByDiscount discounts={data.shopByDiscountData} />
 
-        {/* ✅ FIXED: Recommended Products Section with direct styling (no SectionHeading component issues) */}
+        {/* ✅ FIXED: Recommended Products Section - Now with consistent styling like other sections */}
         <Suspense fallback={<RecommendedProductsSkeleton />}>
           <Await resolve={data.recommendedProducts}>
             {(response) => {
@@ -252,38 +250,132 @@ export default function Homepage() {
               if (recommendedProducts.length === 0) return null;
 
               return (
-                <section className="py-12 lg:py-16">
-                  <div className="mx-auto" style={{ maxWidth: '1272px', paddingLeft: '16px', paddingRight: '16px' }}>
-                    
-                    {/* ✅ FIXED: Direct styling instead of SectionHeading component to avoid prop issues */}
-                    <div className="text-center mb-8 lg:mb-12">
-                      <h2 
-                        className="text-3xl md:text-4xl font-bold text-gray-900 mb-4"
+                <section>
+                  <div
+                    className="mx-auto relative"
+                    style={{
+                      width: '1272px',
+                      maxWidth: '100%',
+                      paddingLeft: '12px',
+                      paddingRight: '12px',
+                      paddingTop: '32px',
+                      paddingBottom: '16px',
+                    }}
+                  >
+                    {/* ✅ FIXED: Now uses same styling pattern as other sections */}
+                    <div className="hidden md:block">
+                      {/* Header with centered title and right-aligned Shop All link */}
+                      <div className="flex items-center justify-between mb-8">
+                        <div className="flex-1"></div>
+                        <div className="flex-1 flex justify-center">
+                          <h2
+                            className="text-black font-semibold"
+                            style={{
+                              fontSize: '36px',
+                              fontWeight: 600,
+                              lineHeight: '42px',
+                              fontFamily:
+                                "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                              color: 'rgb(33, 36, 39)',
+                              textAlign: 'center',
+                            }}
+                          >
+                            Du kanske också gillar
+                          </h2>
+                        </div>
+                        <div className="flex-1 flex justify-end">
+                          <Link
+                            to="/collections"
+                            className="text-blue-600 hover:text-blue-700 transition-colors duration-200"
+                            style={{
+                              fontSize: '18px',
+                              fontWeight: 500,
+                              fontFamily:
+                                "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                              color: '#3B82F6',
+                              textDecoration: 'none',
+                              alignSelf: 'center',
+                            }}
+                          >
+                            Visa alla produkter
+                          </Link>
+                        </div>
+                      </div>
+
+                      {/* Desktop Grid */}
+                      <div className="grid grid-cols-4 gap-6">
+                        {recommendedProducts.map((product: any, index: number) => (
+                          <RecommendedProductCard
+                            key={product.id}
+                            product={product}
+                            loading={index < 4 ? 'eager' : 'lazy'}
+                            variant="desktop"
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Mobile Layout */}
+                    <div className="block md:hidden">
+                      {/* Mobile Title */}
+                      <h2
+                        className="text-black font-semibold text-center mb-6"
                         style={{
-                          fontFamily: 'var(--font-primary)',
-                          letterSpacing: '-0.02em',
+                          fontSize: '24px',
+                          fontWeight: 600,
+                          lineHeight: '28px',
+                          fontFamily:
+                            "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                          color: 'rgb(33, 36, 39)',
+                          textAlign: 'center',
+                          marginBottom: '24px',
                         }}
                       >
                         Du kanske också gillar
                       </h2>
+
+                      {/* Mobile Grid - same as desktop but responsive */}
+                      <div className="grid grid-cols-2 gap-4 mb-6">
+                        {recommendedProducts.map((product: any, index: number) => (
+                          <RecommendedProductCard
+                            key={product.id}
+                            product={product}
+                            loading={index < 4 ? 'eager' : 'lazy'}
+                            variant="mobile"
+                          />
+                        ))}
+                      </div>
+
+                      {/* Mobile Shop All Link */}
+                      <div className="text-center">
+                        <Link
+                          to="/collections"
+                          className="text-blue-600 hover:text-blue-700 transition-colors duration-200"
+                          style={{
+                            fontSize: '16px',
+                            fontWeight: 500,
+                            fontFamily:
+                              "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                            textDecoration: 'none',
+                          }}
+                        >
+                          Visa alla produkter
+                        </Link>
+                      </div>
+                    </div>
+
+                    {/* Subtitle below products */}
+                    <div className="text-center mt-6">
                       <p 
-                        className="text-lg text-gray-600 max-w-2xl mx-auto"
+                        className="text-gray-600"
                         style={{
-                          fontFamily: 'var(--font-primary)',
+                          fontSize: '16px',
+                          fontFamily:
+                            "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
                         }}
                       >
                         Fler produkter baserat på vad andra kunder tittar på
                       </p>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
-                      {recommendedProducts.map((product: any, index: number) => (
-                        <RecommendedProductCard
-                          key={product.id}
-                          product={product}
-                          loading={index < 4 ? 'eager' : 'lazy'}
-                        />
-                      ))}
                     </div>
                   </div>
                 </section>
@@ -296,77 +388,139 @@ export default function Homepage() {
   );
 }
 
-// ✅ EXISTING: Keep your exact RecommendedProductCard component
+// ✅ FIXED: Updated RecommendedProductCard with proper image containment
 function RecommendedProductCard({
   product,
   loading,
+  variant = 'desktop',
 }: {
   product: any;
   loading?: 'eager' | 'lazy';
+  variant?: 'desktop' | 'mobile';
 }) {
-  const variant = product.selectedOrFirstAvailableVariant;
-  const productAnalytics = {
-    productGid: product.id,
-    variantGid: variant.id,
-    name: product.title,
-    variantName: variant.title,
-    brand: product.vendor,
-    price: variant.price.amount,
-    quantity: 1,
-  };
+  const productVariant = product.selectedOrFirstAvailableVariant;
+
+  const cardStyle = variant === 'desktop' 
+    ? { width: '100%', minHeight: '320px' }
+    : { width: '100%' };
 
   return (
     <Link
-      className="recommended-product"
+      className="recommended-product group"
       key={product.id}
       prefetch="intent"
       to={`/products/${product.handle}`}
+      style={cardStyle}
     >
-      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
-        {product.featuredImage && (
-          <Image
-            data={product.featuredImage}
-            aspectRatio="1/1"
-            sizes="(min-width: 45em) 20vw, 50vw"
-            loading={loading}
-            className="w-full"
-          />
-        )}
+      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden group-hover:shadow-lg transition-shadow duration-200 h-full">
+        {/* ✅ FIXED: Product Image with proper containment */}
+        <div className="relative aspect-square bg-gray-50">
+          {product.featuredImage ? (
+            <Image
+              data={product.featuredImage}
+              aspectRatio="1/1"
+              sizes={variant === 'desktop' ? "(min-width: 768px) 25vw, 50vw" : "180px"}
+              className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-200"
+              loading={loading}
+              style={{
+                padding: '8px', // Add padding to ensure full product visibility
+              }}
+            />
+          ) : (
+            <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+              <span className="text-gray-400 text-sm">Ingen bild</span>
+            </div>
+          )}
+        </div>
+
+        {/* Product Info */}
         <div className="p-4">
-          <h4 className="font-medium text-gray-900 line-clamp-2 mb-2">
+          <h4 
+            className="font-medium text-gray-900 mb-2 line-clamp-2"
+            style={{
+              fontSize: variant === 'desktop' ? '16px' : '14px',
+              lineHeight: variant === 'desktop' ? '20px' : '18px',
+              fontFamily:
+                "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+            }}
+          >
             {product.title}
           </h4>
-          <small className="text-gray-600">
-            <Money data={variant.price} />
-          </small>
+
+          {/* Price */}
+          {productVariant?.price && (
+            <div className="flex items-center gap-2">
+              <Money 
+                data={productVariant.price}
+                className="font-semibold text-gray-900"
+                style={{
+                  fontSize: variant === 'desktop' ? '16px' : '14px',
+                  fontFamily:
+                    "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                }}
+              />
+            </div>
+          )}
         </div>
       </div>
     </Link>
   );
 }
 
-// ✅ FIXED: Simple skeleton without SectionHeading component
+// ✅ FIXED: Updated skeleton with consistent styling
 function RecommendedProductsSkeleton() {
   return (
-    <section className="py-12 lg:py-16">
-      <div className="mx-auto" style={{ maxWidth: '1272px', paddingLeft: '16px', paddingRight: '16px' }}>
-        
-        {/* ✅ FIXED: Direct skeleton styling */}
-        <div className="text-center mb-8 lg:mb-12">
-          <div className="h-8 lg:h-10 w-64 bg-gray-200 rounded mx-auto mb-4"></div>
-          <div className="h-5 lg:h-6 w-96 bg-gray-200 rounded mx-auto"></div>
-        </div>
-        
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-              <div className="aspect-square bg-gray-200"></div>
-              <div className="p-4">
-                <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                <div className="h-4 bg-gray-200 rounded w-2/3"></div>
-              </div>
+    <section>
+      <div
+        className="mx-auto relative"
+        style={{
+          width: '1272px',
+          maxWidth: '100%',
+          paddingLeft: '12px',
+          paddingRight: '12px',
+          paddingTop: '32px',
+          paddingBottom: '16px',
+        }}
+      >
+        {/* Desktop Skeleton */}
+        <div className="hidden md:block">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex-1"></div>
+            <div className="flex-1 flex justify-center">
+              <div className="h-10 w-64 bg-gray-200 rounded"></div>
             </div>
-          ))}
+            <div className="flex-1 flex justify-end">
+              <div className="h-6 w-32 bg-gray-200 rounded"></div>
+            </div>
+          </div>
+          <div className="grid grid-cols-4 gap-6">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                <div className="aspect-square bg-gray-200"></div>
+                <div className="p-4">
+                  <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                  <div className="h-4 bg-gray-200 rounded w-16"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Mobile Skeleton */}
+        <div className="block md:hidden">
+          <div className="h-7 w-48 bg-gray-200 rounded mx-auto mb-6"></div>
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                <div className="aspect-square bg-gray-200"></div>
+                <div className="p-3">
+                  <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                  <div className="h-3 bg-gray-200 rounded w-12"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="h-5 w-32 bg-gray-200 rounded mx-auto"></div>
         </div>
       </div>
     </section>
@@ -467,7 +621,7 @@ const RECOMMENDED_PRODUCTS_QUERY = `#graphql
   }
 ` as const;
 
-// ✅ EXISTING: All your collection queries (Add these back exactly as you had them)
+// ✅ EXISTING: All your collection queries - keep exactly as you had them
 // Top Categories Query
 const TOP_CATEGORIES_QUERY = `#graphql
   fragment TopCategory on Collection {
