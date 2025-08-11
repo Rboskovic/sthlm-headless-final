@@ -1,3 +1,6 @@
+// FILE: app/components/Aside.tsx
+// ✅ FINAL: Swedish translation with wider cart
+
 import {
   createContext,
   type ReactNode,
@@ -5,6 +8,7 @@ import {
   useEffect,
   useState,
 } from "react";
+import { X, ShoppingCart } from "lucide-react";
 
 type AsideType = "search" | "cart" | "mobile" | "closed";
 type AsideContextValue = {
@@ -14,10 +18,10 @@ type AsideContextValue = {
 };
 
 /**
- * A side bar component with Overlay
+ * En sidopanel-komponent med överlägg
  * @example
  * ```jsx
- * <Aside type="search" heading="SEARCH">
+ * <Aside type="search" heading="SÖK">
  *  <input type="search" />
  *  ...
  * </Aside>
@@ -60,13 +64,24 @@ export function Aside({
     >
       <button className="close-outside" onClick={close} />
       <aside>
-        <header>
-          <h3>{heading}</h3>
-          <button className="close reset" onClick={close} aria-label="Close">
-            &times;
+        {/* Förbättrad header för att matcha skärmbilder */}
+        <header className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-white">
+          <div className="flex items-center gap-2">
+            {/* Kundvagnsikon för kundvagnstyp */}
+            {type === 'cart' && (
+              <ShoppingCart size={20} className="text-gray-600" />
+            )}
+            <h3 className="text-lg font-semibold text-gray-900">{heading}</h3>
+          </div>
+          <button 
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors" 
+            onClick={close} 
+            aria-label="Stäng"
+          >
+            <X size={20} className="text-gray-600" />
           </button>
         </header>
-        <main>{children}</main>
+        <main className="flex-1 flex flex-col overflow-hidden">{children}</main>
       </aside>
     </div>
   );

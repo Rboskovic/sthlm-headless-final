@@ -1,5 +1,5 @@
 // FILE: app/components/CartLineItem.tsx
-// ✅ SHOPIFY HYDROGEN STANDARDS: Well-styled cart line item
+// ✅ FINAL: Swedish translation with larger product cards
 
 import type {CartLineUpdateInput} from '@shopify/hydrogen/storefront-api-types';
 import type {CartLayout} from '~/components/CartMain';
@@ -13,8 +13,8 @@ import type {CartApiQueryFragment} from 'storefrontapi.generated';
 type CartLine = OptimisticCartLine<CartApiQueryFragment>;
 
 /**
- * A single line item in the cart. It displays the product image, title, price.
- * It also provides controls to update the quantity or remove the line item.
+ * En enskild artikel i kundvagnen. Visar produktbild, titel, pris.
+ * Tillhandahåller kontroller för att uppdatera antal eller ta bort artikeln.
  */
 export function CartLineItem({
   layout,
@@ -29,8 +29,8 @@ export function CartLineItem({
   const {close} = useAside();
 
   return (
-    <div className="flex items-start gap-4 py-4 border-b border-gray-200 last:border-b-0">
-      {/* Product Image */}
+    <div className="flex items-start gap-4 py-6 border-b border-gray-100 last:border-b-0">
+      {/* Produktbild - Större */}
       <div className="flex-shrink-0">
         <Link
           to={lineItemUrl}
@@ -45,20 +45,20 @@ export function CartLineItem({
             <Image
               alt={title}
               data={image}
-              height={layout === 'aside' ? 80 : 120}
-              width={layout === 'aside' ? 80 : 120}
+              height={120}
+              width={120}
               loading="lazy"
-              className="rounded-lg object-cover bg-gray-100"
+              className="rounded-lg object-cover bg-gray-50 border border-gray-100"
             />
           )}
         </Link>
       </div>
 
-      {/* Product Details */}
+      {/* Produktdetaljer */}
       <div className="flex-1 min-w-0">
-        <div className="flex items-start justify-between">
-          <div className="flex-1 min-w-0 pr-4">
-            {/* Product Title */}
+        {/* Produkttitel och Ta bort-knapp */}
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex-1 min-w-0 pr-3">
             <Link
               to={lineItemUrl}
               onClick={() => {
@@ -68,38 +68,26 @@ export function CartLineItem({
               }}
               className="block group"
             >
-              <h3 className="text-base font-semibold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-2">
+              <h3 className="text-base font-semibold text-gray-900 group-hover:text-blue-600 transition-colors leading-tight line-clamp-2">
                 {product.title}
               </h3>
             </Link>
 
-            {/* Product Options */}
+            {/* Produktalternativ */}
             {selectedOptions.length > 0 && (
-              <div className="mt-1 space-y-1">
-                {selectedOptions.map((option) => (
-                  <p key={option.name} className="text-sm text-gray-600">
-                    {option.name}: {option.value}
-                  </p>
-                ))}
+              <div className="mt-2">
+                {selectedOptions
+                  .filter((option) => option.name !== 'Title' || option.value !== 'Default Title')
+                  .map((option) => (
+                    <p key={option.name} className="text-sm text-gray-500">
+                      {option.name}: {option.value}
+                    </p>
+                  ))}
               </div>
             )}
-
-            {/* Product Price */}
-            <div className="mt-2">
-              <Money
-                data={line?.cost?.totalAmount}
-                className="text-lg font-bold text-gray-900"
-              />
-              {line?.cost?.compareAtAmountPerQuantity && (
-                <Money
-                  data={line.cost.compareAtAmountPerQuantity}
-                  className="text-sm text-gray-500 line-through ml-2"
-                />
-              )}
-            </div>
           </div>
 
-          {/* Remove Button */}
+          {/* Ta bort-knapp */}
           <CartLineRemoveButton 
             lineIds={[id]} 
             disabled={!!line.isOptimistic}
@@ -107,19 +95,29 @@ export function CartLineItem({
           />
         </div>
 
-        {/* Quantity Controls */}
-        <div className="mt-4">
-          <CartLineQuantity line={line} layout={layout} />
+        {/* Produktpris */}
+        <div className="mb-4">
+          <Money
+            data={line?.cost?.totalAmount}
+            className="text-lg font-semibold text-gray-900"
+          />
+          {line?.cost?.compareAtAmountPerQuantity && (
+            <Money
+              data={line.cost.compareAtAmountPerQuantity}
+              className="text-sm text-gray-400 line-through ml-2"
+            />
+          )}
         </div>
+
+        {/* Antal-kontroller */}
+        <CartLineQuantity line={line} layout={layout} />
       </div>
     </div>
   );
 }
 
 /**
- * Provides the controls to update the quantity of a line item in the cart.
- * These controls are disabled when the line item is new, and the server
- * hasn't yet responded that it was successfully added to the cart.
+ * Förbättrade antal-kontroller med ren design som matchar skärmbilder
  */
 function CartLineQuantity({
   line,
@@ -134,51 +132,49 @@ function CartLineQuantity({
   const nextQuantity = Number((quantity + 1).toFixed(0));
 
   return (
-    <div className="flex items-center gap-3">
-      <span className="text-sm text-gray-600 font-medium">Antal:</span>
-      <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
-        {/* Decrease Button */}
+    <div className="flex items-center justify-between">
+      {/* Antal-kontroller */}
+      <div className="flex items-center border border-gray-200 rounded-md overflow-hidden bg-white">
+        {/* Minska-knapp */}
         <CartLineUpdateButton lines={[{id: lineId, quantity: prevQuantity}]}>
           <button
             type="submit"
             aria-label="Minska antal"
             disabled={quantity <= 1 || !!isOptimistic}
-            className="p-2 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="w-10 h-10 flex items-center justify-center text-gray-600 hover:text-gray-800 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
           >
-            <Minus size={16} className="text-gray-600" />
+            <Minus size={16} />
           </button>
         </CartLineUpdateButton>
 
-        {/* Quantity Display */}
-        <div className="px-3 py-2 min-w-[2.5rem] text-center text-sm font-medium text-gray-900 border-l border-r border-gray-300 bg-white">
+        {/* Antal-visning */}
+        <div className="w-12 h-10 flex items-center justify-center text-sm font-medium text-gray-900 border-l border-r border-gray-200 bg-white">
           {quantity}
         </div>
 
-        {/* Increase Button */}
+        {/* Öka-knapp */}
         <CartLineUpdateButton lines={[{id: lineId, quantity: nextQuantity}]}>
           <button
             type="submit"
             aria-label="Öka antal"
             disabled={!!isOptimistic}
-            className="p-2 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="w-10 h-10 flex items-center justify-center text-gray-600 hover:text-gray-800 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
           >
-            <Plus size={16} className="text-gray-600" />
+            <Plus size={16} />
           </button>
         </CartLineUpdateButton>
       </div>
 
-      {/* Loading indicator */}
+      {/* Laddningsindikator */}
       {isOptimistic && (
-        <div className="text-xs text-gray-500 italic">Uppdaterar...</div>
+        <div className="text-xs text-blue-600 italic">Uppdaterar...</div>
       )}
     </div>
   );
 }
 
 /**
- * A button that removes a line item from the cart. It is disabled
- * when the line item is new, and the server hasn't yet responded
- * that it was successfully added to the cart.
+ * Förbättrad ta bort-knapp med bättre styling
  */
 function CartLineRemoveButton({
   lineIds,
@@ -199,11 +195,11 @@ function CartLineRemoveButton({
       <button
         type="submit"
         disabled={disabled}
-        className="p-2 text-gray-400 hover:text-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded-md hover:bg-red-50"
-        aria-label="Ta bort vara"
-        title="Ta bort vara"
+        className="p-2 text-gray-400 hover:text-red-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors rounded-md hover:bg-red-50"
+        aria-label="Ta bort artikel"
+        title="Ta bort artikel"
       >
-        <Trash2 size={layout === 'aside' ? 18 : 20} />
+        <Trash2 size={18} />
       </button>
     </CartForm>
   );
@@ -231,10 +227,10 @@ function CartLineUpdateButton({
 }
 
 /**
- * Returns a unique key for the update action. This is used to make sure actions modifying the same line
- * items are not run concurrently, but cancel each other. For example, if the user clicks "Increase quantity"
- * and "Decrease quantity" in rapid succession, the actions will cancel each other and only the last one will run.
- * @param lineIds - line ids affected by the update
+ * Returnerar en unik nyckel för uppdateringsåtgärden. Detta används för att säkerställa att åtgärder som modifierar samma rad
+ * artiklar inte körs samtidigt, utan avbryter varandra. Till exempel, om användaren klickar "Öka antal"
+ * och "Minska antal" i snabb följd, kommer åtgärderna att avbryta varandra och endast den sista kommer att köras.
+ * @param lineIds - rad-id:n som påverkas av uppdateringen
  * @returns
  */
 function getUpdateKey(lineIds: string[]) {
