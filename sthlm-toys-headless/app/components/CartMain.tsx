@@ -125,16 +125,15 @@ function CartEmpty({layout, popularCollections}: {layout: CartLayout; popularCol
           Det verkar som att du inte har lagt till några artiklar i din kundvagn än. Börja handla för att fylla den!
         </p>
 
-        {/* Continue Shopping Button - Using proper ShopLinkButton */}
-        <ShopLinkButton
+        {/* Continue Shopping Button - FIXED: Added mt-6 for top spacing */}
+        <Link
           to="/collections/toys"
           onClick={layout === 'aside' ? close : undefined}
-          variant="primary"
-          size="lg"
-          className="mb-6"
+          className="inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-8 rounded-xl mt-6 mb-6 transition-colors"
+          style={{ color: 'white' }}
         >
           Fortsätt handla
-        </ShopLinkButton>
+        </Link>
       </div>
 
       {/* Popular Categories Section - Consistent spacing */}
