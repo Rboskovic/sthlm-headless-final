@@ -636,7 +636,7 @@ img {
 
 /* Root variables - Wider cart */
 :root {
-  --aside-width: 500px; /* Increased width for better UX */
+  --aside-width: 400px; /* Increased width for better UX */
   --cart-aside-summary-height-with-discount: 300px;
   --cart-aside-summary-height: 250px;
   --grid-item-width: 355px;
@@ -995,7 +995,7 @@ aside main {
 /* Large screen adjustments */
 @media (min-width: 1200px) {
   :root {
-    --aside-width: 550px; /* Even wider on large screens */
+    --aside-width: 400px; /* Even wider on large screens */
   }
 }
 
