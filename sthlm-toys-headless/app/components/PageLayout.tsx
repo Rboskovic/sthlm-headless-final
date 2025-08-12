@@ -39,7 +39,7 @@ export function PageLayout({
 
   return (
     <Aside.Provider>
-      <CartAside cart={cart} />
+      <CartAside cart={cart} popularCollections={popularCollections} />
       <SearchAside />
       {/* Mobile menu is now handled by Header component directly */}
       {header && (
@@ -62,13 +62,16 @@ export function PageLayout({
   );
 }
 
-function CartAside({cart}: {cart: PageLayoutProps['cart']}) {
+function CartAside({cart, popularCollections}: {
+  cart: PageLayoutProps['cart'];
+  popularCollections?: Collection[];
+}) {
   return (
     <Aside type="cart" heading="KUNDVAGN">
       <Suspense fallback={<p>Loading cart ...</p>}>
         <Await resolve={cart}>
           {(cart) => {
-            return <CartMain cart={cart} layout="aside" />;
+            return <CartMain cart={cart} layout="aside" popularCollections={popularCollections} />;
           }}
         </Await>
       </Suspense>
