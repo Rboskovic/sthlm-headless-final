@@ -1,9 +1,9 @@
 // FILE: app/components/Header/HeaderMain.tsx
-// ✅ ENHANCED: Added customer dropdown with Smyths styling + fixed orders link
+// ✅ ENHANCED: Fixed positioning + Added mobile search & wishlist + Smyths layout
 
 import {Suspense, useState} from 'react';
 import {Link, Await} from 'react-router';
-import {Heart, Menu, User, FileText, HelpCircle, ChevronDown} from 'lucide-react';
+import {Heart, Menu, User, FileText, HelpCircle, ChevronDown, Search} from 'lucide-react';
 import {SearchBar} from './SearchBar';
 import {CartToggle} from './CartToggle';
 import {Logo} from './Logo';
@@ -13,7 +13,7 @@ import type {CustomerFragment} from 'customer-accountapi.generated';
 
 interface HeaderMainPropsUpdated extends HeaderMainProps {
   onMobileMenuToggle?: () => void;
-  customer?: CustomerFragment | null; // ✅ ENHANCED: Optional customer data
+  customer?: CustomerFragment | null;
 }
 
 export function HeaderMain({
@@ -24,6 +24,7 @@ export function HeaderMain({
   customer,
 }: HeaderMainPropsUpdated) {
   const [isAccountDropdownOpen, setIsAccountDropdownOpen] = useState(false);
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
 
   const toggleAccountDropdown = () => {
     setIsAccountDropdownOpen(!isAccountDropdownOpen);
@@ -33,12 +34,16 @@ export function HeaderMain({
     setIsAccountDropdownOpen(false);
   };
 
+  const toggleMobileSearch = () => {
+    setIsMobileSearchOpen(!isMobileSearchOpen);
+  };
+
   return (
     <div
       className="w-full"
       style={{background: 'linear-gradient(to bottom, #1f96f4, #2171e1)'}}
     >
-      {/* Top Utility Bar */}
+      {/* Top Utility Bar - Desktop Only */}
       <div className="hidden lg:flex justify-end items-center">
         <div
           className="mx-auto w-full max-w-[1272px]"
@@ -52,14 +57,13 @@ export function HeaderMain({
               paddingBottom: '4px',
             }}
           >
-            {/* ✅ ENHANCED: Account section with dropdown */}
+            {/* Account section with dropdown */}
             <Suspense fallback={null}>
               <Await resolve={isLoggedIn}>
                 {(isLoggedIn) => (
                   <div className="relative">
                     {isLoggedIn && customer ? (
-                      // ✅ LOGGED IN: Show "Hi [Name]" with dropdown
-                      <div>
+                      <>
                         <button
                           onClick={toggleAccountDropdown}
                           className="flex items-center text-white hover:bg-white/10 transition-colors"
@@ -75,26 +79,27 @@ export function HeaderMain({
                         >
                           <User size={15} className="text-white" />
                           <span className="text-white">
-                            Hi, {customer.firstName || 'Vale'}
+                            Hej, {customer.firstName || 'Customer'}
                           </span>
-                          <ChevronDown size={14} className="text-white" />
+                          <ChevronDown
+                            size={14}
+                            className={`text-white transition-transform ${
+                              isAccountDropdownOpen ? 'rotate-180' : ''
+                            }`}
+                          />
                         </button>
 
-                        {/* ✅ DROPDOWN MENU: Smyths-style dropdown */}
+                        {/* Dropdown Menu */}
                         {isAccountDropdownOpen && (
                           <>
-                            {/* Backdrop to close dropdown */}
                             <div
                               className="fixed inset-0 z-40"
                               onClick={closeAccountDropdown}
                             />
-                            
-                            {/* Dropdown content */}
-                            <div 
-                              className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg z-50 min-w-[200px]"
+                            <div
+                              className="absolute top-full right-0 mt-2 bg-white rounded-lg shadow-lg border border-gray-200 min-w-[200px] z-50"
                               style={{
-                                border: '1px solid #e5e7eb',
-                                borderRadius: '8px',
+                                animation: 'fadeIn 0.2s ease-out',
                               }}
                             >
                               <div className="py-2">
@@ -104,72 +109,45 @@ export function HeaderMain({
                                   className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
                                   style={{
                                     fontSize: '14px',
-                                    fontWeight: 500,
                                     gap: '8px',
+                                    textDecoration: 'none',
                                   }}
                                 >
-                                  <User size={16} className="text-gray-600" />
-                                  My Account
+                                  <User size={16} />
+                                  <span>Min profil</span>
                                 </Link>
-                                
+                                <Link
+                                  to="/account/orders"
+                                  onClick={closeAccountDropdown}
+                                  className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
+                                  style={{
+                                    fontSize: '14px',
+                                    gap: '8px',
+                                    textDecoration: 'none',
+                                  }}
+                                >
+                                  <FileText size={16} />
+                                  <span>Mina beställningar</span>
+                                </Link>
                                 <Link
                                   to="/account/wishlist"
                                   onClick={closeAccountDropdown}
                                   className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
                                   style={{
                                     fontSize: '14px',
-                                    fontWeight: 500,
                                     gap: '8px',
+                                    textDecoration: 'none',
                                   }}
                                 >
-                                  <Heart size={16} className="text-gray-600" />
-                                  Wishlist
+                                  <Heart size={16} />
+                                  <span>Önskelista</span>
                                 </Link>
-
-                                <div className="border-t border-gray-100 my-1" />
-                                
-                                <form method="POST" action="/account/logout">
-                                  <button
-                                    type="submit"
-                                    onClick={closeAccountDropdown}
-                                    className="w-full flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors text-left"
-                                    style={{
-                                      fontSize: '14px',
-                                      fontWeight: 500,
-                                      gap: '8px',
-                                      background: 'none',
-                                      border: 'none',
-                                      cursor: 'pointer',
-                                    }}
-                                  >
-                                    Logout
-                                  </button>
-                                </form>
                               </div>
                             </div>
                           </>
                         )}
-                      </div>
-                    ) : isLoggedIn ? (
-                      // ✅ LOGGED IN but no customer data: Generic greeting
-                      <Link
-                        to="/account"
-                        className="flex items-center text-white hover:bg-white/10 transition-colors"
-                        style={{
-                          fontSize: '14px',
-                          fontWeight: 500,
-                          lineHeight: '18px',
-                          gap: '6px',
-                          textDecoration: 'none',
-                          padding: '6px 10px',
-                          borderRadius: '4px',
-                        }}
-                      >
-                        <User size={15} className="text-white" />
-                        <span className="text-white">Hi, Vale</span>
-                      </Link>
+                      </>
                     ) : (
-                      // ✅ NOT LOGGED IN: Login link
                       <Link
                         to="/account/login"
                         className="flex items-center text-white hover:bg-white/10 transition-colors"
@@ -184,7 +162,7 @@ export function HeaderMain({
                         }}
                       >
                         <User size={15} className="text-white" />
-                        <span className="text-white">Logga in / Registrera</span>
+                        <span className="text-white">Hej, Logga in</span>
                       </Link>
                     )}
                   </div>
@@ -192,7 +170,6 @@ export function HeaderMain({
               </Await>
             </Suspense>
 
-            {/* ✅ FIXED: Correct orders link */}
             <Link
               to="/account/orders"
               className="flex items-center text-white hover:bg-white/10 transition-colors"
@@ -230,7 +207,7 @@ export function HeaderMain({
         </div>
       </div>
 
-      {/* Desktop Main Header */}
+      {/* Desktop Main Header - Improved Layout */}
       <div className="hidden lg:block">
         <div
           className="flex items-center mx-auto"
@@ -238,27 +215,40 @@ export function HeaderMain({
             maxWidth: '1272px',
             paddingLeft: '12px',
             paddingRight: '40px',
-            paddingTop: '24px',
-            paddingBottom: '24px',
+            paddingTop: '20px',
+            paddingBottom: '20px',
             gap: '24px',
+            alignItems: 'center',
           }}
         >
-          {/* Logo */}
-          <div style={{flex: '0 0 auto'}}>
-            <Logo shop={shop} />
+          {/* Logo - Fixed Sizing */}
+          <div style={{flex: '0 0 auto', width: '180px'}}>
+            <Logo 
+              shop={shop}
+              style={{
+                height: '45px',
+                maxWidth: '180px',
+              }}
+            />
           </div>
 
-          {/* Search Bar */}
-          <div style={{flex: '1 1 auto', maxWidth: '600px'}}>
+          {/* Search Bar - Centered with Fixed Width */}
+          <div style={{
+            flex: '1 1 auto', 
+            maxWidth: '600px',
+            margin: '0 auto',
+          }}>
             <SearchBar />
           </div>
 
-          {/* Right Actions */}
+          {/* Right Actions - Fixed Positioning */}
           <div
             className="flex items-center"
             style={{
               flex: '0 0 auto',
-              gap: '16px',
+              gap: '20px',
+              minWidth: '200px',
+              justifyContent: 'flex-end',
             }}
           >
             <WishlistsLink
@@ -287,19 +277,33 @@ export function HeaderMain({
         </div>
       </div>
 
-      {/* Mobile Header */}
+      {/* Mobile Header - Enhanced with Search & Wishlist */}
       <div className="lg:hidden">
+        {/* Mobile Search Bar - Collapsible */}
+        {isMobileSearchOpen && (
+          <div
+            style={{
+              padding: '12px 16px',
+              borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
+            }}
+          >
+            <SearchBar isMobile={true} />
+          </div>
+        )}
+
+        {/* Main Mobile Header Row */}
         <div
           className="flex items-center justify-between"
           style={{
-            padding: '16px 16px',
-            gap: '16px',
+            padding: '12px 16px',
+            gap: '12px',
+            minHeight: '60px',
           }}
         >
-          {/* Mobile Menu Button */}
+          {/* Left: Mobile Menu Button */}
           <button
             onClick={onMobileMenuToggle}
-            className="text-white hover:bg-white/10 transition-colors"
+            className="text-white hover:bg-white/10 transition-colors flex-shrink-0"
             style={{
               padding: '8px',
               borderRadius: '4px',
@@ -309,13 +313,54 @@ export function HeaderMain({
             <Menu size={24} />
           </button>
 
-          {/* Mobile Logo */}
-          <div style={{flex: '1 1 auto', textAlign: 'center'}}>
-            <Logo shop={shop} />
+          {/* Center: Mobile Logo */}
+          <div style={{
+            flex: '1 1 auto', 
+            display: 'flex', 
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}>
+            <Logo 
+              shop={shop}
+              style={{
+                height: '36px',
+                maxWidth: '140px',
+              }}
+            />
           </div>
 
-          {/* Mobile Cart */}
-          <CartToggle cart={cart} />
+          {/* Right: Search, Wishlist, Cart */}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {/* Mobile Search Toggle */}
+            <button
+              onClick={toggleMobileSearch}
+              className="text-white hover:bg-white/10 transition-colors"
+              style={{
+                padding: '8px',
+                borderRadius: '4px',
+              }}
+              aria-label="Toggle search"
+            >
+              <Search size={20} />
+            </button>
+
+            {/* Mobile Wishlist */}
+            <WishlistsLink
+              className="text-white hover:bg-white/10 transition-colors"
+              style={{
+                padding: '8px',
+                borderRadius: '4px',
+                display: 'flex',
+                alignItems: 'center',
+                textDecoration: 'none',
+              }}
+            >
+              <Heart size={20} className="text-white" />
+            </WishlistsLink>
+
+            {/* Mobile Cart */}
+            <CartToggle cart={cart} />
+          </div>
         </div>
       </div>
     </div>
