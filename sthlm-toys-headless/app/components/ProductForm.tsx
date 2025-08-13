@@ -1,5 +1,5 @@
 // FILE: app/components/ProductForm.tsx
-// ✅ SHOPIFY STANDARD: Proper product form with quantity management and cart functionality
+// ✅ SHOPIFY STANDARD: Clean product form with working quantity management
 
 import {Link, useNavigate} from 'react-router';
 import {useState, useEffect} from 'react';
@@ -8,9 +8,8 @@ import type {
   Maybe,
   ProductOptionValueSwatch,
 } from '@shopify/hydrogen/storefront-api-types';
-import {AddToCartButton} from './AddToCartButton';
 import {useAside} from './Aside';
-import {WishlistButton} from './WishlistButton';
+import {Minus, Plus} from 'lucide-react';
 import type {ProductFragment} from 'storefrontapi.generated';
 
 export function ProductForm({
@@ -19,12 +18,14 @@ export function ProductForm({
   selectedVariant,
   quantity = 1,
   onQuantityChange,
+  hideQuantity = false, // New prop to hide quantity selector
 }: {
   product?: ProductFragment;
   productOptions: MappedProductOptions[];
   selectedVariant: ProductFragment['selectedOrFirstAvailableVariant'];
   quantity?: number;
   onQuantityChange?: (quantity: number) => void;
+  hideQuantity?: boolean; // New prop to control quantity visibility
 }) {
   const navigate = useNavigate();
   const {open} = useAside();
@@ -48,10 +49,12 @@ export function ProductForm({
     onQuantityChange?.(newQuantity);
   };
 
-  // Debug logs - remove these after testing
-  console.log('🐛 ProductForm - selectedVariant:', selectedVariant);
-  console.log('🐛 ProductForm - quantity:', localQuantity);
-  console.log('🐛 ProductForm - product:', product?.title);
+  const handleQuantityInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(e.target.value) || 1;
+    const newQuantity = Math.max(1, value);
+    setLocalQuantity(newQuantity);
+    onQuantityChange?.(newQuantity);
+  };
 
   return (
     <div className="product-form space-y-6">
@@ -62,15 +65,9 @@ export function ProductForm({
 
         return (
           <div className="product-options" key={option.name}>
-            <h5
-              className="text-base font-medium text-gray-900 mb-3"
-              style={{
-                fontFamily:
-                  "UniformRnd, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-              }}
-            >
+            <h4 className="text-base font-medium text-gray-900 mb-3">
               {option.name}
-            </h5>
+            </h4>
             <div className="flex flex-wrap gap-2">
               {option.optionValues.map((value) => {
                 const {
@@ -86,209 +83,134 @@ export function ProductForm({
 
                 const baseClasses = `
                   flex items-center justify-center min-w-12 h-10 px-3 py-2 
-                  border border-gray-300 rounded text-sm font-medium transition-all duration-200 
+                  border rounded-md text-sm font-medium transition-all duration-200 
                   cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1
                 `;
 
                 const stateClasses = selected
                   ? 'border-gray-900 bg-gray-900 text-white'
                   : available
-                    ? 'hover:border-gray-400 hover:bg-gray-50'
-                    : 'opacity-50 cursor-not-allowed';
+                    ? 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                    : 'border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed';
 
-                return (
-                  <button
-                    key={name}
-                    className={`${baseClasses} ${stateClasses}`}
-                    style={{
-                      fontFamily:
-                        "UniformRnd, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                    }}
-                    disabled={!available}
-                    onClick={() => {
-                      if (!selected && available) {
+                if (isDifferentProduct) {
+                  // SEO: When the variant is a combined listing child product
+                  // that leads to a different url, render as anchor tag
+                  return (
+                    <Link
+                      className={`${baseClasses} ${stateClasses}`}
+                      key={option.name + name}
+                      prefetch="intent"
+                      preventScrollReset
+                      replace
+                      to={`/products/${handle}?${variantUriQuery}`}
+                    >
+                      <ProductOptionSwatch swatch={swatch} name={name} />
+                    </Link>
+                  );
+                } else {
+                  // SEO: When the variant is an update to the search param,
+                  // render as button with javascript navigation
+                  return (
+                    <button
+                      type="button"
+                      className={`${baseClasses} ${stateClasses} ${
+                        exists && !selected ? 'link' : ''
+                      }`}
+                      key={option.name + name}
+                      disabled={!exists || !available}
+                      onClick={() => {
+                        if (!exists) return;
                         navigate(`?${variantUriQuery}`, {
                           replace: true,
+                          preventScrollReset: true,
                         });
-                      }
-                    }}
-                  >
-                    <ProductOptionSwatch swatch={swatch} name={name} />
-                    {name}
-                  </button>
-                );
+                      }}
+                    >
+                      <ProductOptionSwatch swatch={swatch} name={name} />
+                    </button>
+                  );
+                }
               })}
             </div>
           </div>
         );
       })}
 
-      {/* ✅ FIXED: Add to Cart Section with Quantity and Actions */}
-      <div className="flex gap-4 items-center">
-        {/* Quantity Selector */}
-        <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
-          <button
-            type="button"
-            onClick={handleQuantityDecrease}
-            disabled={localQuantity <= 1}
-            className="w-10 h-10 flex items-center justify-center text-gray-600 hover:text-gray-800 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{
-              fontFamily:
-                "UniformRnd, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-            }}
-          >
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+      {/* Quantity Selector - Only show if not hidden */}
+      {!hideQuantity && selectedVariant?.availableForSale && (
+        <div className="quantity-selector">
+          <h4 className="text-base font-medium text-gray-900 mb-3">Quantity</h4>
+          <div className="flex items-center border border-gray-300 rounded-md w-fit">
+            <button
+              type="button"
+              onClick={handleQuantityDecrease}
+              disabled={localQuantity <= 1}
+              className="flex items-center justify-center w-10 h-10 text-gray-600 hover:text-gray-900 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+              aria-label="Decrease quantity"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M20 12H4"
-              />
-            </svg>
-          </button>
-
-          <div
-            className="w-12 h-10 flex items-center justify-center text-gray-900 font-medium border-l border-r border-gray-300"
-            style={{
-              fontFamily:
-                "UniformRnd, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-            }}
-          >
-            {localQuantity}
+              <Minus className="h-4 w-4" />
+            </button>
+            
+            <input
+              type="number"
+              min="1"
+              value={localQuantity}
+              onChange={handleQuantityInputChange}
+              className="w-16 h-10 text-center border-0 focus:ring-0 focus:outline-none text-gray-900 font-medium"
+              aria-label="Quantity"
+            />
+            
+            <button
+              type="button"
+              onClick={handleQuantityIncrease}
+              className="flex items-center justify-center w-10 h-10 text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors duration-200"
+              aria-label="Increase quantity"
+            >
+              <Plus className="h-4 w-4" />
+            </button>
           </div>
-
-          <button
-            type="button"
-            onClick={handleQuantityIncrease}
-            className="w-10 h-10 flex items-center justify-center text-gray-600 hover:text-gray-800 hover:bg-gray-50 transition-colors"
-            style={{
-              fontFamily:
-                "UniformRnd, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-            }}
-          >
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
-          </button>
-        </div>
-
-        {/* ✅ FIXED: Add to Cart Button with proper analytics */}
-        <div className="flex-1">
-          <AddToCartButton
-            disabled={!selectedVariant || !selectedVariant.availableForSale}
-            onClick={() => {
-              console.log('🐛 Opening cart aside');
-              open('cart');
-            }}
-            lines={
-              selectedVariant
-                ? [
-                    {
-                      merchandiseId: selectedVariant.id,
-                      quantity: localQuantity,
-                    },
-                  ]
-                : []
-            }
-            analytics={{
-              products: [
-                {
-                  productGid: selectedVariant?.product?.id || product?.id,
-                  variantGid: selectedVariant?.id,
-                  name: selectedVariant?.product?.title || product?.title,
-                  variantName: selectedVariant?.title,
-                  brand: selectedVariant?.product?.vendor || product?.vendor,
-                  price: selectedVariant?.price?.amount,
-                  quantity: localQuantity,
-                },
-              ],
-            }}
-            variant="addToCart"
-            size="lg"
-          >
-            {selectedVariant?.availableForSale
-              ? 'LÄGG I VARUKORGEN'
-              : 'Slutsåld'}
-          </AddToCartButton>
-        </div>
-      </div>
-
-      {/* ✅ FIXED: Wishlist Button */}
-      {product && (
-        <div className="flex justify-center">
-          <WishlistButton
-            productId={product.id}
-            productTitle={product.title}
-            size="lg"
-            className="w-10 h-10 border border-gray-300 rounded-lg hover:border-gray-400"
-          />
-        </div>
-      )}
-
-      {/* Availability Status */}
-      {selectedVariant && (
-        <div className="text-sm">
-          {selectedVariant.availableForSale ? (
-            <p className="text-green-600 font-medium">✓ In Stock</p>
-          ) : (
-            <p className="text-red-600 font-medium">⚠ Out of Stock</p>
-          )}
-          {selectedVariant.quantityAvailable !== undefined && (
-            <p className="text-gray-500 mt-1">
-              {selectedVariant.quantityAvailable > 0
-                ? `${selectedVariant.quantityAvailable} available`
-                : 'No stock available'}
-            </p>
-          )}
         </div>
       )}
     </div>
   );
 }
 
-// ✅ SHOPIFY STANDARD: Product option swatch component
+/**
+ * ProductOptionSwatch Component
+ * Renders color swatches or text for product options
+ */
 function ProductOptionSwatch({
   swatch,
   name,
 }: {
-  swatch?: Maybe<ProductOptionValueSwatch> | undefined;
+  swatch?: Maybe<ProductOptionValueSwatch>;
   name: string;
 }) {
-  const image = swatch?.image?.previewImage?.url;
-  const color = swatch?.color;
-
-  if (!image && !color) return null;
-
-  return (
-    <div
-      aria-label={name}
-      className="w-5 h-5 rounded border border-gray-300 mr-2 flex-shrink-0"
-      style={{
-        backgroundColor: color || 'transparent',
-      }}
-    >
-      {image && (
-        <img
-          src={image}
-          alt={name}
-          className="w-full h-full object-cover rounded"
+  if (swatch?.color) {
+    return (
+      <div className="flex items-center gap-2">
+        <div
+          className="w-4 h-4 rounded-full border border-gray-300"
+          style={{backgroundColor: swatch.color}}
         />
-      )}
-    </div>
-  );
+        <span>{name}</span>
+      </div>
+    );
+  }
+
+  if (swatch?.image?.previewImage?.url) {
+    return (
+      <div className="flex items-center gap-2">
+        <img
+          src={swatch.image.previewImage.url}
+          alt={name}
+          className="w-4 h-4 rounded-full object-cover border border-gray-300"
+        />
+        <span>{name}</span>
+      </div>
+    );
+  }
+
+  return <span>{name}</span>;
 }

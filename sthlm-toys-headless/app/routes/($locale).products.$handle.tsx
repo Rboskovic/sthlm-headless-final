@@ -1,8 +1,9 @@
 // FILE: app/routes/($locale).products.$handle.tsx
-// ✅ SHOPIFY STANDARD: Product detail page with proper quantity state management
+// ✅ SHOPIFY HYDROGEN STANDARD: Complete Product Detail Page with metafields
 
 import {redirect, type LoaderFunctionArgs} from '@shopify/remix-oxygen';
-import {useLoaderData, type MetaFunction} from 'react-router';
+import {useLoaderData, type MetaFunction, Await} from 'react-router';
+import {Suspense} from 'react';
 import {
   getSelectedProductOptions,
   Analytics,
@@ -11,10 +12,13 @@ import {
   getAdjacentAndFirstAvailableVariants,
   useSelectedOptionInUrlParam,
 } from '@shopify/hydrogen';
-import {ProductPrice} from '~/components/ProductPrice';
 import {ProductImageGallery} from '~/components/ProductImageGallery';
 import {ProductForm} from '~/components/ProductForm';
+import {PriceDisplay} from '~/components/ui/PriceDisplay';
+import {ShopButton} from '~/components/ui/ShopButton';
+import {AddToCartButton} from '~/components/AddToCartButton';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
+import {Check} from 'lucide-react';
 import React, {useState} from 'react';
 
 export const meta: MetaFunction<typeof loader> = ({data}) => {
@@ -54,13 +58,14 @@ async function loadCriticalData({
     throw new Error('Expected product handle to be defined');
   }
 
-  const [{product}] = await Promise.all([
+  const [{product}, {shop}] = await Promise.all([
     storefront.query(PRODUCT_QUERY, {
       variables: {
         handle,
         selectedOptions: getSelectedProductOptions(request),
       },
     }),
+    storefront.query(SHOP_METAFIELDS_QUERY),
     // Add other queries here, so that they are loaded in parallel
   ]);
 
@@ -73,6 +78,7 @@ async function loadCriticalData({
 
   return {
     product,
+    shop,
   };
 }
 
@@ -84,13 +90,50 @@ async function loadCriticalData({
 function loadDeferredData({context, params}: LoaderFunctionArgs) {
   // Put any API calls that is not critical to be available on first page render
   // For example: product reviews, product recommendations, social feeds.
-  return {};
+  
+  // Load recommended products for this product
+  const recommendedProducts = context.storefront
+    .query(RECOMMENDED_PRODUCTS_QUERY, {
+      variables: {
+        first: 8
+      },
+    })
+    .catch((error) => {
+      console.error('Failed to load recommended products:', error);
+      return null;
+    });
+
+  return {
+    recommendedProducts,
+  };
+}
+
+// Helper function to get metafield value with proper null checking
+function getMetafieldValue(
+  metafields: Array<{key: string; value: string; namespace: string}> | null | undefined,
+  key: string,
+  namespace: string = 'custom'
+): string | null {
+  if (!metafields || !Array.isArray(metafields)) return null;
+  const metafield = metafields.find((m) => m?.key === key && m?.namespace === namespace);
+  return metafield?.value || null;
+}
+
+// Helper function to parse bullet points from metafield with safe fallbacks
+function parseWhyTheyLoveIt(metafieldValue: string | null | undefined): string[] {
+  if (!metafieldValue || typeof metafieldValue !== 'string') return [];
+  
+  // Split by comma and clean up whitespace
+  return metafieldValue
+    .split(',')
+    .map(item => item.trim())
+    .filter(item => item.length > 0);
 }
 
 export default function Product() {
-  const {product} = useLoaderData<typeof loader>();
+  const {product, shop, ...deferredData} = useLoaderData<typeof loader>();
   
-  // ✅ FIXED: Proper quantity state management
+  // ✅ KEEP: Proper quantity state management
   const [quantity, setQuantity] = useState(1);
 
   // Optimistically selects a variant with given available variant information
@@ -111,20 +154,31 @@ export default function Product() {
 
   const {title, descriptionHtml, vendor} = product;
 
-  // Get all product images - if multiple variants have different images, collect them
-  const productImages = [
-    selectedVariant?.image,
-    // Add more images from other variants or product.images if available
-    // This will be enhanced when you have products with multiple images
-  ].filter(Boolean);
+  // ✅ FIX 1: Get ALL product images, not just variant image
+  const productImages = product.images?.nodes || [selectedVariant?.image].filter(Boolean);
 
-  // ✅ FIXED: Reset quantity when variant changes
+  // ✅ KEEP: Reset quantity when variant changes
   React.useEffect(() => {
     setQuantity(1);
   }, [selectedVariant?.id]);
 
+  // ✅ METAFIELD INTEGRATION: Extract metafield values with safe fallbacks
+  // Product-specific features
+  const whyTheyLoveItValue = getMetafieldValue(product?.metafields, 'why_they_love_it');
+  const whyTheyLoveItItems = parseWhyTheyLoveIt(whyTheyLoveItValue);
+  
+  // Shop-wide shipping information
+  const freeShippingText = getMetafieldValue(shop?.metafields, 'free_shipping_text') || 
+    'Free Shipping on orders $49 and up*';
+  
+  const freeShippingNote = getMetafieldValue(shop?.metafields, 'free_shipping_note') || 
+    '*Offer applies to standard shipping to one location in the contiguous U.S. A $20 shipping surcharge per item applies to customers living outside the contiguous United States: Hawaii, Alaska typically ships in 3 to 4 business days. Eligible for return on ToysRUs.com only.';
+
   console.log('🐛 Product Detail Page - selectedVariant:', selectedVariant);
   console.log('🐛 Product Detail Page - quantity:', quantity);
+  console.log('🐛 Product Detail Page - product metafields:', product?.metafields);
+  console.log('🐛 Product Detail Page - shop metafields:', shop?.metafields);
+  console.log('🐛 Product Detail Page - whyTheyLoveItItems:', whyTheyLoveItItems);
 
   return (
     <div className="w-full bg-white min-h-screen">
@@ -145,140 +199,154 @@ export default function Product() {
         }}
       />
 
-      {/* Main Product Container */}
-      <div
-        className="mx-auto px-4 lg:px-16"
-        style={{
-          maxWidth: '1400px',
-        }}
-      >
-        {/* Breadcrumb Navigation */}
-        <nav
-          className="flex items-center space-x-2 py-4 text-sm text-gray-600"
-          style={{
-            fontFamily:
-              "UniformRnd, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-          }}
-        >
-          <a href="/" className="hover:text-blue-600">
-            Home
-          </a>
-          <span>›</span>
-          <span className="text-gray-900">{title}</span>
-        </nav>
-
-        {/* Product Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 pb-16">
-          {/* Left Column - Product Images */}
-          <div className="space-y-4">
-            <ProductImageGallery images={productImages} />
+      {/* Product Detail Container */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+          {/* Image Gallery */}
+          <div className="order-1 lg:order-1">
+            <ProductImageGallery
+              images={productImages}
+              productTitle={title}
+            />
           </div>
 
-          {/* Right Column - Product Information */}
-          <div className="flex flex-col space-y-6">
-            {/* Vendor */}
-            {vendor && (
-              <p
-                className="text-sm text-gray-600"
-                style={{
-                  fontFamily:
-                    "UniformRnd, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                }}
-              >
-                {vendor}
-              </p>
-            )}
-
-            {/* Product Title */}
-            <h1
-              className="text-2xl lg:text-3xl font-bold text-gray-900 leading-tight"
-              style={{
-                fontFamily:
-                  "UniformRnd, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-              }}
-            >
-              {title}
-            </h1>
-
-            {/* Price */}
-            <div className="flex items-center space-x-2">
-              <ProductPrice selectedVariant={selectedVariant} />
+          {/* Product Information */}
+          <div className="order-2 lg:order-2 space-y-4">
+            {/* Brand & Title - FIX: Remove space between brand and title */}
+            <div className="space-y-0">
+              {vendor && (
+                <p className="text-sm font-medium text-blue-600 uppercase tracking-wider">
+                  Brand: {vendor}
+                </p>
+              )}
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 leading-tight">
+                {title}
+              </h1>
             </div>
 
-            {/* ✅ FIXED: Product Form with proper quantity state */}
-            <ProductForm
-              product={product}
-              productOptions={productOptions}
-              selectedVariant={selectedVariant}
-              quantity={quantity}
-              onQuantityChange={setQuantity}
-            />
-
-            {/* Product Description */}
-            {descriptionHtml && (
+            {/* Why They'll Love It Section */}
+            {whyTheyLoveItItems && whyTheyLoveItItems.length > 0 && (
               <div className="space-y-4">
-                <h3
-                  className="text-lg font-semibold text-gray-900"
-                  style={{
-                    fontFamily:
-                      "UniformRnd, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                  }}
+                <button
+                  className="flex items-center justify-between w-full text-left"
+                  type="button"
                 >
-                  Product Description
-                </h3>
-                <div
-                  className="prose prose-sm max-w-none text-gray-700"
-                  style={{
-                    fontFamily:
-                      "UniformRnd, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                  }}
-                  dangerouslySetInnerHTML={{__html: descriptionHtml}}
-                />
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Why They'll Love It
+                  </h3>
+                  <span className="text-gray-400">-</span>
+                </button>
+                
+                <div className="space-y-3">
+                  {whyTheyLoveItItems.map((item, index) => (
+                    <div key={index} className="flex items-start gap-3">
+                      <Check className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                      <span className="text-gray-700 text-sm leading-relaxed">
+                        {item}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
-            {/* Additional Product Information */}
-            <div className="border-t border-gray-200 pt-6">
-              <h3
-                className="text-lg font-semibold text-gray-900 mb-4"
-                style={{
-                  fontFamily:
-                    "UniformRnd, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                }}
-              >
-                Product Details
-              </h3>
-              <dl className="space-y-2 text-sm">
-                {product.productType && (
-                  <>
-                    <dt className="font-medium text-gray-900">Category</dt>
-                    <dd className="text-gray-600 mb-2">{product.productType}</dd>
-                  </>
-                )}
-                {selectedVariant?.sku && (
-                  <>
-                    <dt className="font-medium text-gray-900">SKU</dt>
-                    <dd className="text-gray-600 mb-2">{selectedVariant.sku}</dd>
-                  </>
-                )}
-                {product.tags && product.tags.length > 0 && (
-                  <>
-                    <dt className="font-medium text-gray-900">Tags</dt>
-                    <dd className="text-gray-600">
-                      {product.tags.slice(0, 5).join(', ')}
-                    </dd>
-                  </>
-                )}
-              </dl>
+            {/* Product Options - Hide quantity, keep logic */}
+            <div className="space-y-4">
+              <ProductForm
+                product={product}
+                productOptions={productOptions}
+                selectedVariant={selectedVariant}
+                quantity={quantity}
+                onQuantityChange={setQuantity}
+                hideQuantity={true}
+              />
+            </div>
+
+            {/* Availability Status - FIX 4: Increase size */}
+            <div className="flex items-center gap-2">
+              <span className="text-base font-medium text-gray-900">Availability:</span>
+              <div className="flex items-center gap-1">
+                <div className="h-2 w-2 bg-green-500 rounded-full"></div>
+                <span className="text-base text-gray-700 font-medium">
+                  {selectedVariant?.availableForSale ? 'In Stock' : 'Out of Stock'}
+                </span>
+              </div>
+            </div>
+
+            {/* Free Shipping Information - FIX 5,6: Reorder and style */}
+            <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+              {/* FIX 5: Free shipping note first and bold */}
+              <p className="text-sm font-bold text-gray-900 leading-relaxed">
+                {freeShippingNote}
+              </p>
+              {/* FIX 6: Remove truck icon, shipping text not bold */}
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-700">{freeShippingText}</span>
+              </div>
+            </div>
+
+            {/* Add to Cart & Buy Now Buttons - Hide Add to Cart for now */}
+            <div className="space-y-3">
+              {/* Add to Cart button hidden but kept for future use */}
+              {false && (
+                <AddToCartButton
+                  selectedVariant={selectedVariant}
+                  quantity={quantity}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-8 rounded-2xl transition-colors duration-200"
+                >
+                  Add to cart
+                </AddToCartButton>
+              )}
+
+              {/* Shop Pay checkout */}
+              <form method="POST" action={`/cart/${selectedVariant?.id}:${quantity}`} className="w-full">
+                <button 
+                  type="submit"
+                  className="w-full text-white font-semibold py-4 px-8 rounded-2xl transition-colors duration-200 flex items-center justify-center gap-2"
+                  style={{backgroundColor: '#5a31f4'}}
+                >
+                  Buy with <span className="font-bold">Shop</span><span className="bg-white text-purple-600 px-1 rounded text-sm font-bold">Pay</span>
+                </button>
+              </form>
             </div>
           </div>
         </div>
+
+        {/* Product Description - FIX 10: Same width as top part */}
+        {descriptionHtml && (
+          <div className="mt-12">
+            <div className="border-t border-gray-200 pt-8">
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                Product Description
+              </h3>
+              <div 
+                className="prose prose-gray max-w-none text-gray-700 leading-relaxed"
+                dangerouslySetInnerHTML={{__html: descriptionHtml}}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* FIX 11: Recommended Products Section */}
+        <Suspense fallback={<RecommendedProductsSkeleton />}>
+          <Await
+            resolve={deferredData.recommendedProducts}
+            errorElement={<div>Failed to load recommended products</div>}
+          >
+            {(recommendedProducts) => (
+              <RecommendedProducts 
+                products={recommendedProducts?.products?.nodes || []}
+                currentProductId={product.id}
+              />
+            )}
+          </Await>
+        </Suspense>
       </div>
     </div>
   );
 }
 
-// ✅ SHOPIFY STANDARD: Product Query Fragment
+// ✅ SHOPIFY HYDROGEN: Updated GraphQL query with metafields
 const PRODUCT_QUERY = `#graphql
   query Product(
     $country: CountryCode
@@ -290,6 +358,7 @@ const PRODUCT_QUERY = `#graphql
       ...Product
     }
   }
+  #graphql
   fragment Product on Product {
     id
     title
@@ -297,9 +366,9 @@ const PRODUCT_QUERY = `#graphql
     handle
     descriptionHtml
     description
-    productType
-    tags
-    images(first: 20) {
+    encodedVariantExistence
+    encodedVariantAvailability
+    images(first: 10) {
       nodes {
         id
         url
@@ -308,19 +377,42 @@ const PRODUCT_QUERY = `#graphql
         height
       }
     }
+    metafields(identifiers: [
+      {namespace: "custom", key: "why_they_love_it"}
+    ]) {
+      key
+      value
+      namespace
+    }
+    options {
+      name
+      optionValues {
+        name
+        firstSelectableVariant {
+          ...ProductVariant
+        }
+        swatch {
+          color
+          image {
+            previewImage {
+              url
+            }
+          }
+        }
+      }
+    }
     selectedOrFirstAvailableVariant(selectedOptions: $selectedOptions, ignoreUnknownOptions: true, caseInsensitiveMatch: true) {
       ...ProductVariant
     }
-    adjacentVariants: variants(first: 3) {
-      nodes {
-        ...ProductVariant
-      }
+    adjacentVariants (selectedOptions: $selectedOptions) {
+      ...ProductVariant
     }
     seo {
       description
       title
     }
   }
+  #graphql
   fragment ProductVariant on ProductVariant {
     availableForSale
     compareAtPrice {
@@ -343,8 +435,6 @@ const PRODUCT_QUERY = `#graphql
     product {
       title
       handle
-      id
-      vendor
     }
     selectedOptions {
       name
@@ -358,3 +448,169 @@ const PRODUCT_QUERY = `#graphql
     }
   }
 ` as const;
+
+// ✅ SHOP METAFIELDS: Global shipping information
+const SHOP_METAFIELDS_QUERY = `#graphql
+  query ShopMetafields($country: CountryCode, $language: LanguageCode)
+    @inContext(country: $country, language: $language) {
+    shop {
+      id
+      name
+      metafields(identifiers: [
+        {namespace: "custom", key: "free_shipping_text"},
+        {namespace: "custom", key: "free_shipping_note"}
+      ]) {
+        key
+        value
+        namespace
+      }
+    }
+  }
+` as const;
+
+// ✅ RECOMMENDED PRODUCTS: Query for product recommendations
+const RECOMMENDED_PRODUCTS_QUERY = `#graphql
+  fragment RecommendedProduct on Product {
+    id
+    title
+    handle
+    vendor
+    featuredImage {
+      id
+      url
+      altText
+      width
+      height
+    }
+    selectedOrFirstAvailableVariant(selectedOptions: []) {
+      id
+      title
+      availableForSale
+      price {
+        amount
+        currencyCode
+      }
+      compareAtPrice {
+        amount
+        currencyCode
+      }
+      image {
+        id
+        url
+        altText
+        width
+        height
+      }
+    }
+  }
+  query RecommendedProducts(
+    $country: CountryCode, 
+    $language: LanguageCode,
+    $first: Int = 8
+  ) @inContext(country: $country, language: $language) {
+    products(first: $first, sortKey: UPDATED_AT, reverse: true) {
+      nodes {
+        ...RecommendedProduct
+      }
+    }
+  }
+` as const;
+
+// ✅ RECOMMENDED PRODUCTS COMPONENT
+function RecommendedProducts({
+  products,
+  currentProductId,
+}: {
+  products: any[];
+  currentProductId: string;
+}) {
+  // Filter out current product and limit to 4 items
+  const filteredProducts = products
+    .filter(product => product.id !== currentProductId)
+    .slice(0, 4);
+
+  if (filteredProducts.length === 0) return null;
+
+  return (
+    <div className="mt-16 border-t border-gray-200 pt-8">
+      <h3 className="text-xl font-semibold text-gray-900 mb-4">
+        You might also like
+      </h3>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {filteredProducts.map((product) => (
+          <RecommendedProductCard key={product.id} product={product} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ✅ RECOMMENDED PRODUCT CARD
+function RecommendedProductCard({product}: {product: any}) {
+  const image = product.selectedOrFirstAvailableVariant?.image || product.featuredImage;
+  const price = product.selectedOrFirstAvailableVariant?.price;
+  const compareAtPrice = product.selectedOrFirstAvailableVariant?.compareAtPrice;
+  const productUrl = `/products/${product.handle}`;
+
+  return (
+    <div className="group">
+      {/* Make image clickable */}
+      <a href={productUrl} className="block">
+        <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-3">
+          {image && (
+            <img
+              src={image.url}
+              alt={image.altText || product.title}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              loading="lazy"
+            />
+          )}
+        </div>
+      </a>
+      <div className="space-y-2">
+        <h4 className="text-sm font-medium text-gray-900 line-clamp-2">
+          <a 
+            href={productUrl}
+            className="hover:text-blue-600 transition-colors"
+          >
+            {product.title}
+          </a>
+        </h4>
+        {product.vendor && (
+          <p className="text-xs text-gray-500">{product.vendor}</p>
+        )}
+        {price && (
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-semibold text-gray-900">
+              {price.currencyCode} {price.amount}
+            </span>
+            {compareAtPrice && (
+              <span className="text-xs text-gray-500 line-through">
+                {compareAtPrice.currencyCode} {compareAtPrice.amount}
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ✅ LOADING SKELETON
+function RecommendedProductsSkeleton() {
+  return (
+    <div className="mt-16 border-t border-gray-200 pt-8">
+      <div className="h-6 bg-gray-200 rounded w-48 mb-6"></div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {Array.from({length: 4}).map((_, i) => (
+          <div key={i} className="space-y-3">
+            <div className="aspect-square bg-gray-200 rounded-lg animate-pulse"></div>
+            <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+            <div className="h-3 bg-gray-200 rounded w-3/4 animate-pulse"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/2 animate-pulse"></div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
