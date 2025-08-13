@@ -1,3 +1,4 @@
+// app/routes/($locale).search.tsx - Enhanced Search Page with Complete Implementation
 import {
   type LoaderFunctionArgs,
   type ActionFunctionArgs,
@@ -13,7 +14,7 @@ import {
 } from '~/lib/search';
 
 export const meta: MetaFunction = () => {
-  return [{title: `Hydrogen | Search`}];
+  return [{title: `Search | STHLM Toys & Games`}];
 };
 
 export async function loader({request, context}: LoaderFunctionArgs) {
@@ -33,44 +34,85 @@ export async function loader({request, context}: LoaderFunctionArgs) {
 }
 
 /**
- * Renders the /search route
+ * Renders the /search route with enhanced styling
  */
 export default function SearchPage() {
   const {type, term, result, error} = useLoaderData<typeof loader>();
   if (type === 'predictive') return null;
 
   return (
-    <div className="search">
-      <h1>Search</h1>
-      <SearchForm>
-        {({inputRef}) => (
-          <>
-            <input
-              defaultValue={term}
-              name="q"
-              placeholder="Search…"
-              ref={inputRef}
-              type="search"
-            />
-            &nbsp;
-            <button type="submit">Search</button>
-          </>
-        )}
-      </SearchForm>
-      {error && <p style={{color: 'red'}}>{error}</p>}
+    <div className="container mx-auto px-4 py-8">
+      {/* Search Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-6">
+          {term ? `Search results for "${term}"` : 'Search Products'}
+        </h1>
+        
+        {/* Search Form */}
+        <div className="max-w-2xl">
+          <SearchForm>
+            {({inputRef}) => (
+              <div className="flex w-full rounded-full overflow-hidden bg-white border-2 border-gray-200 focus-within:border-blue-500">
+                <input
+                  defaultValue={term}
+                  name="q"
+                  placeholder="Search for products, brands, or categories..."
+                  ref={inputRef}
+                  type="search"
+                  className="flex-1 px-6 py-4 text-gray-700 bg-white text-lg border-none outline-none"
+                />
+                <button 
+                  type="submit"
+                  className="bg-yellow-400 hover:bg-yellow-500 font-semibold text-black flex items-center justify-center px-8 transition-colors"
+                  aria-label="Search"
+                >
+                  Search
+                </button>
+              </div>
+            )}
+          </SearchForm>
+        </div>
+      </div>
+
+      {/* Error Message */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
+          <p>Error: {error}</p>
+        </div>
+      )}
+
+      {/* Search Results */}
       {!term || !result?.total ? (
         <SearchResults.Empty />
       ) : (
-        <SearchResults result={result} term={term}>
-          {({articles, pages, products, term}) => (
-            <div>
-              <SearchResults.Products products={products} term={term} />
-              <SearchResults.Pages pages={pages} term={term} />
-              <SearchResults.Articles articles={articles} term={term} />
-            </div>
-          )}
-        </SearchResults>
+        <div>
+          {/* Results Summary */}
+          <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+            <p className="text-gray-700">
+              Found <strong>{result.total}</strong> result{result.total !== 1 ? 's' : ''} for{' '}
+              <strong>"{term}"</strong>
+            </p>
+          </div>
+
+          {/* Results Content */}
+          <SearchResults result={result} term={term}>
+            {({articles, pages, products, term}) => (
+              <div className="space-y-12">
+                {/* Products come first as they're most important for e-commerce */}
+                <SearchResults.Products products={products} term={term} />
+                
+                {/* Pages and Articles */}
+                <div className="grid md:grid-cols-2 gap-8">
+                  <SearchResults.Pages pages={pages} term={term} />
+                  <SearchResults.Articles articles={articles} term={term} />
+                </div>
+              </div>
+            )}
+          </SearchResults>
+        </div>
       )}
+
+      {/* Analytics */}
       <Analytics.SearchView data={{searchTerm: term, searchResults: result}} />
     </div>
   );
@@ -78,7 +120,6 @@ export default function SearchPage() {
 
 /**
  * Regular search query and fragments
- * (adjust as needed)
  */
 const SEARCH_PRODUCT_FRAGMENT = `#graphql
   fragment SearchProduct on Product {
@@ -152,7 +193,7 @@ const PAGE_INFO_FRAGMENT = `#graphql
 
 // NOTE: https://shopify.dev/docs/api/storefront/latest/queries/search
 export const SEARCH_QUERY = `#graphql
-  query RegularSearch(
+  query Search(
     $country: CountryCode
     $endCursor: String
     $first: Int
@@ -215,14 +256,21 @@ export const SEARCH_QUERY = `#graphql
 async function regularSearch({
   request,
   context,
-}: Pick<
-  LoaderFunctionArgs,
-  'request' | 'context'
->): Promise<RegularSearchReturn> {
+}: Pick<LoaderFunctionArgs, 'request' | 'context'>): Promise<RegularSearchReturn> {
   const {storefront} = context;
   const url = new URL(request.url);
+  const searchParams = new URLSearchParams(url.search);
   const variables = getPaginationVariables(request, {pageBy: 8});
-  const term = String(url.searchParams.get('q') || '');
+  const term = String(searchParams.get('q') || '').trim();
+  const type = 'regular';
+
+  if (!term) {
+    return {
+      type,
+      term,
+      result: {total: 0, items: {articles: {nodes: []}, pages: {nodes: []}, products: {nodes: [], pageInfo: {hasNextPage: false, hasPreviousPage: false, startCursor: '', endCursor: ''}}}},
+    };
+  }
 
   // Search articles, pages, and products for the `q` term
   const {errors, ...items} = await storefront.query(SEARCH_QUERY, {
@@ -233,21 +281,19 @@ async function regularSearch({
     throw new Error('No search data returned from Shopify API');
   }
 
-  const total = Object.values(items).reduce(
-    (acc, {nodes}) => acc + nodes.length,
-    0,
-  );
-
-  const error = errors
+  const error = errors?.length
     ? errors.map(({message}) => message).join(', ')
     : undefined;
 
-  return {type: 'regular', term, error, result: {total, items}};
+  const total = Object.values(items).reduce((acc, item) => {
+    return acc + (item?.nodes?.length || 0);
+  }, 0);
+
+  return {type, term, error, result: {total, items}};
 }
 
 /**
  * Predictive search query and fragments
- * (adjust as needed)
  */
 const PREDICTIVE_SEARCH_ARTICLE_FRAGMENT = `#graphql
   fragment PredictiveArticle on Article {
