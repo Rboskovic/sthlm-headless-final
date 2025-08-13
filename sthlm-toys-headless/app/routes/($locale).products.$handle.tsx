@@ -11,6 +11,7 @@ import {
   getProductOptions,
   getAdjacentAndFirstAvailableVariants,
   useSelectedOptionInUrlParam,
+  Money,
 } from '@shopify/hydrogen';
 import {ProductImageGallery} from '~/components/ProductImageGallery';
 import {ProductForm} from '~/components/ProductForm';
@@ -232,6 +233,46 @@ export default function Product() {
               >
                 {title}
               </h1>
+            </div>
+
+            {/* ✅ IMPROVED: Product Price Display with proper styling */}
+            <div className="py-2">
+              {selectedVariant?.price && (
+                <div className="flex items-baseline gap-3">
+                  {/* Current Price */}
+                  <div className="flex items-baseline">
+                    <span className="text-3xl font-semibold text-gray-900">
+                      {Math.round(parseFloat(selectedVariant.price.amount))}
+                    </span>
+                    <span className="text-lg font-medium text-gray-700 ml-1">
+                      kr
+                    </span>
+                  </div>
+                  
+                  {/* Compare At Price (Sale Price) */}
+                  {selectedVariant?.compareAtPrice && 
+                    parseFloat(selectedVariant.compareAtPrice.amount) > parseFloat(selectedVariant.price.amount) && (
+                    <>
+                      <div className="flex items-baseline">
+                        <span className="text-xl text-gray-500 line-through">
+                          {Math.round(parseFloat(selectedVariant.compareAtPrice.amount))}
+                        </span>
+                        <span className="text-sm text-gray-500 ml-1">
+                          kr
+                        </span>
+                      </div>
+                      
+                      {/* Discount Badge */}
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium bg-red-100 text-red-700">
+                        -{Math.round(
+                          ((parseFloat(selectedVariant.compareAtPrice.amount) - parseFloat(selectedVariant.price.amount)) /
+                            parseFloat(selectedVariant.compareAtPrice.amount)) * 100
+                        )}%
+                      </span>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Why They'll Love It Section */}
