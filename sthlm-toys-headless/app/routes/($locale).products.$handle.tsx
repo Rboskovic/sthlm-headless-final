@@ -20,6 +20,7 @@ import {AddToCartButton} from '~/components/AddToCartButton';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
 import {Check} from 'lucide-react';
 import React, {useState} from 'react';
+import {useAside} from '~/components/Aside';
 
 export const meta: MetaFunction<typeof loader> = ({data}) => {
   return [
@@ -135,6 +136,9 @@ export default function Product() {
   
   // ✅ KEEP: Proper quantity state management
   const [quantity, setQuantity] = useState(1);
+  
+  // ✅ CART MODAL: Add useAside hook to open cart
+  const {open} = useAside();
 
   // Optimistically selects a variant with given available variant information
   const selectedVariant = useOptimisticVariant(
@@ -212,14 +216,20 @@ export default function Product() {
 
           {/* Product Information */}
           <div className="order-2 lg:order-2 space-y-4">
-            {/* Brand & Title - FIX: Remove space between brand and title */}
-            <div className="space-y-0">
+            {/* Brand & Title - FIX: Override reset.css with !important */}
+            <div>
               {vendor && (
-                <p className="text-sm font-medium text-blue-600 uppercase tracking-wider">
+                <p 
+                  className="text-sm font-medium text-blue-600 uppercase tracking-wider"
+                  style={{margin: '0 !important', padding: '0 !important'}}
+                >
                   Brand: {vendor}
                 </p>
               )}
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 leading-tight">
+              <h1 
+                className="text-2xl md:text-3xl font-bold text-gray-900 leading-tight"
+                style={{margin: '0 !important', padding: '0 !important'}}
+              >
                 {title}
               </h1>
             </div>
@@ -285,24 +295,46 @@ export default function Product() {
               </div>
             </div>
 
-            {/* Add to Cart & Buy Now Buttons - Hide Add to Cart for now */}
+            {/* Add to Cart & Buy Now Buttons - Both visible with cart modal */}
             <div className="space-y-3">
-              {/* Add to Cart button hidden but kept for future use */}
-              {false && (
-                <AddToCartButton
-                  selectedVariant={selectedVariant}
-                  quantity={quantity}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-8 rounded-2xl transition-colors duration-200"
-                >
-                  Add to cart
-                </AddToCartButton>
-              )}
+              {/* Add to Cart button - NOW OPENS CART MODAL */}
+              <AddToCartButton
+                lines={[
+                  {
+                    merchandiseId: selectedVariant?.id || '',
+                    quantity: 1,
+                  },
+                ]}
+                onClick={() => {
+                  console.log('🐛 Opening cart aside after adding item');
+                  open('cart');
+                }}
+                disabled={!selectedVariant?.availableForSale}
+                analytics={{
+                  products: [
+                    {
+                      productGid: product.id,
+                      variantGid: selectedVariant?.id || '',
+                      name: product.title,
+                      variantName: selectedVariant?.title || product.title,
+                      brand: product.vendor,
+                      price: selectedVariant?.price?.amount || '0',
+                      quantity: 1,
+                    },
+                  ],
+                }}
+                variant="primary"
+                size="lg"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-12 rounded-2xl transition-colors duration-200"
+              >
+                Add to cart
+              </AddToCartButton>
 
-              {/* Shop Pay checkout */}
-              <form method="POST" action={`/cart/${selectedVariant?.id}:${quantity}`} className="w-full">
+              {/* Shop Pay checkout - Wider padding */}
+              <form method="POST" action={`/cart/${selectedVariant?.id}:1`} className="w-full">
                 <button 
                   type="submit"
-                  className="w-full text-white font-semibold py-4 px-8 rounded-2xl transition-colors duration-200 flex items-center justify-center gap-2"
+                  className="w-full text-white font-semibold py-4 px-12 rounded-2xl transition-colors duration-200 flex items-center justify-center gap-2"
                   style={{backgroundColor: '#5a31f4'}}
                 >
                   Buy with <span className="font-bold">Shop</span><span className="bg-white text-purple-600 px-1 rounded text-sm font-bold">Pay</span>
