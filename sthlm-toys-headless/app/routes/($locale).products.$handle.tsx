@@ -223,7 +223,7 @@ export default function Product() {
                   className="text-sm font-medium text-blue-600 uppercase tracking-wider"
                   style={{margin: '0 !important', padding: '0 !important'}}
                 >
-                  Brand: {vendor}
+                  Märke: {vendor}
                 </p>
               )}
               <h1 
@@ -242,7 +242,7 @@ export default function Product() {
                   type="button"
                 >
                   <h3 className="text-lg font-semibold text-gray-900">
-                    Why They'll Love It
+                    Varför de kommer älska det
                   </h3>
                   <span className="text-gray-400">-</span>
                 </button>
@@ -274,11 +274,11 @@ export default function Product() {
 
             {/* Availability Status - FIX 4: Increase size */}
             <div className="flex items-center gap-2">
-              <span className="text-base font-medium text-gray-900">Availability:</span>
+              <span className="text-base font-medium text-gray-900">Lagerstatus:</span>
               <div className="flex items-center gap-1">
                 <div className="h-2 w-2 bg-green-500 rounded-full"></div>
                 <span className="text-base text-gray-700 font-medium">
-                  {selectedVariant?.availableForSale ? 'In Stock' : 'Out of Stock'}
+                  {selectedVariant?.availableForSale ? 'I lager' : 'Slut i lager'}
                 </span>
               </div>
             </div>
@@ -327,7 +327,7 @@ export default function Product() {
                 size="lg"
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-12 rounded-2xl transition-colors duration-200"
               >
-                Add to cart
+                Lägg i varukorg
               </AddToCartButton>
 
               {/* Shop Pay checkout - Wider padding */}
@@ -337,7 +337,7 @@ export default function Product() {
                   className="w-full text-white font-semibold py-4 px-12 rounded-2xl transition-colors duration-200 flex items-center justify-center gap-2"
                   style={{backgroundColor: '#5a31f4'}}
                 >
-                  Buy with <span className="font-bold">Shop</span><span className="bg-white text-purple-600 px-1 rounded text-sm font-bold">Pay</span>
+                  Köp med <span className="font-bold">Shop</span><span className="bg-white text-purple-600 px-1 rounded text-sm font-bold">Pay</span>
                 </button>
               </form>
             </div>
@@ -349,7 +349,7 @@ export default function Product() {
           <div className="mt-12">
             <div className="border-t border-gray-200 pt-8">
               <h3 className="text-xl font-semibold text-gray-900 mb-4">
-                Product Description
+                Produktbeskrivning
               </h3>
               <div 
                 className="prose prose-gray max-w-none text-gray-700 leading-relaxed"
@@ -566,7 +566,7 @@ function RecommendedProducts({
   return (
     <div className="mt-16 border-t border-gray-200 pt-8">
       <h3 className="text-xl font-semibold text-gray-900 mb-4">
-        You might also like
+        Du kanske också gillar
       </h3>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {filteredProducts.map((product) => (
