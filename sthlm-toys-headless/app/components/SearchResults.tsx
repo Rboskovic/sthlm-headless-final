@@ -129,8 +129,8 @@ function SearchResultsProducts({
                   const selectedVariant = product.selectedOrFirstAvailableVariant;
 
                   return (
-                    <div className="search-results-item border rounded-lg p-4 hover:shadow-lg transition-shadow" key={product.id}>
-                      <Link prefetch="intent" to={productUrl} className="block">
+                    <div className="search-results-item bg-white border border-gray-100 rounded-lg p-4 hover:shadow-md transition-shadow shadow-sm" key={product.id}>
+                      <Link prefetch="intent" to={productUrl} className="block h-full flex flex-col">
                         {/* Product Image */}
                         {selectedVariant?.image && (
                           <div className="aspect-square mb-3">
@@ -144,45 +144,49 @@ function SearchResultsProducts({
                           </div>
                         )}
 
-                        {/* Product Info */}
-                        <h3 className="font-medium text-gray-900 mb-2 line-clamp-2">
-                          {product.title}
-                        </h3>
-                        
-                        {/* Price */}
-                        {selectedVariant?.price && (
-                          <div className="flex items-center gap-2">
-                            <Money 
-                              data={selectedVariant.price} 
-                              className="text-lg font-semibold text-gray-900"
-                            />
-                            {selectedVariant?.compareAtPrice && (
+                        {/* Product Info - Fixed height container for alignment */}
+                        <div className="flex-1 flex flex-col">
+                          <h3 className="font-medium text-gray-900 mb-2 line-clamp-2 min-h-[3rem] leading-tight">
+                            {product.title}
+                          </h3>
+                          
+                          {/* Spacer to push price to bottom */}
+                          <div className="flex-1"></div>
+                          
+                          {/* Price - Always at bottom */}
+                          {selectedVariant?.price && (
+                            <div className="flex items-center gap-2 mt-auto">
                               <Money 
-                                data={selectedVariant.compareAtPrice} 
-                                className="text-sm text-gray-500 line-through"
+                                data={selectedVariant.price} 
+                                className="text-lg font-semibold text-gray-900"
                               />
-                            )}
-                          </div>
-                        )}
-                        
-                        {/* Brand */}
-                        {product.vendor && (
-                          <p className="text-sm text-gray-600 mt-1">{product.vendor}</p>
-                        )}
+                              {selectedVariant?.compareAtPrice && (
+                                <Money 
+                                  data={selectedVariant.compareAtPrice} 
+                                  className="text-sm text-gray-500 line-through"
+                                />
+                              )}
+                            </div>
+                          )}
+                          
+                          {/* Brand */}
+                          {product.vendor && (
+                            <p className="text-sm text-gray-600 mt-1">{product.vendor}</p>
+                          )}
+                        </div>
                       </Link>
                     </div>
                   );
                 })}
               </div>
 
-              {/* Simple Pagination Controls */}
-              <div className="flex justify-center items-center gap-4 py-8 border-t border-gray-200">
-                <PreviousLink className="px-4 py-2 border rounded hover:bg-gray-50 disabled:opacity-50">
-                  {isLoading ? 'Loading...' : 'Previous'}
-                </PreviousLink>
-                
-                <NextLink className="px-4 py-2 border rounded hover:bg-gray-50 disabled:opacity-50">
-                  {isLoading ? 'Loading...' : 'Next'}
+              {/* Blue "Show more" Button - Fixed white text */}
+              <div className="flex justify-center py-8">
+                <NextLink 
+                  className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-10 rounded-full transition-colors duration-200"
+                  style={{ color: 'white' }}
+                >
+                  {isLoading ? 'Loading...' : 'Show more'}
                 </NextLink>
               </div>
             </>
@@ -195,29 +199,32 @@ function SearchResultsProducts({
 
 function SearchResultsEmpty() {
   return (
-    <div className="text-center py-16">
-      <div className="mb-6">
-        <svg className="w-16 h-16 text-gray-300 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-        </svg>
-      </div>
-      <h2 className="text-2xl font-bold text-gray-900 mb-4">No results found</h2>
-      <p className="text-gray-600 mb-8 max-w-md mx-auto">
-        We couldn't find any products matching your search. Try different keywords or browse our categories.
-      </p>
-      <div className="flex flex-col sm:flex-row gap-4 justify-center">
-        <Link 
-          to="/collections"
-          className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
-        >
-          Browse All Products
-        </Link>
-        <Link 
-          to="/collections/lego"
-          className="inline-block bg-gray-100 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-200 transition-colors font-medium"
-        >
-          Shop LEGO
-        </Link>
+    <div className="bg-white rounded-lg shadow-sm p-8">
+      <div className="text-center py-16">
+        <div className="mb-6">
+          <svg className="w-16 h-16 text-gray-300 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">No results found</h2>
+        <p className="text-gray-600 mb-8 max-w-md mx-auto">
+          We couldn't find any products matching your search. Try different keywords or browse our categories.
+        </p>
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <Link 
+            to="/collections"
+            className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-10 rounded-full transition-colors duration-200"
+            style={{ color: 'white' }}
+          >
+            Browse All Products
+          </Link>
+          <Link 
+            to="/collections/lego"
+            className="inline-block bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-10 rounded-full transition-colors duration-200"
+          >
+            Shop LEGO
+          </Link>
+        </div>
       </div>
     </div>
   );

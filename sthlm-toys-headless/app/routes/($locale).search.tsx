@@ -127,7 +127,8 @@ export default function SearchPage() {
   if (type === 'predictive') return null;
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="bg-gray-50 min-h-screen">
+      <div className="container mx-auto px-4 py-8">
       {/* Error Message */}
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
@@ -135,12 +136,33 @@ export default function SearchPage() {
         </div>
       )}
 
-      {/* Simple Results Count - Moved to top, slightly larger */}
+      {/* Results count and filters aligned */}
       {term && result?.total ? (
         <div className="mb-6">
-          <p className="text-lg text-gray-700">
-            Found <strong>{result.total}</strong> results for <strong>"{term}"</strong>
-          </p>
+          {/* Results count with gray background */}
+          <div className="bg-gray-50 rounded-lg p-4 mb-4">
+            <p className="text-lg text-gray-700">
+              Found <strong>{result.total}</strong> results for <strong>"{term}"</strong>
+            </p>
+          </div>
+          
+          {/* Sorting and Filter Controls - Aligned left with results text */}
+          <div className="flex flex-wrap justify-between items-center gap-3">
+            <div className="flex flex-wrap gap-3">
+              <button className="px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                Filter
+              </button>
+              <button className="px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                Price Range
+              </button>
+              <button className="px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                Brand
+              </button>
+            </div>
+            <button className="px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+              Sort by: Relevance ↓
+            </button>
+          </div>
         </div>
       ) : null}
 
@@ -148,19 +170,22 @@ export default function SearchPage() {
       {!term || !result?.total ? (
         <SearchResults.Empty />
       ) : (
-        <SearchResults result={result} term={term}>
-          {({articles, pages, products, term}) => (
-            <div className="space-y-8">
-              <SearchResults.Products products={products} term={term} />
-              <SearchResults.Pages pages={pages} term={term} />
-              <SearchResults.Articles articles={articles} term={term} />
-            </div>
-          )}
-        </SearchResults>
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <SearchResults result={result} term={term}>
+            {({articles, pages, products, term}) => (
+              <div className="space-y-8">
+                <SearchResults.Products products={products} term={term} />
+                <SearchResults.Pages pages={pages} term={term} />
+                <SearchResults.Articles articles={articles} term={term} />
+              </div>
+            )}
+          </SearchResults>
+        </div>
       )}
 
       {/* Analytics */}
       <Analytics.SearchView data={{searchTerm: term, searchResults: result}} />
+      </div>
     </div>
   );
 }
