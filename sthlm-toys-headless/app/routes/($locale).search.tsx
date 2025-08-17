@@ -1,11 +1,10 @@
-// app/routes/($locale).search.tsx - Enhanced Search Page with Complete Implementation
+// app/routes/($locale).search.tsx - Enhanced Search Page Implementation
 import {
   type LoaderFunctionArgs,
   type ActionFunctionArgs,
 } from '@shopify/remix-oxygen';
 import {useLoaderData, type MetaFunction} from 'react-router';
 import {getPaginationVariables, Analytics} from '@shopify/hydrogen';
-import {SearchForm} from '~/components/SearchForm';
 import {SearchResults} from '~/components/SearchResults';
 import {
   type RegularSearchReturn,
@@ -34,7 +33,94 @@ export async function loader({request, context}: LoaderFunctionArgs) {
 }
 
 /**
- * Renders the /search route with enhanced styling
+ * Regular search fetcher with enhanced pagination
+ */
+async function regularSearch({
+  request,
+  context,
+}: Pick<LoaderFunctionArgs, 'request' | 'context'>): Promise<RegularSearchReturn> {
+  const {storefront} = context;
+  const url = new URL(request.url);
+  const searchParams = new URLSearchParams(url.search);
+  // Increase pageBy from 8 to 24 for better user experience
+  const variables = getPaginationVariables(request, {pageBy: 24});
+  const term = String(searchParams.get('q') || '').trim();
+  const type = 'regular';
+
+  if (!term) {
+    return {
+      type,
+      term,
+      result: {total: 0, items: {articles: {nodes: []}, pages: {nodes: []}, products: {nodes: [], pageInfo: {hasNextPage: false, hasPreviousPage: false, startCursor: '', endCursor: ''}}}},
+    };
+  }
+
+  // Search articles, pages, and products for the `q` term
+  const {errors, ...items} = await storefront.query(SEARCH_QUERY, {
+    variables: {...variables, term},
+  });
+
+  if (!items) {
+    throw new Error('No search data returned from Shopify API');
+  }
+
+  const error = errors?.length
+    ? `Shopify API errors: ${errors.map(({message}) => message).join(', ')}`
+    : null;
+
+  // Calculate total across all search types
+  const total = Object.values(items).reduce((acc, {nodes}) => {
+    return acc + nodes.length;
+  }, 0);
+
+  return {
+    type,
+    term,
+    result: {total, items},
+    ...(error && {error}),
+  };
+}
+
+/**
+ * Predictive search fetcher
+ */
+async function predictiveSearch({
+  request,
+  context,
+}: Pick<ActionFunctionArgs, 'request' | 'context'>) {
+  const {storefront} = context;
+  const formData = await request.formData();
+  const term = String(formData.get('q') || '');
+  const limit = Number(formData.get('limit') || 10);
+
+  const {predictiveSearch: items, errors} = await storefront.query(
+    PREDICTIVE_SEARCH_QUERY,
+    {
+      variables: {
+        limit,
+        limitScope: 'EACH',
+        term,
+      },
+    },
+  );
+
+  if (errors) {
+    throw new Error(
+      `Shopify API errors: ${errors.map(({message}) => message).join(', ')}`,
+    );
+  }
+
+  if (!items) {
+    throw new Error('No predictive search data returned');
+  }
+
+  const total = Object.values(items).reduce((acc, {length}) => acc + length, 0);
+
+  return {term, result: {items, total}, error: null, type: 'predictive'};
+}
+
+/**
+ * Renders the /search route with clean, focused design
  */
 export default function SearchPage() {
   const {type, term, result, error} = useLoaderData<typeof loader>();
@@ -42,38 +128,6 @@ export default function SearchPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Search Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-6">
-          {term ? `Search results for "${term}"` : 'Search Products'}
-        </h1>
-        
-        {/* Search Form */}
-        <div className="max-w-2xl">
-          <SearchForm>
-            {({inputRef}) => (
-              <div className="flex w-full rounded-full overflow-hidden bg-white border-2 border-gray-200 focus-within:border-blue-500">
-                <input
-                  defaultValue={term}
-                  name="q"
-                  placeholder="Search for products, brands, or categories..."
-                  ref={inputRef}
-                  type="search"
-                  className="flex-1 px-6 py-4 text-gray-700 bg-white text-lg border-none outline-none"
-                />
-                <button 
-                  type="submit"
-                  className="bg-yellow-400 hover:bg-yellow-500 font-semibold text-black flex items-center justify-center px-8 transition-colors"
-                  aria-label="Search"
-                >
-                  Search
-                </button>
-              </div>
-            )}
-          </SearchForm>
-        </div>
-      </div>
-
       {/* Error Message */}
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
@@ -81,35 +135,28 @@ export default function SearchPage() {
         </div>
       )}
 
+      {/* Simple Results Count - Moved to top, slightly larger */}
+      {term && result?.total ? (
+        <div className="mb-6">
+          <p className="text-lg text-gray-700">
+            Found <strong>{result.total}</strong> results for <strong>"{term}"</strong>
+          </p>
+        </div>
+      ) : null}
+
       {/* Search Results */}
       {!term || !result?.total ? (
         <SearchResults.Empty />
       ) : (
-        <div>
-          {/* Results Summary */}
-          <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-            <p className="text-gray-700">
-              Found <strong>{result.total}</strong> result{result.total !== 1 ? 's' : ''} for{' '}
-              <strong>"{term}"</strong>
-            </p>
-          </div>
-
-          {/* Results Content */}
-          <SearchResults result={result} term={term}>
-            {({articles, pages, products, term}) => (
-              <div className="space-y-12">
-                {/* Products come first as they're most important for e-commerce */}
-                <SearchResults.Products products={products} term={term} />
-                
-                {/* Pages and Articles */}
-                <div className="grid md:grid-cols-2 gap-8">
-                  <SearchResults.Pages pages={pages} term={term} />
-                  <SearchResults.Articles articles={articles} term={term} />
-                </div>
-              </div>
-            )}
-          </SearchResults>
-        </div>
+        <SearchResults result={result} term={term}>
+          {({articles, pages, products, term}) => (
+            <div className="space-y-8">
+              <SearchResults.Products products={products} term={term} />
+              <SearchResults.Pages pages={pages} term={term} />
+              <SearchResults.Articles articles={articles} term={term} />
+            </div>
+          )}
+        </SearchResults>
       )}
 
       {/* Analytics */}
@@ -118,9 +165,7 @@ export default function SearchPage() {
   );
 }
 
-/**
- * Regular search query and fragments
- */
+// Search Query Fragments and Queries
 const SEARCH_PRODUCT_FRAGMENT = `#graphql
   fragment SearchProduct on Product {
     __typename
@@ -191,9 +236,8 @@ const PAGE_INFO_FRAGMENT = `#graphql
   }
 ` as const;
 
-// NOTE: https://shopify.dev/docs/api/storefront/latest/queries/search
-export const SEARCH_QUERY = `#graphql
-  query Search(
+const SEARCH_QUERY = `#graphql
+  query RegularSearch(
     $country: CountryCode
     $endCursor: String
     $first: Int
@@ -250,51 +294,6 @@ export const SEARCH_QUERY = `#graphql
   ${PAGE_INFO_FRAGMENT}
 ` as const;
 
-/**
- * Regular search fetcher
- */
-async function regularSearch({
-  request,
-  context,
-}: Pick<LoaderFunctionArgs, 'request' | 'context'>): Promise<RegularSearchReturn> {
-  const {storefront} = context;
-  const url = new URL(request.url);
-  const searchParams = new URLSearchParams(url.search);
-  const variables = getPaginationVariables(request, {pageBy: 8});
-  const term = String(searchParams.get('q') || '').trim();
-  const type = 'regular';
-
-  if (!term) {
-    return {
-      type,
-      term,
-      result: {total: 0, items: {articles: {nodes: []}, pages: {nodes: []}, products: {nodes: [], pageInfo: {hasNextPage: false, hasPreviousPage: false, startCursor: '', endCursor: ''}}}},
-    };
-  }
-
-  // Search articles, pages, and products for the `q` term
-  const {errors, ...items} = await storefront.query(SEARCH_QUERY, {
-    variables: {...variables, term},
-  });
-
-  if (!items) {
-    throw new Error('No search data returned from Shopify API');
-  }
-
-  const error = errors?.length
-    ? errors.map(({message}) => message).join(', ')
-    : undefined;
-
-  const total = Object.values(items).reduce((acc, item) => {
-    return acc + (item?.nodes?.length || 0);
-  }, 0);
-
-  return {type, term, error, result: {total, items}};
-}
-
-/**
- * Predictive search query and fragments
- */
 const PREDICTIVE_SEARCH_ARTICLE_FRAGMENT = `#graphql
   fragment PredictiveArticle on Article {
     __typename
@@ -376,7 +375,6 @@ const PREDICTIVE_SEARCH_QUERY_FRAGMENT = `#graphql
   }
 ` as const;
 
-// NOTE: https://shopify.dev/docs/api/storefront/latest/queries/predictiveSearch
 const PREDICTIVE_SEARCH_QUERY = `#graphql
   query PredictiveSearch(
     $country: CountryCode
@@ -415,52 +413,3 @@ const PREDICTIVE_SEARCH_QUERY = `#graphql
   ${PREDICTIVE_SEARCH_PRODUCT_FRAGMENT}
   ${PREDICTIVE_SEARCH_QUERY_FRAGMENT}
 ` as const;
-
-/**
- * Predictive search fetcher
- */
-async function predictiveSearch({
-  request,
-  context,
-}: Pick<
-  ActionFunctionArgs,
-  'request' | 'context'
->): Promise<PredictiveSearchReturn> {
-  const {storefront} = context;
-  const url = new URL(request.url);
-  const term = String(url.searchParams.get('q') || '').trim();
-  const limit = Number(url.searchParams.get('limit') || 10);
-  const type = 'predictive';
-
-  if (!term) return {type, term, result: getEmptyPredictiveSearchResult()};
-
-  // Predictively search articles, collections, pages, products, and queries (suggestions)
-  const {predictiveSearch: items, errors} = await storefront.query(
-    PREDICTIVE_SEARCH_QUERY,
-    {
-      variables: {
-        // customize search options as needed
-        limit,
-        limitScope: 'EACH',
-        term,
-      },
-    },
-  );
-
-  if (errors) {
-    throw new Error(
-      `Shopify API errors: ${errors.map(({message}) => message).join(', ')}`,
-    );
-  }
-
-  if (!items) {
-    throw new Error('No predictive search data returned from Shopify API');
-  }
-
-  const total = Object.values(items).reduce(
-    (acc, item) => acc + item.length,
-    0,
-  );
-
-  return {type, term, result: {items, total}};
-}
