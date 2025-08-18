@@ -1,4 +1,4 @@
-// app/components/Header/SearchBar.tsx - Native Shopify Search Implementation
+// app/components/Header/SearchBar.tsx - Simple & Clean Approach
 import {Search} from 'lucide-react';
 import {SearchForm} from '~/components/SearchForm';
 import type {SearchBarProps} from './types';
@@ -20,8 +20,7 @@ export function SearchBar({isMobile = false, className = ''}: SearchBarProps) {
               border: 'none',
               outline: 'none',
               boxShadow: 'none',
-              // Increased left padding as requested
-              paddingLeft: isMobile ? '20px' : '24px', // Increased from 16px to 20px/24px
+              paddingLeft: isMobile ? '20px' : '24px',
               paddingRight: '16px',
             }}
             onFocus={(e) => {

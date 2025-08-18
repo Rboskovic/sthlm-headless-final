@@ -1,3 +1,4 @@
+// app/lib/search.ts - Updated Search Types with Total Count Support
 import type {
   PredictiveSearchQuery,
   RegularSearchQuery,
@@ -7,7 +8,11 @@ type ResultWithItems<Type extends 'predictive' | 'regular', Items> = {
   type: Type;
   term: string;
   error?: string;
-  result: {total: number; items: Items};
+  result: {
+    total: number; 
+    totalProducts?: number; // Added for proper total count
+    items: Items;
+  };
 };
 
 export type RegularSearchReturn = ResultWithItems<
