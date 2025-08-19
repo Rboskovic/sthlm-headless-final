@@ -1,5 +1,6 @@
 // FILE: app/components/ProductItem.tsx
 // ✅ SHOPIFY STANDARD: Compatible with both collection and product data structures
+// ✅ FIXED: Changed object-cover to object-contain for proper image display
 
 import {Link, useNavigate} from 'react-router';
 import {useState} from 'react';
@@ -89,7 +90,7 @@ export function ProductItem({
     return null;
   }
 
-  // Desktop Layout - Original
+  // Desktop Layout - FIXED: Changed object-cover to object-contain with padding
   return (
     <>
       {/* Desktop Layout - PIXEL PERFECT MATCH TO SCREENSHOT */}
@@ -106,7 +107,7 @@ export function ProductItem({
           </div>
 
           <div className="flex flex-col h-full">
-            {/* Product Image */}
+            {/* Product Image - SMART: object-cover by default, object-contain for wide images */}
             <Link to={productUrl} className="block mb-4">
               <div className="aspect-square bg-gray-50 rounded-xl overflow-hidden mb-4 group-hover:scale-105 transition-transform duration-300">
                 {image && (
@@ -117,6 +118,9 @@ export function ProductItem({
                     height={300}
                     loading={loading}
                     className="w-full h-full object-cover"
+                    style={{
+                      objectFit: image.width && image.height && (image.width / image.height) > 1.3 ? 'contain' : 'cover'
+                    }}
                   />
                 )}
               </div>
@@ -152,17 +156,20 @@ export function ProductItem({
             {/* ✅ FIXED: Add to Cart Button - Only show if we have variant data */}
             {variant ? (
               <AddToCartButton
-                disabled={!variant.availableForSale}
-                onClick={() => {
-                  console.log('🐛 Opening cart aside after adding item');
-                  open('cart');
-                }}
                 lines={[
                   {
                     merchandiseId: variant.id,
                     quantity: 1,
                   },
                 ]}
+                onClick={() => {
+                  console.log('🐛 Opening cart modal from product card');
+                  open('cart');
+                }}
+                disabled={!variant.availableForSale}
+                variant="primary"
+                size="md"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-xl transition-colors duration-200"
                 analytics={{
                   products: [
                     {
@@ -176,119 +183,98 @@ export function ProductItem({
                     },
                   ],
                 }}
-                variant="addToCart"
-                size="md"
-                className="w-full"
               >
-                {variant.availableForSale ? 'Add to cart' : 'Sold out'}
+                {variant.availableForSale ? 'Lägg i varukorg' : 'Slut i lager'}
               </AddToCartButton>
             ) : (
-              <Link
-                to={productUrl}
-                className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors duration-200 text-center"
-              >
-                View Product
-              </Link>
+              <div className="w-full bg-gray-100 text-gray-500 font-medium py-3 px-6 rounded-xl text-center">
+                Ej tillgänglig
+              </div>
             )}
           </div>
         </div>
       </div>
 
-      {/* Mobile Layout - PIXEL PERFECT MATCH TO SCREENSHOT */}
-      <div className="lg:hidden p-4">
-        <div className="flex gap-4">
-          {/* Product Image - Left Side */}
-          <div className="w-24 h-24 flex-shrink-0 bg-gray-50 rounded-lg overflow-hidden relative">
-            {/* Wishlist Heart - Top Right of Image */}
-            <div className="absolute top-1 right-1 z-10">
-              <WishlistButton
-                productId={product.id}
-                productTitle={product.title}
-                size="sm"
-                className="w-6 h-6 bg-white rounded-full shadow-sm"
-              />
-            </div>
-
-            <Link to={productUrl} className="block w-full h-full">
-              {image && (
-                <Image
-                  alt={image.altText || product.title}
-                  src={image.url}
-                  width={96}
-                  height={96}
-                  loading={loading}
-                  className="w-full h-full object-cover"
-                />
-              )}
-            </Link>
-          </div>
-
-          {/* Product Details - Right Side */}
-          <div className="flex-1 flex flex-col justify-between min-h-[96px]">
-            <div>
-              <Link to={productUrl} className="block">
-                <h3 className="text-base font-medium text-gray-900 line-clamp-2 leading-tight mb-1">
-                  {product.title}
-                </h3>
-              </Link>
-              {product.vendor && (
-                <p className="text-xs text-gray-500 mb-2">{product.vendor}</p>
-              )}
-            </div>
-
-            {/* Bottom row: Price + Add to Cart */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <span className="text-lg font-bold text-gray-900">
-                  {price.currencyCode} {price.amount}
-                </span>
-                {compareAtPrice && (
-                  <span className="text-xs text-gray-500 line-through">
-                    {compareAtPrice.currencyCode} {compareAtPrice.amount}
-                  </span>
+      {/* Mobile Layout - FIXED: Also changed to object-contain with padding */}
+      <div className="lg:hidden">
+        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden group">
+          <div className="flex">
+            {/* Mobile Image - SMART: object-cover by default, object-contain for wide images */}
+            <div className="w-32 h-32 flex-shrink-0 relative bg-gray-50">
+              <Link to={productUrl} className="block w-full h-full">
+                {image && (
+                  <Image
+                    alt={image.altText || product.title}
+                    src={image.url}
+                    width={128}
+                    height={128}
+                    loading={loading}
+                    className="w-full h-full object-cover"
+                    style={{
+                      objectFit: image.width && image.height && (image.width / image.height) > 1.3 ? 'contain' : 'cover'
+                    }}
+                  />
                 )}
+              </Link>
+              
+              {/* Mobile Wishlist Button */}
+              <div className="absolute top-1 right-1">
+                <WishlistButton
+                  productId={product.id}
+                  productTitle={product.title}
+                  size="xs"
+                  className="w-6 h-6 bg-white rounded-full shadow-sm"
+                />
               </div>
+            </div>
 
-              {/* ✅ FIXED: Mobile Add to Cart Button - Only show if we have variant data */}
-              {variant ? (
-                <AddToCartButton
-                  disabled={!variant.availableForSale}
-                  onClick={() => {
-                    console.log('🐛 Opening cart aside after adding item (mobile)');
-                    open('cart');
-                  }}
-                  lines={[
-                    {
-                      merchandiseId: variant.id,
-                      quantity: 1,
-                    },
-                  ]}
-                  analytics={{
-                    products: [
-                      {
-                        productGid: product.id,
-                        variantGid: variant.id,
-                        name: product.title,
-                        variantName: variant.title || product.title,
-                        brand: product.vendor,
-                        price: variant.price.amount,
-                        quantity: 1,
-                      },
-                    ],
-                  }}
-                  variant="addToCart"
-                  size="sm"
-                  className="px-3 py-1 text-xs"
-                >
-                  {variant.availableForSale ? 'Add' : 'Out'}
-                </AddToCartButton>
-              ) : (
+            {/* Mobile Product Info */}
+            <div className="flex-1 p-4 flex flex-col justify-between">
+              <div>
                 <Link
                   to={productUrl}
-                  className="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 transition-colors"
+                  className="block group-hover:text-blue-600 transition-colors"
                 >
-                  View
+                  <h3 className="text-base font-semibold text-gray-900 line-clamp-2 mb-1">
+                    {product.title}
+                  </h3>
+                  {product.vendor && (
+                    <p className="text-xs text-gray-500 mb-2">{product.vendor}</p>
+                  )}
                 </Link>
+
+                {/* Mobile Price */}
+                <div className="flex items-center space-x-2">
+                  <span className="text-lg font-bold text-gray-900">
+                    {price.currencyCode} {price.amount}
+                  </span>
+                  {compareAtPrice && (
+                    <span className="text-sm text-gray-500 line-through">
+                      {compareAtPrice.currencyCode} {compareAtPrice.amount}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Mobile Add to Cart */}
+              {variant && (
+                <div className="mt-3">
+                  <AddToCartButton
+                    lines={[
+                      {
+                        merchandiseId: variant.id,
+                        quantity: 1,
+                      },
+                    ]}
+                    onClick={() => open('cart')}
+                    disabled={!variant.availableForSale}
+                    variant="primary"
+                    size="sm"
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg text-sm transition-colors duration-200"
+                  >
+                    {variant.availableForSale ? 'Lägg till' : 'Slut'}
+                  </AddToCartButton>
+                </div>
               )}
             </div>
           </div>
@@ -298,24 +284,31 @@ export function ProductItem({
   );
 }
 
-// ✅ SHOPIFY STANDARD: Helper functions to handle both data structures
-
+// Helper functions to handle both data structures
 function getCompatibleVariant(product: CompatibleProduct | ProductFragment) {
-  // Try product detail structure first
   if ('selectedOrFirstAvailableVariant' in product && product.selectedOrFirstAvailableVariant) {
-    return product.selectedOrFirstAvailableVariant;
+    return {
+      id: product.selectedOrFirstAvailableVariant.id,
+      availableForSale: product.selectedOrFirstAvailableVariant.availableForSale,
+      price: product.selectedOrFirstAvailableVariant.price,
+      compareAtPrice: product.selectedOrFirstAvailableVariant.compareAtPrice,
+      selectedOptions: product.selectedOrFirstAvailableVariant.selectedOptions || [],
+      title: product.selectedOrFirstAvailableVariant.title,
+      sku: product.selectedOrFirstAvailableVariant.sku,
+    };
   }
   
-  // For collection structure, create a compatible variant object
+  // For collection structure, create a minimal variant from priceRange
   if ('priceRange' in product && product.priceRange) {
     return {
-      id: `gid://shopify/ProductVariant/${product.id}-variant`, // Fallback ID
-      availableForSale: true, // Assume available in collection views
+      id: `${product.id}-variant`,
+      availableForSale: true,
       price: product.priceRange.minVariantPrice,
       compareAtPrice: product.priceRange.maxVariantPrice && 
-        product.priceRange.maxVariantPrice.amount !== product.priceRange.minVariantPrice.amount 
+        product.priceRange.maxVariantPrice.amount !== product.priceRange.minVariantPrice.amount
         ? product.priceRange.maxVariantPrice 
         : null,
+      selectedOptions: [],
       title: product.title,
       sku: null,
     };

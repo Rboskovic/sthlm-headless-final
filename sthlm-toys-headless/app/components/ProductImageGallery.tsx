@@ -34,7 +34,7 @@ export function ProductImageGallery({
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={1.5}
-                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 002 2z"
               />
             </svg>
             <p className="text-sm">No image available</p>
@@ -48,13 +48,12 @@ export function ProductImageGallery({
   if (validImages.length === 1) {
     return (
       <div className="w-full">
-        <div className="aspect-square bg-white rounded-lg overflow-hidden border border-gray-200">
+        <div className="aspect-square bg-white rounded-lg overflow-hidden border border-gray-200 p-4">
           <Image
             alt={validImages[0].altText || productTitle}
-            aspectRatio="1/1"
             data={validImages[0]}
             sizes="(min-width: 1024px) 50vw, 100vw"
-            className="w-full h-full object-cover"
+            className="w-full h-full object-contain"
           />
         </div>
       </div>
@@ -74,7 +73,7 @@ export function ProductImageGallery({
               key={image.id}
               onClick={() => setSelectedImageIndex(index)}
               className={`
-                aspect-square border-2 rounded-lg overflow-hidden transition-all duration-200
+                aspect-square border-2 rounded-lg overflow-hidden transition-all duration-200 p-1
                 ${
                   index === selectedImageIndex
                     ? 'border-blue-600 ring-2 ring-blue-600 ring-opacity-20'
@@ -85,10 +84,9 @@ export function ProductImageGallery({
             >
               <Image
                 alt={image.altText || `${productTitle} view ${index + 1}`}
-                aspectRatio="1/1"
                 data={image}
                 sizes="80px"
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain"
               />
             </button>
           ))}
@@ -142,13 +140,12 @@ export function ProductImageGallery({
 
         {/* Main Image */}
         <div className="flex-1">
-          <div className="aspect-square bg-white rounded-lg overflow-hidden border border-gray-200 relative">
+          <div className="aspect-square bg-white rounded-lg overflow-hidden border border-gray-200 relative p-8">
             <Image
               alt={selectedImage.altText || productTitle}
-              aspectRatio="1/1"
               data={selectedImage}
               sizes="(min-width: 1024px) 50vw, 100vw"
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain"
             />
 
             {/* Image counter */}
@@ -216,13 +213,12 @@ export function ProductImageGallery({
       {/* Mobile Layout: Main image on top, thumbnails below */}
       <div className="lg:hidden">
         {/* Main Image */}
-        <div className="aspect-square bg-white rounded-lg overflow-hidden border border-gray-200 relative mb-4">
+        <div className="aspect-square bg-white rounded-lg overflow-hidden border border-gray-200 relative mb-4 p-6">
           <Image
             alt={selectedImage.altText || productTitle}
-            aspectRatio="1/1"
             data={selectedImage}
             sizes="100vw"
-            className="w-full h-full object-cover"
+            className="w-full h-full object-contain"
           />
 
           {/* Image counter */}
@@ -292,7 +288,7 @@ export function ProductImageGallery({
               key={image.id}
               onClick={() => setSelectedImageIndex(index)}
               className={`
-                flex-shrink-0 aspect-square border-2 rounded-lg overflow-hidden transition-all duration-200
+                flex-shrink-0 aspect-square border-2 rounded-lg overflow-hidden transition-all duration-200 p-1
                 ${
                   index === selectedImageIndex
                     ? 'border-blue-600 ring-2 ring-blue-600 ring-opacity-20'
@@ -303,10 +299,9 @@ export function ProductImageGallery({
             >
               <Image
                 alt={image.altText || `${productTitle} view ${index + 1}`}
-                aspectRatio="1/1"
                 data={image}
                 sizes="60px"
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain"
               />
             </button>
           ))}

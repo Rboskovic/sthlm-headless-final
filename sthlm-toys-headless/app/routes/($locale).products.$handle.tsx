@@ -217,22 +217,36 @@ export default function Product() {
 
           {/* Product Information */}
           <div className="order-2 lg:order-2 space-y-4">
-            {/* Brand & Title - FIX: Override reset.css with !important */}
+            {/* ✅ UPDATED: Brand & Title - FIX: Override reset.css with !important */}
             <div>
               {vendor && (
                 <p 
-                  className="text-sm font-medium text-blue-600 uppercase tracking-wider"
-                  style={{margin: '0 !important', padding: '0 !important'}}
+                  className="text-sm font-medium text-blue-600 uppercase tracking-wider mb-2"
+                  style={{margin: '0 !important', padding: '0 !important', marginBottom: '8px !important'}}
                 >
                   Märke: {vendor}
                 </p>
               )}
               <h1 
-                className="text-2xl md:text-3xl font-bold text-gray-900 leading-tight"
-                style={{margin: '0 !important', padding: '0 !important'}}
+                className="text-2xl md:text-3xl font-bold text-gray-900 leading-tight mb-3"
+                style={{margin: '0 !important', padding: '0 !important', marginBottom: '12px !important'}}
               >
                 {title}
               </h1>
+              {/* ✅ NEW: Article Number Display - Below Title */}
+              {selectedVariant?.sku && (
+                <div 
+                  className="inline-flex items-center px-3 py-1.5 bg-gray-100 rounded-lg border border-gray-200"
+                  style={{margin: '0 !important', padding: '6px 12px !important'}}
+                >
+                  <span className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+                    Artikelnummer:
+                  </span>
+                  <span className="text-sm font-semibold text-gray-900 ml-2">
+                    {selectedVariant.sku}
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* ✅ IMPROVED: Product Price Display with proper styling */}
@@ -635,6 +649,9 @@ function RecommendedProductCard({product}: {product: any}) {
               src={image.url}
               alt={image.altText || product.title}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              style={{
+                objectFit: image.width && image.height && (image.width / image.height) > 1.3 ? 'contain' : 'cover'
+              }}
               loading="lazy"
             />
           )}
