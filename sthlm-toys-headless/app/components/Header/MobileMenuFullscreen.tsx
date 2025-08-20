@@ -278,7 +278,7 @@ function MainMenuScreen({
           <ChevronRight size={20} className="text-gray-400" />
         </WishlistsLink>
         <AccountLink
-          href="/pages/customer-service"
+          href="/hjalp"
           icon={HelpCircle}
           title="Kundservice"
           onClose={onClose}

@@ -7,7 +7,7 @@ const FALLBACK_FOOTER_SECTIONS = [
     id: 'support',
     title: 'Support',
     links: [
-      {id: 'help', title: 'Hjälp & Support', url: '/pages/hjalp'},
+      {id: 'help', title: 'Hjälp & Support', url: '/hjalp'},
       {id: 'terms', title: 'Köpvillkor', url: '/pages/kopvillkor'},
       {id: 'privacy', title: 'Integritetspolicy', url: '/pages/privacy-policy'},
       {id: 'cookies', title: 'Cookies', url: '/pages/cookies'},

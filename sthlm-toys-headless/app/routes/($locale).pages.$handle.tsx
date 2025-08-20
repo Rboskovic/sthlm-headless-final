@@ -3,7 +3,7 @@ import {useLoaderData, type MetaFunction} from 'react-router';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
 
 export const meta: MetaFunction<typeof loader> = ({data}) => {
-  return [{title: `Hydrogen | ${data?.page.title ?? ''}`}];
+  return [{title: `Klosslabbet | ${data?.page.title ?? ''}`}];
 };
 
 export async function loader(args: LoaderFunctionArgs) {
@@ -63,9 +63,6 @@ export default function Page() {
 
   return (
     <div className="page">
-      <header>
-        <h1>{page.title}</h1>
-      </header>
       <main dangerouslySetInnerHTML={{__html: page.body}} />
     </div>
   );
