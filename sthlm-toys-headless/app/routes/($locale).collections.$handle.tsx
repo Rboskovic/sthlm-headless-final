@@ -1,5 +1,5 @@
 // FILE: app/routes/($locale).collections.$handle.tsx
-// ✅ SHOPIFY STANDARD: Fixed collection route with proper product fragments
+// ✅ SHOPIFY STANDARD: Clean server-side filtering using Search & Discovery
 
 import { type LoaderFunctionArgs, type MetaFunction } from '@shopify/remix-oxygen';
 import { useLoaderData } from 'react-router';
@@ -33,54 +33,90 @@ export async function loader({ context, request, params }: LoaderFunctionArgs) {
   const reverse = sortKey.includes('REVERSE');
   const cleanSortKey = sortKey.replace('_REVERSE', '');
   
-  // Build Shopify filters array using correct format
+  // ✅ CLEAN: Build Shopify filters from URL parameters
   const filters: any[] = [];
   
-  // Vendor filters (Brand)
-  const vendors = searchParams.getAll('vendor');
-  vendors.forEach(vendor => {
-    filters.push({ productVendor: vendor });
+  // Parse all filter parameters and convert to Shopify filter format
+  searchParams.forEach((value, key) => {
+    switch (key) {
+      case 'themes':
+        filters.push({
+          productMetafield: {
+            namespace: 'custom',
+            key: 'themes',
+            value: value
+          }
+        });
+        break;
+      case 'age_group':
+        filters.push({
+          productMetafield: {
+            namespace: 'custom',
+            key: 'age_group', 
+            value: value
+          }
+        });
+        break;
+      case 'piece_count_range':
+        // Handle piece count ranges with proper price-like filtering
+        switch (value) {
+          case 'under_100':
+            // For metafield ranges, we'll need to use available values from S&D
+            break;
+          case '101_250':
+            break;
+          // etc - these will be handled by S&D filter values
+        }
+        break;
+      case 'price_range':
+        // Handle price ranges
+        switch (value) {
+          case 'under_220':
+            filters.push({ price: { max: 220 } });
+            break;
+          case '220_550':
+            filters.push({ price: { min: 220, max: 550 } });
+            break;
+          case '500_1000':
+            filters.push({ price: { min: 500, max: 1000 } });
+            break;
+          case 'over_1100':
+            filters.push({ price: { min: 1100 } });
+            break;
+        }
+        break;
+      case 'available':
+        if (value === 'true') {
+          filters.push({ available: true });
+        } else if (value === 'false') {
+          filters.push({ available: false });
+        }
+        break;
+    }
   });
-  
-  // Product type filters
-  const productTypes = searchParams.getAll('product_type');
-  productTypes.forEach(type => {
-    filters.push({ productType: type });
-  });
-  
-  // Tag filters
-  const tags = searchParams.getAll('tag');
-  tags.forEach(tag => {
-    filters.push({ productTag: tag });
-  });
-  
-  // Availability filter
-  const available = searchParams.get('available');
-  if (available !== null) {
-    filters.push({ available: available === 'true' });
-  }
 
   try {
-    // Step 1: Get collection info and related collections
-    const [collectionResponse, relatedCollectionsResponse] = await Promise.all([
-      storefront.query(COLLECTION_INFO_QUERY, {
-        variables: { handle },
-      }),
-      storefront.query(RELATED_COLLECTIONS_QUERY, {
-        variables: { first: 10 },
-      })
-    ]);
+    // Step 1: Get collection info
+    const collectionResponse = await storefront.query(COLLECTION_INFO_QUERY, {
+      variables: { handle },
+    });
 
     if (!collectionResponse.collection) {
       throw new Response(`Collection ${handle} not found`, { status: 404 });
     }
 
     const collection = collectionResponse.collection;
-    const relatedCollections = relatedCollectionsResponse?.collections?.nodes || [];
 
-    console.log(`🐛 Collection ${handle} - Loading products...`);
+    console.log(`🐛 Collection ${handle} - Loading products with filters:`, filters);
 
-    // Step 2: Query for products in this collection
+    // Step 2: Get total count (unfiltered)
+    const countResponse = await storefront.query(COLLECTION_COUNT_QUERY, {
+      variables: { handle },
+    });
+
+    const totalProductCount = countResponse.collection?.products?.nodes?.length || 0;
+
+    // Step 3: Get filtered products with Shopify filtering
     const productResponse = await storefront.query(COLLECTION_PRODUCTS_QUERY, {
       variables: {
         handle,
@@ -93,21 +129,21 @@ export async function loader({ context, request, params }: LoaderFunctionArgs) {
       },
     });
 
-    const products = productResponse.collection?.products || { nodes: [], pageInfo: {}, filters: [] };
+    const products = productResponse.collection?.products || { 
+      nodes: [], 
+      pageInfo: {},
+      filters: [] 
+    };
 
     console.log(`🐛 Collection ${handle} - Products loaded:`, products.nodes?.length || 0);
+    console.log(`🐛 Collection ${handle} - Available filters:`, products.filters?.length || 0);
 
     return {
       collection,
       products,
-      relatedCollections,
-      appliedFilters: {
-        sortKey,
-        vendors,
-        productTypes,
-        tags,
-        available,
-      },
+      totalProductCount,
+      appliedFilters: Object.fromEntries(searchParams.entries()),
+      sortKey: cleanSortKey,
     };
   } catch (error) {
     console.error('Error loading collection:', error);
@@ -116,20 +152,20 @@ export async function loader({ context, request, params }: LoaderFunctionArgs) {
 }
 
 export default function Collection() {
-  const { collection, products, relatedCollections, appliedFilters } = useLoaderData<typeof loader>();
+  const { collection, products, totalProductCount, appliedFilters, sortKey } = useLoaderData<typeof loader>();
 
   return (
     <CollectionPage
       collection={collection}
       products={products}
-      relatedCollections={relatedCollections}
+      totalProductCount={totalProductCount}
       appliedFilters={appliedFilters}
-      sortKey={appliedFilters.sortKey}
+      sortKey={sortKey}
     />
   );
 }
 
-// ✅ FIXED: Updated collection queries with proper product fields
+// ✅ CLEAN: Simple collection info query
 const COLLECTION_INFO_QUERY = `#graphql
   query CollectionInfo(
     $handle: String!
@@ -156,6 +192,24 @@ const COLLECTION_INFO_QUERY = `#graphql
   }
 ` as const;
 
+// ✅ CLEAN: Simple count query  
+const COLLECTION_COUNT_QUERY = `#graphql
+  query CollectionCount(
+    $handle: String!
+    $country: CountryCode
+    $language: LanguageCode
+  ) @inContext(country: $country, language: $language) {
+    collection(handle: $handle) {
+      products(first: 250) {
+        nodes {
+          id
+        }
+      }
+    }
+  }
+` as const;
+
+// ✅ CLEAN: Product fragment with metafields
 const COLLECTION_PRODUCT_FRAGMENT = `#graphql
   fragment CollectionProduct on Product {
     id
@@ -164,6 +218,7 @@ const COLLECTION_PRODUCT_FRAGMENT = `#graphql
     vendor
     productType
     tags
+    availableForSale
     featuredImage {
       id
       altText
@@ -209,9 +264,19 @@ const COLLECTION_PRODUCT_FRAGMENT = `#graphql
       sku
       title
     }
+    metafields(identifiers: [
+      {namespace: "custom", key: "age_group"},
+      {namespace: "custom", key: "piece_count"},
+      {namespace: "custom", key: "themes"}
+    ]) {
+      key
+      value
+      namespace
+    }
   }
 ` as const;
 
+// ✅ CLEAN: Main products query with native Shopify filtering
 const COLLECTION_PRODUCTS_QUERY = `#graphql
   query CollectionProducts(
     $handle: String!
@@ -220,20 +285,22 @@ const COLLECTION_PRODUCTS_QUERY = `#graphql
     $filters: [ProductFilter!]
     $sortKey: ProductCollectionSortKeys!
     $reverse: Boolean
+    $endCursor: String
     $first: Int
     $last: Int
     $startCursor: String
-    $endCursor: String
   ) @inContext(country: $country, language: $language) {
     collection(handle: $handle) {
+      id
+      handle
       products(
-        filters: $filters
-        sortKey: $sortKey
+        after: $endCursor,
+        before: $startCursor,
+        first: $first,
+        last: $last,
+        filters: $filters,
+        sortKey: $sortKey,
         reverse: $reverse
-        first: $first
-        last: $last
-        before: $startCursor
-        after: $endCursor
       ) {
         filters {
           id
@@ -259,28 +326,4 @@ const COLLECTION_PRODUCTS_QUERY = `#graphql
     }
   }
   ${COLLECTION_PRODUCT_FRAGMENT}
-` as const;
-
-const RELATED_COLLECTIONS_QUERY = `#graphql
-  query RelatedCollections(
-    $first: Int!
-    $country: CountryCode
-    $language: LanguageCode
-  ) @inContext(country: $country, language: $language) {
-    collections(first: $first, sortKey: TITLE) {
-      nodes {
-        id
-        title
-        handle
-        description
-        image {
-          id
-          url
-          altText
-          width
-          height
-        }
-      }
-    }
-  }
 ` as const;

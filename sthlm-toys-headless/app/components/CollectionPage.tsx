@@ -3,13 +3,13 @@ import { Link, useSearchParams, useNavigate } from 'react-router';
 import { Analytics } from '@shopify/hydrogen';
 import { PaginatedResourceSection } from '~/components/PaginatedResourceSection';
 import { ProductItem } from '~/components/ProductItem';
-import { ChevronRight, Home, ChevronDown, SlidersHorizontal, X, Plus } from 'lucide-react';
+import { ChevronRight, Home, ChevronDown, SlidersHorizontal, X } from 'lucide-react';
 import type { Collection, Product } from '@shopify/hydrogen/storefront-api-types';
 
 interface CollectionPageProps {
   collection: Collection;
   products: any;
-  relatedCollections?: any[];
+  totalProductCount: number;
   appliedFilters?: any;
   sortKey?: string;
 }
@@ -17,16 +17,14 @@ interface CollectionPageProps {
 export function CollectionPage({
   collection,
   products,
-  relatedCollections = [],
+  totalProductCount,
   appliedFilters = {},
   sortKey = 'BEST_SELLING'
 }: CollectionPageProps) {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // ✅ NEW: Loading state
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-
-  // Product count
-  const totalProducts = products?.nodes?.length || 0;
 
   // Sort options
   const sortOptions = [
@@ -39,356 +37,448 @@ export function CollectionPage({
     { label: 'Date, old to new', value: 'CREATED' },
   ];
 
-  const currentSortLabel = sortOptions.find(option => option.value === sortKey)?.label || 'Best selling';
-
-  // Use ACTUAL Shopify filters from the API response
+  // ✅ CLEAN: Extract filters from Shopify API response
   const shopifyFilters = products?.filters || [];
-
-  // Extract automatic Brand and Character filters from products
-  const extractedBrands = new Set<string>();
-  const extractedCharacters = new Set<string>();
   
-  products?.nodes?.forEach((product: any) => {
-    // Add vendor as brand
-    if (product.vendor) {
-      extractedBrands.add(product.vendor);
-    }
+  // ✅ CLEAN: Find specific filters by ID/label
+  const themesFilter = shopifyFilters.find((filter: any) => 
+    filter.id?.includes('themes') || filter.label?.toLowerCase().includes('themes')
+  );
+  
+  const ageGroupFilter = shopifyFilters.find((filter: any) => 
+    filter.id?.includes('age_group') || filter.label?.toLowerCase().includes('age')
+  );
+  
+  const pieceCountFilter = shopifyFilters.find((filter: any) => 
+    filter.id?.includes('piece_count') || filter.label?.toLowerCase().includes('piece')
+  );
+  
+  const priceFilter = shopifyFilters.find((filter: any) => 
+    filter.type === 'PRICE_RANGE' || filter.label?.toLowerCase().includes('price')
+  );
+  
+  const availabilityFilter = shopifyFilters.find((filter: any) => 
+    filter.type === 'BOOLEAN' && filter.label?.toLowerCase().includes('availability')
+  );
+
+  // ✅ CLEAN: Custom price ranges with calculated counts
+  const calculatePriceCounts = () => {
+    const counts = {
+      under_220: 0,
+      '220_550': 0,
+      '500_1000': 0,
+      over_1100: 0,
+    };
+
+    products?.nodes?.forEach((product: any) => {
+      const price = parseFloat(product.selectedOrFirstAvailableVariant?.price?.amount || '0');
+      
+      if (price < 220) counts.under_220++;
+      else if (price >= 220 && price <= 550) counts['220_550']++;
+      else if (price >= 500 && price <= 1000) counts['500_1000']++;
+      else if (price >= 1100) counts.over_1100++;
+    });
+
+    return counts;
+  };
+
+  const priceCounts = calculatePriceCounts();
+
+  const customPriceRanges = [
+    { value: 'under_220', label: 'Under 220 kr', active: searchParams.get('price_range') === 'under_220', count: priceCounts.under_220 },
+    { value: '220_550', label: '220 till 550 kr', active: searchParams.get('price_range') === '220_550', count: priceCounts['220_550'] },
+    { value: '500_1000', label: '500kr till 1000 kr', active: searchParams.get('price_range') === '500_1000', count: priceCounts['500_1000'] },
+    { value: 'over_1100', label: 'Över 1100 kr', active: searchParams.get('price_range') === 'over_1100', count: priceCounts.over_1100 },
+  ];
+
+  // ✅ CLEAN: Age group label mapping
+  const ageGroupMapping: Record<string, string> = {
+    '1+': '1+ år',
+    '2+': '2+ år', 
+    '4+': '4+ år',
+    '6+': '6+ år',
+    '8+': '8+ år',
+    '10+': '10+ år',
+    '12+': '12+ år',
+    '13+': '13+ år',
+    '16+': '16+ år',
+    '18+': '18+ år',
+    '4-99': '4-99 år',
+    '0-3': '0-3 år',
+  };
+
+  // ✅ CLEAN: Helper functions with loading feedback
+  const updateSearchParams = (updates: Record<string, string | null>) => {
+    setIsLoading(true); // ✅ NEW: Show loading
     
-    // Extract characters from tags
-    product.tags?.forEach((tag: string) => {
-      const lowerTag = tag.toLowerCase();
-      // Common character indicators
-      if (lowerTag.includes('peppa pig') || lowerTag.includes('peppa-pig')) {
-        extractedCharacters.add('Peppa Pig');
-      }
-      if (lowerTag.includes('pokemon') || lowerTag.includes('pokémon')) {
-        extractedCharacters.add('Pokemon');
-      }
-      if (lowerTag.includes('disney')) {
-        extractedCharacters.add('Disney');
-      }
-      if (lowerTag.includes('marvel')) {
-        extractedCharacters.add('Marvel');
-      }
-      if (lowerTag.includes('star wars') || lowerTag.includes('starwars')) {
-        extractedCharacters.add('Star Wars');
-      }
-      if (lowerTag.includes('minecraft')) {
-        extractedCharacters.add('Minecraft');
-      }
-      if (lowerTag.includes('sonic')) {
-        extractedCharacters.add('Sonic');
-      }
-      if (lowerTag.includes('batman')) {
-        extractedCharacters.add('Batman');
-      }
-      if (lowerTag.includes('spiderman') || lowerTag.includes('spider-man')) {
-        extractedCharacters.add('Spider-Man');
+    const newSearchParams = new URLSearchParams(searchParams);
+    
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value === null) {
+        newSearchParams.delete(key);
+      } else {
+        newSearchParams.set(key, value);
       }
     });
-  });
+    
+    navigate(`?${newSearchParams.toString()}`, { replace: true });
+    
+    // ✅ NEW: Hide loading after a short delay (navigation completes)
+    setTimeout(() => setIsLoading(false), 500);
+  };
 
-  // Handle sort change
   const handleSortChange = (newSortKey: string) => {
-    const newSearchParams = new URLSearchParams(searchParams);
-    newSearchParams.set('sort_by', newSortKey);
-    navigate(`?${newSearchParams.toString()}`, { replace: true });
+    updateSearchParams({ sort_by: newSortKey });
   };
 
-  // Handle filter change - removed price filter
-  const handleFilterChange = (filter: any, value: any, checked: boolean) => {
-    const newSearchParams = new URLSearchParams(searchParams);
-    
-    let paramName = '';
-    if (filter.id.includes('filter.v.vendor')) {
-      paramName = 'vendor';
-    } else if (filter.id.includes('filter.v.availability')) {
-      paramName = 'available';
-    } else if (filter.id.includes('filter.p.product_type')) {
-      paramName = 'product_type';
-    } else if (filter.id.includes('filter.p.tag')) {
-      paramName = 'tag';
-    }
-    
-    if (paramName && checked) {
-      newSearchParams.append(paramName, value.input || value.label);
-    } else if (paramName) {
-      const currentValues = newSearchParams.getAll(paramName);
-      newSearchParams.delete(paramName);
-      currentValues.forEach(val => {
-        if (val !== (value.input || value.label)) {
-          newSearchParams.append(paramName, val);
-        }
-      });
-    }
-    
-    navigate(`?${newSearchParams.toString()}`, { replace: true });
-  };
-
-  // Handle brand filter
-  const handleBrandFilter = (brand: string, checked: boolean) => {
-    const newSearchParams = new URLSearchParams(searchParams);
-    const currentBrands = newSearchParams.getAll('vendor');
-    
+  const handleFilterChange = (filterType: string, value: string, checked: boolean) => {
     if (checked) {
-      newSearchParams.append('vendor', brand);
+      updateSearchParams({ [filterType]: value });
     } else {
-      newSearchParams.delete('vendor');
-      currentBrands.forEach(val => {
-        if (val !== brand) {
-          newSearchParams.append('vendor', val);
-        }
-      });
+      updateSearchParams({ [filterType]: null });
     }
-    
-    navigate(`?${newSearchParams.toString()}`, { replace: true });
   };
 
-  // Handle character filter
-  const handleCharacterFilter = (character: string, checked: boolean) => {
-    const newSearchParams = new URLSearchParams(searchParams);
-    const currentTags = newSearchParams.getAll('tag');
-    
-    if (checked) {
-      newSearchParams.append('tag', character);
-    } else {
-      newSearchParams.delete('tag');
-      currentTags.forEach(val => {
-        if (val !== character) {
-          newSearchParams.append('tag', val);
-        }
-      });
-    }
-    
-    navigate(`?${newSearchParams.toString()}`, { replace: true });
-  };
-
-  // Check if filter value is active
-  const isFilterValueActive = (filter: any, value: any) => {
-    let paramName = '';
-    if (filter.id.includes('filter.v.vendor')) {
-      paramName = 'vendor';
-    } else if (filter.id.includes('filter.v.availability')) {
-      paramName = 'available';
-    } else if (filter.id.includes('filter.p.product_type')) {
-      paramName = 'product_type';
-    } else if (filter.id.includes('filter.p.tag')) {
-      paramName = 'tag';
-    }
-    
-    const activeValues = searchParams.getAll(paramName);
-    return activeValues.includes(value.input || value.label);
-  };
-
-  // Handle subcollection filter
-  const handleSubcollectionFilter = (subcollectionHandle: string, checked: boolean) => {
-    const newSearchParams = new URLSearchParams(searchParams);
-    const currentSubcollections = newSearchParams.getAll('subcollection');
-    
-    if (checked) {
-      newSearchParams.append('subcollection', subcollectionHandle);
-    } else {
-      newSearchParams.delete('subcollection');
-      currentSubcollections.forEach(val => {
-        if (val !== subcollectionHandle) {
-          newSearchParams.append('subcollection', val);
-        }
-      });
-    }
-    
-    navigate(`?${newSearchParams.toString()}`, { replace: true });
-  };
-
-  const isSubcollectionActive = (handle: string) => {
-    return searchParams.getAll('subcollection').includes(handle);
-  };
-
-  const isBrandActive = (brand: string) => {
-    return searchParams.getAll('vendor').includes(brand);
-  };
-
-  const isCharacterActive = (character: string) => {
-    return searchParams.getAll('tag').includes(character);
-  };
-
-  // Clear all filters
   const clearAllFilters = () => {
-    navigate(window.location.pathname, { replace: true });
-    setMobileFiltersOpen(false);
+    updateSearchParams({
+      themes: null,
+      age_group: null,
+      piece_count: null,
+      price_range: null,
+      available: null,
+    });
   };
+
+  const isFilterActive = (filterType: string, value: string): boolean => {
+    return searchParams.get(filterType) === value;
+  };
+
+  // Calculate active filter count
+  const activeFilterCount = Array.from(searchParams.keys()).filter(key => 
+    !['sort_by', '_routes'].includes(key)
+  ).length;
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      {/* Breadcrumb */}
-      <nav className="bg-white border-b border-gray-200">
-        <div 
-          className="mx-auto"
-          style={{
-            width: '1272px',
-            maxWidth: '100%',
-            paddingLeft: '12px',
-            paddingRight: '12px',
-          }}
-        >
-          <div className="flex items-center py-4 space-x-2 text-sm">
-            <Link 
-              to="/" 
-              className="text-blue-600 hover:text-blue-800 transition-colors flex items-center"
-            >
+    <>
+      {/* ✅ MODERN: Custom scrollbar styles */}
+      <style jsx>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: #f1f5f9;
+          border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #cbd5e1;
+          border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #94a3b8;
+        }
+        .custom-scrollbar {
+          scrollbar-width: thin;
+          scrollbar-color: #cbd5e1 #f1f5f9;
+        }
+        
+        /* ✅ NEW: Smooth animations */
+        .filter-transition {
+          transition: all 0.2s ease-in-out;
+        }
+        .filter-transition:hover {
+          background-color: #f8fafc;
+          transform: translateX(2px);
+        }
+        .filter-loading {
+          opacity: 0.6;
+          pointer-events: none;
+        }
+        .products-transition {
+          transition: opacity 0.3s ease-in-out;
+        }
+        .loading-shimmer {
+          animation: shimmer 1.5s infinite;
+        }
+        @keyframes shimmer {
+          0% { opacity: 1; }
+          50% { opacity: 0.5; }
+          100% { opacity: 1; }
+        }
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        .loading-spin {
+          animation: spin 1s linear infinite;
+        }
+      `}</style>
+      
+      <div className="w-full bg-gray-50 min-h-screen">
+      {/* Breadcrumbs */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 py-3">
+          <nav className="flex items-center space-x-2 text-sm">
+            <Link to="/" className="text-gray-500 hover:text-gray-700 flex items-center">
               <Home size={16} className="mr-1" />
               Home
             </Link>
             <ChevronRight size={16} className="text-gray-400" />
             <span className="text-gray-900 font-medium">{collection.title}</span>
-          </div>
+          </nav>
         </div>
-      </nav>
+      </div>
 
-      <div 
-        className="mx-auto py-6"
-        style={{
-          width: '1272px',
-          maxWidth: '100%',
-          paddingLeft: '12px',
-          paddingRight: '12px',
-        }}
-      >
-        {/* Mobile Controls */}
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        {/* Mobile Filter Button */}
         <div className="lg:hidden mb-6">
-          <div className="flex items-center justify-between">
-            <button
-              onClick={() => setMobileFiltersOpen(true)}
-              className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-full text-sm font-medium bg-white hover:bg-gray-50 transition-colors"
-            >
-              <SlidersHorizontal size={16} />
-              <span>Filter and sort</span>
-            </button>
-            
-            <span className="text-sm text-gray-600">{totalProducts} products</span>
-          </div>
+          <button
+            onClick={() => setMobileFiltersOpen(true)}
+            className="w-full bg-white border border-gray-300 rounded-lg py-3 px-4 flex items-center justify-center space-x-2 text-gray-700 font-medium"
+          >
+            <SlidersHorizontal size={20} />
+            <span>Filters</span>
+            {activeFilterCount > 0 && (
+              <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded-full">
+                {activeFilterCount}
+              </span>
+            )}
+          </button>
         </div>
 
         {/* Desktop Layout */}
         <div className="hidden lg:block">
-          <div className="flex gap-6">
+          <div className="flex gap-8">
             {/* Desktop Filters Sidebar */}
-            <div className="w-72 flex-shrink-0">
-              <div className="bg-white rounded-lg p-6 sticky top-6">
-                <h3 className="font-bold text-lg mb-4">Filter:</h3>
-                
-                {/* Subcollections Filter */}
-                {relatedCollections.length > 0 && (
-                  <div className="mb-6">
-                    <h4 className="font-semibold text-gray-900 mb-3 flex items-center justify-between">
-                      Collections
-                      <ChevronDown size={16} />
-                    </h4>
-                    <div className="space-y-2">
-                      {relatedCollections.map((subcol: any) => (
-                        <label key={subcol.handle} className="flex items-center">
-                          <input 
-                            type="checkbox" 
-                            className="rounded border-gray-300 text-blue-600 mr-3"
-                            checked={isSubcollectionActive(subcol.handle)}
-                            onChange={(e) => handleSubcollectionFilter(subcol.handle, e.target.checked)}
+            <div className="w-64 flex-shrink-0">
+              <div className="bg-white rounded-lg sticky top-6" style={{ maxHeight: 'calc(100vh - 2rem)' }}>
+                {/* ✅ REMOVED: Filter title and line to save space */}
+                {activeFilterCount > 0 && (
+                  <div className="p-4 border-b border-gray-200">
+                    <button
+                      onClick={clearAllFilters}
+                      className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                    >
+                      Clear all ({activeFilterCount})
+                    </button>
+                  </div>
+                )}
+
+                {/* ✅ MODERN: Scrollable Filter Content with loading state */}
+                <div 
+                  className={`overflow-y-auto p-4 space-y-4 custom-scrollbar ${isLoading ? 'filter-loading' : ''}`}
+                  style={{ maxHeight: 'calc(100vh - 6rem)' }}
+                >
+
+                {/* ✅ CLEAN: Themes Filter (limited to 5, compact spacing) */}
+                {themesFilter && themesFilter.values?.length > 0 && (
+                  <div className="border-b border-gray-200 pb-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-medium text-gray-900">Themes</span>
+                      <ChevronDown size={16} className="text-gray-400" />
+                    </div>
+                    <div className="space-y-1 max-h-32 overflow-y-auto custom-scrollbar">
+                      {themesFilter.values.map((option: any) => (
+                        <label key={option.id} className="flex items-center space-x-2 filter-transition p-1 rounded cursor-pointer">
+                          <input
+                            type="radio"
+                            name="themes"
+                            className="border-gray-300 text-blue-600 transition-colors"
+                            checked={isFilterActive('themes', option.label)}
+                            onChange={(e) => handleFilterChange('themes', option.label, e.target.checked)}
                           />
-                          <span className="text-sm text-gray-700">{subcol.title}</span>
+                          <span className="text-sm text-gray-700">{option.label}</span>
+                          <span className="text-sm text-gray-400 ml-auto">({option.count})</span>
                         </label>
                       ))}
+                      {/* Clear option */}
+                      <label className="flex items-center space-x-2 filter-transition p-1 rounded cursor-pointer">
+                        <input
+                          type="radio"
+                          name="themes"
+                          className="border-gray-300 text-blue-600 transition-colors"
+                          checked={!searchParams.get('themes')}
+                          onChange={() => updateSearchParams({ themes: null })}
+                        />
+                        <span className="text-sm text-gray-700">All themes</span>
+                      </label>
                     </div>
                   </div>
                 )}
 
-                {/* Automatic Brand Filter */}
-                {extractedBrands.size > 0 && (
-                  <div className="mb-6">
-                    <h4 className="font-semibold text-gray-900 mb-3 flex items-center justify-between">
-                      Brand
-                      <ChevronDown size={16} />
-                    </h4>
-                    <div className="space-y-2">
-                      {Array.from(extractedBrands).map((brand) => (
-                        <label key={brand} className="flex items-center">
-                          <input 
-                            type="checkbox" 
-                            className="rounded border-gray-300 text-blue-600 mr-3"
-                            checked={isBrandActive(brand)}
-                            onChange={(e) => handleBrandFilter(brand, e.target.checked)}
+                {/* ✅ CLEAN: Age Group Filter (compact spacing) */}
+                {ageGroupFilter && ageGroupFilter.values?.length > 0 && (
+                  <div className="border-b border-gray-200 pb-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-medium text-gray-900">Ålder</span>
+                      <ChevronDown size={16} className="text-gray-400" />
+                    </div>
+                    <div className="space-y-1">
+                      {ageGroupFilter.values.map((option: any) => (
+                        <label key={option.id} className="flex items-center space-x-2 filter-transition p-1 rounded cursor-pointer">
+                          <input
+                            type="radio"
+                            name="age_group"
+                            className="border-gray-300 text-blue-600 transition-colors"
+                            checked={isFilterActive('age_group', option.label)}
+                            onChange={(e) => handleFilterChange('age_group', option.label, e.target.checked)}
                           />
-                          <span className="text-sm text-gray-700">{brand}</span>
+                          <span className="text-sm text-gray-700">
+                            {ageGroupMapping[option.label] || `${option.label} år`}
+                          </span>
+                          <span className="text-sm text-gray-400 ml-auto">({option.count})</span>
                         </label>
                       ))}
+                      {/* Clear option */}
+                      <label className="flex items-center space-x-2 filter-transition p-1 rounded cursor-pointer">
+                        <input
+                          type="radio"
+                          name="age_group"
+                          className="border-gray-300 text-blue-600 transition-colors"
+                          checked={!searchParams.get('age_group')}
+                          onChange={() => updateSearchParams({ age_group: null })}
+                        />
+                        <span className="text-sm text-gray-700">All ages</span>
+                      </label>
                     </div>
                   </div>
                 )}
 
-                {/* Automatic Character Filter */}
-                {extractedCharacters.size > 0 && (
-                  <div className="mb-6">
-                    <h4 className="font-semibold text-gray-900 mb-3 flex items-center justify-between">
-                      Characters
-                      <ChevronDown size={16} />
-                    </h4>
-                    <div className="space-y-2">
-                      {Array.from(extractedCharacters).map((character) => (
-                        <label key={character} className="flex items-center">
-                          <input 
-                            type="checkbox" 
-                            className="rounded border-gray-300 text-blue-600 mr-3"
-                            checked={isCharacterActive(character)}
-                            onChange={(e) => handleCharacterFilter(character, e.target.checked)}
+                {/* ✅ CLEAN: Piece Count Filter (compact spacing) */}
+                {pieceCountFilter && pieceCountFilter.values?.length > 0 && (
+                  <div className="border-b border-gray-200 pb-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-medium text-gray-900">Antal bitar</span>
+                      <ChevronDown size={16} className="text-gray-400" />
+                    </div>
+                    <div className="space-y-1">
+                      {pieceCountFilter.values.map((option: any) => (
+                        <label key={option.id} className="flex items-center space-x-2 filter-transition p-1 rounded cursor-pointer">
+                          <input
+                            type="radio"
+                            name="piece_count"
+                            className="border-gray-300 text-blue-600 transition-colors"
+                            checked={isFilterActive('piece_count', option.label)}
+                            onChange={(e) => handleFilterChange('piece_count', option.label, e.target.checked)}
                           />
-                          <span className="text-sm text-gray-700">{character}</span>
+                          <span className="text-sm text-gray-700">{option.label}</span>
+                          <span className="text-sm text-gray-400 ml-auto">({option.count})</span>
                         </label>
                       ))}
+                      {/* Clear option */}
+                      <label className="flex items-center space-x-2 filter-transition p-1 rounded cursor-pointer">
+                        <input
+                          type="radio"
+                          name="piece_count"
+                          className="border-gray-300 text-blue-600 transition-colors"
+                          checked={!searchParams.get('piece_count')}
+                          onChange={() => updateSearchParams({ piece_count: null })}
+                        />
+                        <span className="text-sm text-gray-700">All sizes</span>
+                      </label>
                     </div>
                   </div>
                 )}
 
-                {/* Native Shopify Filters (excluding price) */}
-                {shopifyFilters.map((filter: any) => {
-                  if (!filter.values || filter.values.length === 0) return null;
-                  if (filter.id.includes('filter.v.price')) return null; // Skip price filter
-                  
-                  return (
-                    <div key={filter.id} className="mb-6">
-                      <h4 className="font-semibold text-gray-900 mb-3 flex items-center justify-between">
-                        {filter.label}
-                        <ChevronDown size={16} />
-                      </h4>
-                      <div className="space-y-2">
-                        {filter.values.slice(0, 10).map((value: any) => (
-                          <label key={value.id} className="flex items-center">
-                            <input 
-                              type="checkbox" 
-                              className="rounded border-gray-300 text-blue-600 mr-3"
-                              checked={isFilterValueActive(filter, value)}
-                              onChange={(e) => handleFilterChange(filter, value, e.target.checked)}
-                            />
-                            <span className="text-sm text-gray-700">{value.label}</span>
-                            <span className="text-sm text-gray-400 ml-auto">({value.count})</span>
-                          </label>
-                        ))}
-                      </div>
+                {/* ✅ CLEAN: Custom Price Range Filter with counts (compact spacing) */}
+                <div className="border-b border-gray-200 pb-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-medium text-gray-900">Pris</span>
+                    <ChevronDown size={16} className="text-gray-400" />
+                  </div>
+                  <div className="space-y-1">
+                    {customPriceRanges.map((range) => (
+                      <label key={range.value} className="flex items-center space-x-2 filter-transition p-1 rounded cursor-pointer">
+                        <input
+                          type="radio"
+                          name="price_range"
+                          className="border-gray-300 text-blue-600 transition-colors"
+                          checked={range.active}
+                          onChange={(e) => handleFilterChange('price_range', range.value, e.target.checked)}
+                        />
+                        <span className="text-sm text-gray-700">{range.label}</span>
+                        <span className="text-sm text-gray-400 ml-auto">({range.count})</span>
+                      </label>
+                    ))}
+                    {/* Clear option */}
+                    <label className="flex items-center space-x-2 filter-transition p-1 rounded cursor-pointer">
+                      <input
+                        type="radio"
+                        name="price_range"
+                        className="border-gray-300 text-blue-600 transition-colors"
+                        checked={!searchParams.get('price_range')}
+                        onChange={() => updateSearchParams({ price_range: null })}
+                      />
+                      <span className="text-sm text-gray-700">All prices</span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* ✅ CLEAN: Availability Filter (compact spacing) */}
+                {availabilityFilter && availabilityFilter.values?.length > 0 && (
+                  <div className="pb-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-medium text-gray-900">Availability</span>
+                      <ChevronDown size={16} className="text-gray-400" />
                     </div>
-                  );
-                })}
+                    <div className="space-y-1">
+                      {availabilityFilter.values.map((option: any) => (
+                        <label key={option.id} className="flex items-center space-x-2 filter-transition p-1 rounded cursor-pointer">
+                          <input
+                            type="radio"
+                            name="available"
+                            className="border-gray-300 text-blue-600 transition-colors"
+                            checked={isFilterActive('available', option.id.includes('true') ? 'true' : 'false')}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                handleFilterChange('available', option.id.includes('true') ? 'true' : 'false', true);
+                              }
+                            }}
+                          />
+                          <span className="text-sm text-gray-700">{option.label}</span>
+                          <span className="text-sm text-gray-400 ml-auto">({option.count})</span>
+                        </label>
+                      ))}
+                      {/* Clear option */}
+                      <label className="flex items-center space-x-2 filter-transition p-1 rounded cursor-pointer">
+                        <input
+                          type="radio"
+                          name="available"
+                          className="border-gray-300 text-blue-600 transition-colors"
+                          checked={!searchParams.get('available')}
+                          onChange={() => updateSearchParams({ available: null })}
+                        />
+                        <span className="text-sm text-gray-700">All products</span>
+                      </label>
+                    </div>
+                  </div>
+                )}
+                </div>
               </div>
             </div>
 
             {/* Desktop Products Area */}
             <div className="flex-1">
-              {/* Products Header */}
+              {/* Products Header with Loading Indicator */}
               <div className="bg-white rounded-lg p-4 mb-6">
                 <div className="flex items-center justify-between">
-                  <span className="text-lg font-medium">{totalProducts} products</span>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-lg font-medium">{totalProductCount} products</span>
+                    {/* ✅ NEW: Loading indicator */}
+                    {isLoading && (
+                      <div className="flex items-center space-x-2 text-blue-600">
+                        <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full loading-spin"></div>
+                        <span className="text-sm">Filtering...</span>
+                      </div>
+                    )}
+                  </div>
                   
                   {/* Sort Dropdown */}
                   <div className="relative">
                     <select 
-                      className="bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                       value={sortKey}
                       onChange={(e) => handleSortChange(e.target.value)}
+                      disabled={isLoading}
                     >
                       {sortOptions.map((option) => (
                         <option key={option.value} value={option.value}>
@@ -400,14 +490,14 @@ export function CollectionPage({
                 </div>
               </div>
 
-              {/* Products Grid */}
-              <div className="bg-white rounded-lg p-6">
+              {/* Products Grid with smooth transitions */}
+              <div className={`bg-white rounded-lg p-6 products-transition ${isLoading ? 'opacity-50' : 'opacity-100'}`}>
                 <PaginatedResourceSection
                   connection={products}
                   resourcesClassName="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
                 >
                   {({ node: product, index }: { node: Product; index: number }) => (
-                    <div key={product.id}>
+                    <div key={product.id} className="transform transition-all duration-200 hover:scale-105">
                       <ProductItem
                         product={product}
                         loading={index < 6 ? "eager" : undefined}
@@ -420,8 +510,30 @@ export function CollectionPage({
           </div>
         </div>
 
-        {/* Mobile Products Grid - PIXEL PERFECT SINGLE COLUMN */}
+        {/* Mobile Products Grid */}
         <div className="lg:hidden">
+          {/* Mobile Products Header */}
+          <div className="bg-white rounded-lg p-4 mb-6">
+            <div className="flex items-center justify-between">
+              <span className="text-lg font-medium">{totalProductCount} products</span>
+              
+              {/* Mobile Sort Dropdown */}
+              <div className="relative">
+                <select 
+                  className="bg-white border border-gray-300 rounded-lg px-3 py-2 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  value={sortKey}
+                  onChange={(e) => handleSortChange(e.target.value)}
+                >
+                  {sortOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+
           <PaginatedResourceSection
             connection={products}
             resourcesClassName="space-y-4"
@@ -438,143 +550,26 @@ export function CollectionPage({
         </div>
       </div>
 
-      {/* Mobile Filter Modal - EXACT MATCH TO SCREENSHOT */}
+      {/* Mobile Filters Modal - Same structure as desktop */}
       {mobileFiltersOpen && (
-        <div className="lg:hidden fixed inset-0 z-50">
-          {/* Backdrop */}
-          <div 
-            className="absolute inset-0 bg-black bg-opacity-50"
-            onClick={() => setMobileFiltersOpen(false)}
-          />
+        <div className="fixed inset-0 z-50 lg:hidden">
+          <div className="absolute inset-0 bg-black bg-opacity-50" onClick={() => setMobileFiltersOpen(false)} />
           
-          {/* Modal */}
-          <div className="absolute left-0 right-0 bottom-0 bg-white rounded-t-2xl h-[85vh] overflow-hidden flex flex-col">
+          <div className="absolute right-0 top-0 h-full w-80 bg-white flex flex-col">
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-200 flex-shrink-0">
-              <h3 className="text-lg font-medium text-gray-900">Filter and sort</h3>
-              <span className="text-sm text-gray-500">{totalProducts} products</span>
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <h3 className="text-lg font-medium text-gray-900">Filters</h3>
               <button
                 onClick={() => setMobileFiltersOpen(false)}
-                className="p-1"
+                className="p-2 text-gray-400 hover:text-gray-600"
               >
-                <X size={24} className="text-gray-400" />
+                <X size={20} />
               </button>
             </div>
             
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto">
-              {/* Sort By */}
-              <div className="p-4 border-b border-gray-200">
-                <div className="flex items-center justify-between">
-                  <span className="font-medium text-gray-900">Sort by:</span>
-                  <select 
-                    className="text-gray-600 text-sm border-none focus:outline-none bg-transparent"
-                    value={sortKey}
-                    onChange={(e) => handleSortChange(e.target.value)}
-                  >
-                    {sortOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown size={16} className="text-gray-400" />
-                </div>
-              </div>
-
-              {/* Filter Sections */}
-              <div className="p-4 space-y-4">
-                {/* Category/Collections */}
-                {relatedCollections.length > 0 && (
-                  <div className="border-b border-gray-200 pb-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="font-medium text-gray-900">Category</span>
-                      <Plus size={16} className="text-gray-400" />
-                    </div>
-                    <div className="space-y-3">
-                      {relatedCollections.map((subcol: any) => (
-                        <label key={subcol.handle} className="flex items-center">
-                          <input 
-                            type="checkbox" 
-                            className="rounded border-gray-300 text-blue-600 mr-3"
-                            checked={isSubcollectionActive(subcol.handle)}
-                            onChange={(e) => {
-                              handleSubcollectionFilter(subcol.handle, e.target.checked);
-                            }}
-                          />
-                          <span className="text-sm text-gray-700">{subcol.title}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Age */}
-                <div className="border-b border-gray-200 pb-4">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium text-gray-900">Age</span>
-                    <Plus size={16} className="text-gray-400" />
-                  </div>
-                </div>
-
-                {/* Brand */}
-                {extractedBrands.size > 0 && (
-                  <div className="border-b border-gray-200 pb-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="font-medium text-gray-900">Brand</span>
-                      <Plus size={16} className="text-gray-400" />
-                    </div>
-                    <div className="space-y-3">
-                      {Array.from(extractedBrands).map((brand) => (
-                        <label key={brand} className="flex items-center">
-                          <input 
-                            type="checkbox" 
-                            className="rounded border-gray-300 text-blue-600 mr-3"
-                            checked={isBrandActive(brand)}
-                            onChange={(e) => {
-                              handleBrandFilter(brand, e.target.checked);
-                            }}
-                          />
-                          <span className="text-sm text-gray-700">{brand}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Characters */}
-                {extractedCharacters.size > 0 && (
-                  <div className="border-b border-gray-200 pb-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="font-medium text-gray-900">Characters</span>
-                      <Plus size={16} className="text-gray-400" />
-                    </div>
-                    <div className="space-y-3">
-                      {Array.from(extractedCharacters).map((character) => (
-                        <label key={character} className="flex items-center">
-                          <input 
-                            type="checkbox" 
-                            className="rounded border-gray-300 text-blue-600 mr-3"
-                            checked={isCharacterActive(character)}
-                            onChange={(e) => {
-                              handleCharacterFilter(character, e.target.checked);
-                            }}
-                          />
-                          <span className="text-sm text-gray-700">{character}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Availability */}
-                <div className="border-b border-gray-200 pb-4">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium text-gray-900">Availability</span>
-                    <Plus size={16} className="text-gray-400" />
-                  </div>
-                </div>
-              </div>
+            {/* Mobile filters content would mirror desktop */}
+            <div className="flex-1 overflow-y-auto p-4">
+              {/* Copy desktop filter sections here when implementing mobile */}
             </div>
             
             {/* Footer */}
@@ -600,6 +595,7 @@ export function CollectionPage({
 
       {/* Analytics */}
       <Analytics.CollectionView data={{ collection: { id: collection.id, handle: collection.handle } }} />
-    </div>
+      </div>
+    </>
   );
 }
