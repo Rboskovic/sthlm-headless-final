@@ -3,66 +3,64 @@ import {Image} from '@shopify/hydrogen';
 import {useState, useRef} from 'react';
 import type {FeaturedCollectionFragment} from 'storefrontapi.generated';
 
-// Brand colors matching the Smyths theme
-const brandColors: Record<string, string> = {
-  'lego': '#FFD700',
-  'barbie': '#FF69B4', 
-  'playmobil': '#4169E1',
-  'nerf': '#FF4500',
-  'pokemon': '#FFFF00',
-  'disney': '#1E90FF',
-  'marvel': '#FF0000',
-  'star-wars': '#000000',
+// Age-based colors for the fallback placeholders
+const ageColors: Record<string, string> = {
+  'alder-1-5': '#A8E6CF',   // Light mint green
+  'alder-13': '#C8B5E8',    // Light purple  
+  'alder-4': '#F5C99B',     // Light orange/peach
+  'alder-6': '#A8C8EC',     // Light blue
+  'alder-9': '#F5B2C4',     // Light pink
+  'placeholder': '#E5E7EB', // Light gray for placeholders
   'default': '#6B7280',
 };
 
-// Fallback static brands for testing  
-const fallbackBrands = [
+// Fallback age groups for testing with placeholders
+const fallbackAgeGroups = [
   {
-    id: 'brand-1',
-    title: 'LEGO',
-    handle: 'lego',
-    image: {url: '', altText: 'LEGO'},
-    backgroundColor: brandColors['lego'],
+    id: 'age-1',
+    title: 'Ålder 1,5+',
+    handle: 'alder-1-5',
+    image: {url: '', altText: 'Ålder 1,5+'},
+    backgroundColor: ageColors['alder-1-5'],
   },
   {
-    id: 'brand-2',
-    title: 'Barbie', 
-    handle: 'barbie',
-    image: {url: '', altText: 'Barbie'},
-    backgroundColor: brandColors['barbie'],
+    id: 'age-2',
+    title: 'Ålder 13+', 
+    handle: 'alder-13',
+    image: {url: '', altText: 'Ålder 13+'},
+    backgroundColor: ageColors['alder-13'],
   },
   {
-    id: 'brand-3',
-    title: 'Playmobil',
-    handle: 'playmobil', 
-    image: {url: '', altText: 'Playmobil'},
-    backgroundColor: brandColors['playmobil'],
+    id: 'age-3',
+    title: 'Ålder 4+',
+    handle: 'alder-4', 
+    image: {url: '', altText: 'Ålder 4+'},
+    backgroundColor: ageColors['alder-4'],
   },
   {
-    id: 'brand-4',
-    title: 'Nerf',
-    handle: 'nerf',
-    image: {url: '', altText: 'Nerf'},
-    backgroundColor: brandColors['nerf'],
+    id: 'age-4',
+    title: 'Ålder 6+',
+    handle: 'alder-6',
+    image: {url: '', altText: 'Ålder 6+'},
+    backgroundColor: ageColors['alder-6'],
   },
   {
-    id: 'brand-5',
-    title: 'Pokemon',
-    handle: 'pokemon',
-    image: {url: '', altText: 'Pokemon'},
-    backgroundColor: brandColors['pokemon'],
+    id: 'age-5',
+    title: 'Ålder 9+',
+    handle: 'alder-9',
+    image: {url: '', altText: 'Ålder 9+'},
+    backgroundColor: ageColors['alder-9'],
   },
   {
-    id: 'brand-6',
-    title: 'Disney',
-    handle: 'disney',
-    image: {url: '', altText: 'Disney'},
-    backgroundColor: brandColors['disney'],
+    id: 'age-placeholder',
+    title: 'Kommer snart',
+    handle: '#',
+    image: {url: '', altText: 'Kommer snart'},
+    backgroundColor: ageColors['placeholder'],
   },
 ];
 
-interface BrandWithColor extends FeaturedCollectionFragment {
+interface AgeGroupWithColor extends FeaturedCollectionFragment {
   backgroundColor?: string;
 }
 
@@ -82,13 +80,18 @@ export function ShopByBrand({brands}: ShopByBrandProps) {
   // Drag threshold in pixels - only disable pointer events after this distance
   const DRAG_THRESHOLD = 10;
 
-  // Helper function to extract metafield values
+  // Helper function to extract metafield values (NAMESPACE-AWARE LIKE TOPCATEGORIES)
   const getMetafieldValue = (
     metafields: Array<{key: string; value: string; namespace: string}> | null,
     key: string,
   ): string | null => {
     if (!metafields) return null;
-    const metafield = metafields.find((m) => m && m.key === key);
+    // Check both custom and app namespaces like TopCategories does
+    const metafield = metafields.find((m) => 
+      m && 
+      m.key === key && 
+      (m.namespace === 'custom' || m.namespace === 'app')
+    );
     return metafield ? metafield.value : null;
   };
 
@@ -103,24 +106,54 @@ export function ShopByBrand({brands}: ShopByBrandProps) {
     );
   };
 
-  // Filter featured brands from Shopify data
-  const featuredBrands =
+  // Filter featured age groups from Shopify data (IMPROVED FILTERING + SORTING)
+  const featuredAgeGroups =
     brands && brands.length > 0
       ? brands.filter((brand) => {
+          // Check all possible metafield variations like TopCategories does
           const featuredBrandValue =
             getMetafieldValue(brand.metafields, 'featured-brand') ||
             getMetafieldValue(brand.metafields, 'featured_brand');
           const isFeatured = isTrueValue(featuredBrandValue);
-          return isFeatured && brand.image?.url;
+          
+          // DEBUG: Log each collection for troubleshooting (can be disabled)
+          const DEBUG_LOGS = true; // Set to false to disable logs
+          if (DEBUG_LOGS) {
+            console.log(`🔍 Age Collection: ${brand.title}`, {
+              metafields: brand.metafields,
+              featuredBrandValue,
+              isFeatured,
+              hasImage: !!brand.image?.url
+            });
+          }
+          
+          return isFeatured; // Don't require image like TopCategories does
+        })
+        .sort((a, b) => {
+          // Sort by sort_order metafield (underscore, not hyphen), then alphabetically as fallback
+          const sortOrderA = parseInt(getMetafieldValue(a.metafields, 'sort_order') || '999');
+          const sortOrderB = parseInt(getMetafieldValue(b.metafields, 'sort_order') || '999');
+          
+          if (sortOrderA !== sortOrderB) {
+            return sortOrderA - sortOrderB; // Numeric sort
+          }
+          
+          // Fallback to alphabetical if no sort_order
+          return a.title.localeCompare(b.title);
         })
       : [];
 
-  // Use Shopify brands or fallback
-  const displayBrands: BrandWithColor[] =
-    featuredBrands.length > 0 ? featuredBrands : fallbackBrands;
+  // Combine Shopify age groups with placeholders to always show 6 items
+  const shopifyAgeGroups = featuredAgeGroups.length > 0 ? featuredAgeGroups : [];
+  const placeholdersNeeded = Math.max(0, 6 - shopifyAgeGroups.length);
+  
+  const displayAgeGroups: AgeGroupWithColor[] = [
+    ...shopifyAgeGroups,
+    ...fallbackAgeGroups.slice(-placeholdersNeeded), // Add placeholders from end
+  ].slice(0, 6); // Ensure exactly 6 items
 
-  // Desktop: Show only first 6 brands (no scrolling/pagination)
-  const visibleBrands = displayBrands.slice(0, 6);
+  // Desktop: Show all 6 age groups (no scrolling/pagination)
+  const visibleAgeGroups = displayAgeGroups;
 
   // ✅ FIXED: Improved mouse drag handlers with threshold
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -167,107 +200,128 @@ export function ShopByBrand({brands}: ShopByBrandProps) {
       >
         {/* Desktop Layout */}
         <div className="hidden md:block">
-          {/* Header with centered title and right-aligned Shop All link */}
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex-1"></div>
-            <div className="flex-1 flex justify-center">
-              <h2
-                className="text-black font-semibold"
-                style={{
-                  fontSize: '36px',
-                  fontWeight: 600,
-                  lineHeight: '42px',
-                  fontFamily:
-                    "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                  color: 'rgb(33, 36, 39)',
-                  textAlign: 'center',
-                }}
-              >
-                Handla efter märke
-              </h2>
-            </div>
-            <div className="flex-1 flex justify-end">
-              <Link
-                to="/collections/brands"
-                className="text-blue-600 hover:text-blue-700 transition-colors duration-200"
-                style={{
-                  fontSize: '18px',
-                  fontWeight: 500,
-                  fontFamily:
-                    "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                  color: '#3B82F6',
-                  textDecoration: 'none',
-                  alignSelf: 'center',
-                }}
-              >
-                Handla alla märken
-              </Link>
-            </div>
+          {/* Header with ONLY centered title - NO shop all button */}
+          <div className="flex items-center justify-center mb-8">
+            <h2
+              className="text-black font-semibold"
+              style={{
+                fontSize: '36px',
+                fontWeight: 600,
+                lineHeight: '42px',
+                fontFamily:
+                  "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                color: 'rgb(33, 36, 39)',
+                textAlign: 'center',
+              }}
+            >
+              Handla efter ålder
+            </h2>
           </div>
 
           {/* Desktop Grid */}
           <div className="grid grid-cols-6 gap-6">
-            {visibleBrands.map((brand) => (
-              <Link
-                key={brand.id}
-                to={`/collections/${brand.handle}`}
-                className="group text-center"
-              >
-                <div
-                  className="relative overflow-hidden group-hover:shadow-lg transition-shadow duration-200 mb-4"
-                  style={{
-                    width: '192px',
-                    height: '192px',
-                    borderRadius: '12px',
-                  }}
-                >
-                  {brand.image?.url ? (
-                    <Image
-                      data={brand.image}
-                      alt={brand.image.altText || brand.title}
-                      className="w-full h-full object-cover"
-                      sizes="192px"
-                      loading="lazy"
-                    />
-                  ) : (
+            {visibleAgeGroups.map((ageGroup) => (
+              <div key={ageGroup.id} className="text-center">
+                {ageGroup.handle === '#' ? (
+                  // Placeholder - not clickable
+                  <div className="cursor-default">
                     <div
-                      className="w-full h-full flex items-center justify-center"
+                      className="relative overflow-hidden mb-4 opacity-50"
                       style={{
-                        backgroundColor:
-                          brand.backgroundColor ||
-                          brandColors[brand.handle] ||
-                          '#6B7280',
+                        width: '192px',
+                        height: '192px',
+                        borderRadius: '12px',
                       }}
                     >
-                      <span
-                        className="text-white font-bold text-center px-2"
-                        style={{
-                          fontSize: '18px',
-                          fontWeight: 700,
-                          lineHeight: '24px',
-                          fontFamily:
-                            "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                        }}
-                      >
-                        {brand.title}
-                      </span>
+                      {ageGroup.image?.url ? (
+                        <Image
+                          data={ageGroup.image}
+                          className="w-full h-full object-cover"
+                          sizes="192px"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div
+                          className="w-full h-full flex items-center justify-center"
+                          style={{
+                            backgroundColor: ageGroup.backgroundColor || ageColors['placeholder'],
+                          }}
+                        >
+                          <span className="text-gray-600 text-lg font-medium">
+                            {ageGroup.title}
+                          </span>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-                <h3
-                  className="text-black font-medium group-hover:text-blue-600 transition-colors duration-200"
-                  style={{
-                    fontSize: '18px',
-                    fontWeight: 500,
-                    lineHeight: '24px',
-                    fontFamily:
-                      "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                    textAlign: 'center',
-                  }}
-                >
-                  {brand.title}
-                </h3>
-              </Link>
+                    <h3
+                      className="text-gray-500 font-medium leading-tight"
+                      style={{
+                        fontSize: '16px',
+                        fontWeight: 500,
+                        lineHeight: '20px',
+                        fontFamily:
+                          "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                        whiteSpace: 'normal',
+                        textAlign: 'center',
+                        maxWidth: '192px',
+                      }}
+                    >
+                      {ageGroup.title}
+                    </h3>
+                  </div>
+                ) : (
+                  // Active age group - clickable
+                  <Link
+                    to={`/collections/${ageGroup.handle}`}
+                    className="group"
+                  >
+                    <div
+                      className="relative overflow-hidden group-hover:shadow-lg transition-shadow duration-200 mb-4"
+                      style={{
+                        width: '192px',
+                        height: '192px',
+                        borderRadius: '12px',
+                      }}
+                    >
+                      {ageGroup.image?.url ? (
+                        <Image
+                          data={ageGroup.image}
+                          className="w-full h-full object-cover"
+                          sizes="192px"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div
+                          className="w-full h-full flex items-center justify-center"
+                          style={{
+                            backgroundColor: ageGroup.backgroundColor || ageColors['default'],
+                          }}
+                        >
+                          <span className="text-white text-lg font-medium">
+                            {ageGroup.title}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    <h3
+                      className="text-black font-medium leading-tight"
+                      style={{
+                        fontSize: '16px',
+                        fontWeight: 500,
+                        lineHeight: '20px',
+                        fontFamily:
+                          "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                        color: 'rgb(33, 36, 39)',
+                        whiteSpace: 'normal',
+                        textAlign: 'center',
+                        maxWidth: '192px',
+                      }}
+                    >
+                      {ageGroup.title}
+                    </h3>
+                  </Link>
+                )}
+              </div>
             ))}
           </div>
         </div>
@@ -288,7 +342,7 @@ export function ShopByBrand({brands}: ShopByBrandProps) {
               marginBottom: '24px',
             }}
           >
-            Handla efter märke
+            Handla efter ålder
           </h2>
 
           {/* Mobile Horizontal Scroll Container */}
@@ -309,112 +363,145 @@ export function ShopByBrand({brands}: ShopByBrandProps) {
           >
             <style>
               {`
-                .mobile-brand-scroll::-webkit-scrollbar {
+                .mobile-age-scroll::-webkit-scrollbar {
                   display: none;
                 }
               `}
             </style>
             <div
-              className="flex space-x-2 mobile-brand-scroll"
+              className="flex space-x-2 mobile-age-scroll"
               style={{
                 paddingLeft: '12px',
                 paddingRight: '0px',
                 width: 'max-content',
               }}
             >
-              {displayBrands.map((brand) => (
-                <Link
-                  key={brand.id}
-                  to={`/collections/${brand.handle}`}
-                  className="group flex-shrink-0"
+              {displayAgeGroups.map((ageGroup) => (
+                <div
+                  key={ageGroup.id}
+                  className="flex-shrink-0"
                   style={{
                     scrollSnapAlign: 'start',
-                    // ✅ FIXED: Only disable pointer events when actually dragging
-                    pointerEvents: hasActuallyDragged ? 'none' : 'auto',
                   }}
                 >
-                  <div
-                    className="relative overflow-hidden group-hover:shadow-lg transition-shadow duration-200"
-                    style={{
-                      width: '144px',
-                      height: '144px',
-                      borderRadius: '12px',
-                    }}
-                  >
-                    {brand.image?.url ? (
-                      <Image
-                        data={brand.image}
-                        alt={brand.image.altText || brand.title}
-                        className="w-full h-full object-cover"
-                        sizes="144px"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <div
-                        className="w-full h-full flex items-center justify-center"
-                        style={{
-                          backgroundColor:
-                            brand.backgroundColor ||
-                            brandColors[brand.handle] ||
-                            '#6B7280',
-                        }}
-                      >
-                        <span
-                          className="text-white font-bold text-center px-2"
-                          style={{
-                            fontSize: '15px',
-                            fontWeight: 700,
-                            lineHeight: '19px',
-                            fontFamily:
-                              "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                          }}
-                        >
-                          {brand.title}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                  {/* Brand Name - Mobile */}
-                  <div className="mt-2 text-center px-1">
-                    <h3
-                      className="text-black font-medium group-hover:text-blue-600 transition-colors duration-200"
+                  {ageGroup.handle === '#' ? (
+                    // Placeholder - not clickable
+                    <div
+                      className="cursor-default"
                       style={{
-                        fontSize: '12px',
-                        fontWeight: 500,
-                        lineHeight: '16.2px',
-                        fontFamily:
-                          "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                        wordWrap: 'break-word',
-                        hyphens: 'auto',
-                        whiteSpace: 'normal',
-                        textAlign: 'center',
-                        maxWidth: '144px',
+                        pointerEvents: 'none',
                       }}
                     >
-                      {brand.title}
-                    </h3>
-                  </div>
-                </Link>
+                      <div
+                        className="relative overflow-hidden opacity-50"
+                        style={{
+                          width: '144px',
+                          height: '144px',
+                          borderRadius: '12px',
+                        }}
+                      >
+                        {ageGroup.image?.url ? (
+                          <Image
+                            data={ageGroup.image}
+                            className="w-full h-full object-cover"
+                            sizes="144px"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div
+                            className="w-full h-full flex items-center justify-center"
+                            style={{
+                              backgroundColor: ageGroup.backgroundColor || ageColors['placeholder'],
+                            }}
+                          >
+                            <span className="text-gray-600 text-sm font-medium">
+                              {ageGroup.title}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Mobile Age Group Title */}
+                      <h3
+                        className="text-gray-500 font-medium leading-tight mt-2"
+                        style={{
+                          fontSize: '14px',
+                          fontWeight: 500,
+                          lineHeight: '18px',
+                          fontFamily:
+                            "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                          whiteSpace: 'normal',
+                          textAlign: 'center',
+                          maxWidth: '144px',
+                        }}
+                      >
+                        {ageGroup.title}
+                      </h3>
+                    </div>
+                  ) : (
+                    // Active age group - clickable
+                    <Link
+                      to={`/collections/${ageGroup.handle}`}
+                      className="group"
+                      style={{
+                        // ✅ FIXED: Only disable pointer events when actually dragging
+                        pointerEvents: hasActuallyDragged ? 'none' : 'auto',
+                      }}
+                    >
+                      <div
+                        className="relative overflow-hidden group-hover:shadow-lg transition-shadow duration-200"
+                        style={{
+                          width: '144px',
+                          height: '144px',
+                          borderRadius: '12px',
+                        }}
+                      >
+                        {ageGroup.image?.url ? (
+                          <Image
+                            data={ageGroup.image}
+                            className="w-full h-full object-cover"
+                            sizes="144px"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div
+                            className="w-full h-full flex items-center justify-center"
+                            style={{
+                              backgroundColor: ageGroup.backgroundColor || ageColors['default'],
+                            }}
+                          >
+                            <span className="text-white text-sm font-medium">
+                              {ageGroup.title}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Mobile Age Group Title */}
+                      <h3
+                        className="text-black font-medium leading-tight mt-2"
+                        style={{
+                          fontSize: '14px',
+                          fontWeight: 500,
+                          lineHeight: '18px',
+                          fontFamily:
+                            "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                          color: 'rgb(33, 36, 39)',
+                          whiteSpace: 'normal',
+                          textAlign: 'center',
+                          maxWidth: '144px',
+                        }}
+                      >
+                        {ageGroup.title}
+                      </h3>
+                    </Link>
+                  )}
+                </div>
               ))}
             </div>
           </div>
 
-          {/* Mobile Shop All Brands Button - Slightly bigger with proper spacing */}
-          <div className="flex justify-center">
-            <Link
-              to="/collections/brands"
-              className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-10 rounded-full transition-colors duration-200"
-              style={{
-                fontSize: '16px',
-                fontWeight: 500,
-                fontFamily:
-                  "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                color: 'white',
-              }}
-            >
-              Handla alla märken
-            </Link>
-          </div>
+          {/* NO mobile shop all button - removed completely */}
         </div>
       </div>
     </section>

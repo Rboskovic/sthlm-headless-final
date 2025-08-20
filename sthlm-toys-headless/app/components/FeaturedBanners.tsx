@@ -83,29 +83,13 @@ export function FeaturedBanners({collections}: FeaturedBannersProps) {
           maxWidth: '100%',
           paddingLeft: '12px',
           paddingRight: '12px',
-          paddingTop: '32px',
+          paddingTop: '16px', // Reduced from 32px to bring closer to age section
           paddingBottom: '16px',
         }}
       >
         {/* Desktop Layout */}
         <div className="hidden md:block">
-          {/* Header with centered title (no "shop all" for banners) */}
-          <div className="flex items-center justify-center mb-8">
-            <h2
-              className="text-black font-semibold"
-              style={{
-                fontSize: '36px',
-                fontWeight: 600,
-                lineHeight: '42px',
-                fontFamily:
-                  "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                color: 'rgb(33, 36, 39)',
-                textAlign: 'center',
-              }}
-            >
-              Utvalda kollektioner
-            </h2>
-          </div>
+          {/* REMOVED: Header with title - no title anymore for closer spacing */}
 
           {/* Desktop Grid - 2 columns for banners */}
           <div className="grid grid-cols-2 gap-6">
@@ -206,22 +190,7 @@ export function FeaturedBanners({collections}: FeaturedBannersProps) {
 
         {/* Mobile Layout */}
         <div className="block md:hidden">
-          {/* Mobile Title */}
-          <h2
-            className="text-black font-semibold text-center mb-6"
-            style={{
-              fontSize: '24px',
-              fontWeight: 600,
-              lineHeight: '28px',
-              fontFamily:
-                "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-              color: 'rgb(33, 36, 39)',
-              textAlign: 'center',
-              marginBottom: '24px',
-            }}
-          >
-            Utvalda kollektioner
-          </h2>
+          {/* REMOVED: Mobile Title - no title anymore */}
 
           {/* Mobile Stack */}
           <div className="space-y-4">

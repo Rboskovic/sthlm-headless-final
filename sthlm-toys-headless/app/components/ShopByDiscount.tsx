@@ -8,62 +8,62 @@ interface ShopByDiscountProps {
   discounts?: Collection[] | null;
 }
 
-interface DiscountWithColor extends Collection {
+interface PriceRangeWithColor extends Collection {
   backgroundColor?: string;
 }
 
-// Discount color mapping for fallbacks (matching discount themes)
-const discountColors: Record<string, string> = {
-  'summer-sale': '#FF5722',
-  'under-20': '#4CAF50',
-  clearance: '#E91E63',
-  'black-friday': '#212121',
-  'holiday-deals': '#F44336',
-  'weekly-offers': '#2196F3',
+// Price range color mapping for fallbacks
+const priceColors: Record<string, string> = {
+  'under-100': '#4CAF50',    // Green for affordable
+  'under-250': '#2196F3',    // Blue for mid-range
+  'under-500': '#FF9800',    // Orange for higher
+  'under-1000': '#9C27B0',   // Purple for premium
+  'over-1000': '#607D8B',    // Gray for luxury
+  'best-value': '#F44336',   // Red for best value
 };
 
-// Fallback discounts (popular discount categories)
-const fallbackDiscounts: DiscountWithColor[] = [
+// Fallback price ranges (popular price categories)
+const fallbackPriceRanges: PriceRangeWithColor[] = [
   {
-    id: 'summer-sale',
-    title: 'Sommarera',
-    handle: 'summer-sale',
-    backgroundColor: '#FF5722',
+    id: 'under-100',
+    title: 'Under 100kr',
+    handle: 'under-100',
+    backgroundColor: priceColors['under-100'],
     image: null,
   },
   {
-    id: 'under-20',
-    title: 'Under €20',
-    handle: 'under-20',
-    backgroundColor: '#4CAF50',
+    id: 'under-250',
+    title: 'Under 250kr',
+    handle: 'under-250',
+    backgroundColor: priceColors['under-250'],
     image: null,
   },
   {
-    id: 'clearance',
-    title: 'Rensning',
-    handle: 'clearance',
-    backgroundColor: '#E91E63',
+    id: 'under-500',
+    title: 'Under 500kr',
+    handle: 'under-500',
+    backgroundColor: priceColors['under-500'],
     image: null,
   },
   {
-    id: 'weekly-offers',
-    title: 'Veckans erbjudanden',
-    handle: 'weekly-offers',
-    backgroundColor: '#2196F3',
+    id: 'under-1000',
+    title: 'Under 1000kr',
+    handle: 'under-1000',
+    backgroundColor: priceColors['under-1000'],
     image: null,
   },
   {
-    id: 'holiday-deals',
-    title: 'Semesterrea',
-    handle: 'holiday-deals',
-    backgroundColor: '#F44336',
+    id: 'best-value',
+    title: 'Bästa värde',
+    handle: 'best-value',
+    backgroundColor: priceColors['best-value'],
     image: null,
   },
   {
-    id: 'black-friday',
-    title: 'Black Friday',
-    handle: 'black-friday',
-    backgroundColor: '#212121',
+    id: 'over-1000',
+    title: 'Premium',
+    handle: 'over-1000',
+    backgroundColor: priceColors['over-1000'],
     image: null,
   },
 ];
@@ -83,10 +83,15 @@ export function ShopByDiscount({
   // Drag threshold in pixels - only disable pointer events after this distance
   const DRAG_THRESHOLD = 10;
 
-  // Helper function to get metafield value
+  // Helper function to get metafield value (NAMESPACE-AWARE LIKE TOPCATEGORIES)
   const getMetafieldValue = (metafields: any, key: string): string | null => {
     if (!metafields || !Array.isArray(metafields)) return null;
-    const metafield = metafields.find((field: any) => field && field.key === key);
+    // Check both custom and app namespaces like TopCategories does
+    const metafield = metafields.find((field: any) => 
+      field && 
+      field.key === key && 
+      (field.namespace === 'custom' || field.namespace === 'app')
+    );
     return metafield?.value ? metafield.value : null;
   };
 
@@ -101,30 +106,55 @@ export function ShopByDiscount({
     );
   };
 
-  // Filter featured discounts from Shopify data
-  const featuredDiscounts =
+  // Filter featured price ranges from Shopify data (IMPROVED FILTERING + SORTING)
+  const featuredPriceRanges =
     discounts && discounts.length > 0
-      ? discounts.filter((discount) => {
-          const featuredDiscountValue =
+      ? discounts.filter((discount: Collection) => {
+          // Check all possible metafield variations like TopCategories does
+          const featuredValue =
             getMetafieldValue(discount.metafields, 'featured-discount') ||
             getMetafieldValue(discount.metafields, 'featured_discount');
-          const isFeatured = isTrueValue(featuredDiscountValue);
-          return isFeatured && discount.image?.url;
+          const isFeatured = isTrueValue(featuredValue);
+          
+          // DEBUG: Log each collection for troubleshooting (can be disabled)
+          const DEBUG_LOGS = true; // Set to false to disable logs
+          if (DEBUG_LOGS) {
+            console.log(`💰 Price Collection: ${discount.title}`, {
+              metafields: discount.metafields,
+              featuredValue,
+              isFeatured,
+              hasImage: !!discount.image?.url
+            });
+          }
+          
+          return isFeatured;
+        })
+        .sort((a, b) => {
+          // Sort by sort_order metafield (underscore, not hyphen), then alphabetically as fallback
+          const sortOrderA = parseInt(getMetafieldValue(a.metafields, 'sort_order') || '999');
+          const sortOrderB = parseInt(getMetafieldValue(b.metafields, 'sort_order') || '999');
+          
+          if (sortOrderA !== sortOrderB) {
+            return sortOrderA - sortOrderB; // Numeric sort
+          }
+          
+          // Fallback to alphabetical if no sort_order
+          return a.title.localeCompare(b.title);
         })
       : [];
 
-  // Use Shopify discounts or fallback
-  const displayDiscounts: DiscountWithColor[] =
-    featuredDiscounts.length > 0 ? featuredDiscounts : fallbackDiscounts;
+  // Use Shopify price ranges or fallback
+  const displayPriceRanges: PriceRangeWithColor[] =
+    featuredPriceRanges.length > 0 ? featuredPriceRanges : fallbackPriceRanges;
 
-  // Desktop: Show only first 6 discounts (no scrolling/pagination)
-  const visibleDiscounts = displayDiscounts.slice(0, 6);
+  // Desktop: Show only first 6 price ranges (no scrolling/pagination)
+  const visiblePriceRanges = displayPriceRanges.slice(0, 6);
 
-  // ✅ IMPROVED: Enhanced mouse drag handlers with threshold
+  // ✅ IMPROVED: Better mouse drag handlers with threshold
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!mobileScrollRef.current) return;
     setIsDragging(true);
-    setHasActuallyDragged(false); // Reset the actual drag flag
+    setHasActuallyDragged(false);
     setStartX(e.pageX - mobileScrollRef.current.offsetLeft);
     setScrollLeft(mobileScrollRef.current.scrollLeft);
   };
@@ -132,10 +162,10 @@ export function ShopByDiscount({
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!isDragging || !mobileScrollRef.current) return;
     e.preventDefault();
-    
+
     const x = e.pageX - mobileScrollRef.current.offsetLeft;
     const dragDistance = Math.abs(x - startX);
-    
+
     // Only set hasActuallyDragged after threshold is exceeded
     if (dragDistance > DRAG_THRESHOLD) {
       setHasActuallyDragged(true);
@@ -151,7 +181,7 @@ export function ShopByDiscount({
 
   return (
     <section className="w-full bg-white">
-      {/* Container matching Smyths layout */}
+      {/* Container matching other sections */}
       <div
         className="mx-auto relative"
         style={{
@@ -166,50 +196,30 @@ export function ShopByDiscount({
       >
         {/* Desktop Layout */}
         <div className="hidden md:block">
-          {/* Desktop Header with centered title and right-aligned Shop All link */}
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex-1"></div>
-            <div className="flex-1 flex justify-center">
-              <h2
-                className="text-black font-semibold"
-                style={{
-                  fontSize: '36px',
-                  fontWeight: 600,
-                  lineHeight: '42px',
-                  fontFamily:
-                    "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                  color: 'rgb(33, 36, 39)',
-                  textAlign: 'center',
-                }}
-              >
-                Handla på rea
-              </h2>
-            </div>
-            <div className="flex-1 flex justify-end">
-              <Link
-                to="/collections/rea"
-                className="text-blue-600 hover:text-blue-700 transition-colors duration-200"
-                style={{
-                  fontSize: '18px',
-                  fontWeight: 500,
-                  fontFamily:
-                    "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                  color: '#3B82F6',
-                  textDecoration: 'none',
-                  alignSelf: 'center',
-                }}
-              >
-                Handla alla erbjudanden
-              </Link>
-            </div>
+          {/* Desktop Header with ONLY centered title - NO shop all button */}
+          <div className="flex items-center justify-center mb-8">
+            <h2
+              className="text-black font-semibold"
+              style={{
+                fontSize: '36px',
+                fontWeight: 600,
+                lineHeight: '42px',
+                fontFamily:
+                  "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                color: 'rgb(33, 36, 39)',
+                textAlign: 'center',
+              }}
+            >
+              Handla efter pris
+            </h2>
           </div>
 
           {/* Desktop Grid */}
           <div className="grid grid-cols-6 gap-6">
-            {visibleDiscounts.map((discount) => (
+            {visiblePriceRanges.map((priceRange) => (
               <Link
-                key={discount.id}
-                to={`/collections/${discount.handle}`}
+                key={priceRange.id}
+                to={`/collections/${priceRange.handle}`}
                 className="group text-center"
               >
                 <div
@@ -220,18 +230,10 @@ export function ShopByDiscount({
                     borderRadius: '12px',
                   }}
                 >
-                  {discount.image?.url ? (
+                  {priceRange.image?.url ? (
                     <Image
-                      data={discount.image}
-                      alt={discount.image.altText || discount.title}
-                      style={{
-                        height: '192px',
-                        width: '192px',
-                        overflow: 'clip',
-                        cursor: 'pointer',
-                        boxSizing: 'content-box',
-                      }}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                      data={priceRange.image}
+                      className="w-full h-full object-cover"
                       sizes="192px"
                       loading="lazy"
                     />
@@ -240,38 +242,30 @@ export function ShopByDiscount({
                       className="w-full h-full flex items-center justify-center"
                       style={{
                         backgroundColor:
-                          discount.backgroundColor ||
-                          discountColors[discount.handle] ||
-                          '#6B7280',
+                          priceRange.backgroundColor || priceColors['under-100'],
                       }}
                     >
-                      <span
-                        className="text-white font-bold text-center px-2"
-                        style={{
-                          fontSize: '16px',
-                          fontWeight: 700,
-                          lineHeight: '20px',
-                          fontFamily:
-                            "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                        }}
-                      >
-                        {discount.title}
+                      <span className="text-white text-lg font-medium">
+                        {priceRange.title}
                       </span>
                     </div>
                   )}
                 </div>
                 <h3
-                  className="text-black font-medium group-hover:text-blue-600 transition-colors duration-200"
+                  className="text-black font-medium leading-tight"
                   style={{
-                    fontSize: '18px',
+                    fontSize: '16px',
                     fontWeight: 500,
-                    lineHeight: '24px',
+                    lineHeight: '20px',
                     fontFamily:
                       "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                    color: 'rgb(33, 36, 39)',
+                    whiteSpace: 'normal',
                     textAlign: 'center',
+                    maxWidth: '192px',
                   }}
                 >
-                  {discount.title}
+                  {priceRange.title}
                 </h3>
               </Link>
             ))}
@@ -293,7 +287,7 @@ export function ShopByDiscount({
                     "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
                 }}
               >
-                Handla på rea
+                Handla efter pris
               </h2>
             </div>
           )}
@@ -323,10 +317,10 @@ export function ShopByDiscount({
                 }
               `}
             </style>
-            {displayDiscounts.map((discount) => (
+            {displayPriceRanges.map((priceRange) => (
               <Link
-                key={discount.id}
-                to={`/collections/${discount.handle}`}
+                key={priceRange.id}
+                to={`/collections/${priceRange.handle}`}
                 className="group block flex-shrink-0"
                 style={{
                   scrollSnapAlign: 'start',
@@ -342,18 +336,10 @@ export function ShopByDiscount({
                     borderRadius: '12px',
                   }}
                 >
-                  {discount.image?.url ? (
+                  {priceRange.image?.url ? (
                     <Image
-                      data={discount.image}
-                      alt={discount.image.altText || discount.title}
-                      style={{
-                        height: '144px',
-                        width: '144px',
-                        overflow: 'clip',
-                        cursor: 'pointer',
-                        boxSizing: 'content-box',
-                      }}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                      data={priceRange.image}
+                      className="w-full h-full object-cover"
                       sizes="144px"
                       loading="lazy"
                     />
@@ -362,68 +348,40 @@ export function ShopByDiscount({
                       className="w-full h-full flex items-center justify-center"
                       style={{
                         backgroundColor:
-                          discount.backgroundColor ||
-                          discountColors[discount.handle] ||
-                          '#6B7280',
+                          priceRange.backgroundColor || priceColors['under-100'],
                       }}
                     >
-                      <span
-                        className="text-white font-bold text-center px-2"
-                        style={{
-                          fontSize: '14px',
-                          fontWeight: 700,
-                          lineHeight: '18px',
-                          fontFamily:
-                            "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                        }}
-                      >
-                        {discount.title}
+                      <span className="text-white text-sm font-medium">
+                        {priceRange.title}
                       </span>
                     </div>
                   )}
                 </div>
-                {/* Discount Name - Mobile */}
-                <div className="mt-2 text-center px-1">
+
+                {/* Mobile Price Range Title */}
+                <div className="mt-2">
                   <h3
-                    className="text-black font-medium group-hover:text-blue-600 transition-colors duration-200"
+                    className="text-black font-medium leading-tight"
                     style={{
-                      fontSize: '12px',
+                      fontSize: '14px',
                       fontWeight: 500,
-                      lineHeight: '16.2px',
+                      lineHeight: '18px',
                       fontFamily:
                         "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                      wordWrap: 'break-word',
-                      hyphens: 'auto',
+                      color: 'rgb(33, 36, 39)',
                       whiteSpace: 'normal',
                       textAlign: 'center',
                       maxWidth: '144px',
                     }}
                   >
-                    {discount.title}
+                    {priceRange.title}
                   </h3>
                 </div>
               </Link>
             ))}
           </div>
 
-          {/* Mobile Shop All Discounts Button - Only show on homepage */}
-          {variant === 'homepage' && (
-            <div className="flex justify-center mt-6">
-              <Link
-                to="/collections/rea"
-                className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-10 rounded-full transition-colors duration-200"
-                style={{
-                  fontSize: '16px',
-                  fontWeight: 500,
-                  fontFamily:
-                    "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                  color: 'white',
-                }}
-              >
-                Handla alla erbjudanden
-              </Link>
-            </div>
-          )}
+          {/* REMOVED: Mobile Shop All Button - no button anymore */}
         </div>
       </div>
     </section>

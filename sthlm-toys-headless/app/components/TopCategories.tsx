@@ -114,6 +114,18 @@ export function TopCategories({collections}: TopCategoriesProps) {
           const isFeatured = isTrueValue(featuredCategoryValue);
           return isFeatured && category.image?.url;
         })
+        .sort((a, b) => {
+          // Sort by sort_order metafield (underscore, not hyphen), then alphabetically as fallback
+          const sortOrderA = parseInt(getMetafieldValue(a.metafields, 'sort_order') || '999');
+          const sortOrderB = parseInt(getMetafieldValue(b.metafields, 'sort_order') || '999');
+          
+          if (sortOrderA !== sortOrderB) {
+            return sortOrderA - sortOrderB; // Numeric sort
+          }
+          
+          // Fallback to alphabetical if no sort_order
+          return a.title.localeCompare(b.title);
+        })
       : [];
 
   // Use Shopify categories or fallback
@@ -184,12 +196,12 @@ export function TopCategories({collections}: TopCategoriesProps) {
                   textAlign: 'center',
                 }}
               >
-                Handla efter kategori
+                Shoppa efter tema
               </h2>
             </div>
             <div className="flex-1 flex justify-end">
               <Link
-                to="/collections"
+                to="/collections/lego"
                 className="text-blue-600 hover:text-blue-700 transition-colors duration-200"
                 style={{
                   fontSize: '18px',
@@ -201,7 +213,7 @@ export function TopCategories({collections}: TopCategoriesProps) {
                   alignSelf: 'center',
                 }}
               >
-                Visa alla kategorier
+                Visa alla
               </Link>
             </div>
           </div>
@@ -225,45 +237,36 @@ export function TopCategories({collections}: TopCategoriesProps) {
                   {category.image?.url ? (
                     <Image
                       data={category.image}
-                      alt={category.image.altText || category.title}
                       className="w-full h-full object-cover"
                       sizes="192px"
-                      loading="eager"
+                      loading="lazy"
                     />
                   ) : (
                     <div
                       className="w-full h-full flex items-center justify-center"
                       style={{
                         backgroundColor:
-                          category.backgroundColor ||
-                          categoryColors[category.handle] ||
-                          '#6B7280',
+                          category.backgroundColor || categoryColors['default'],
                       }}
                     >
-                      <span
-                        className="text-white font-bold text-center px-2"
-                        style={{
-                          fontSize: '18px',
-                          fontWeight: 700,
-                          lineHeight: '24px',
-                          fontFamily:
-                            "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                        }}
-                      >
+                      <span className="text-white text-lg font-medium">
                         {category.title}
                       </span>
                     </div>
                   )}
                 </div>
                 <h3
-                  className="text-black font-medium group-hover:text-blue-600 transition-colors duration-200"
+                  className="text-black font-medium leading-tight"
                   style={{
-                    fontSize: '18px',
+                    fontSize: '16px',
                     fontWeight: 500,
-                    lineHeight: '24px',
+                    lineHeight: '20px',
                     fontFamily:
                       "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                    color: 'rgb(33, 36, 39)',
+                    whiteSpace: 'normal',
                     textAlign: 'center',
+                    maxWidth: '192px',
                   }}
                 >
                   {category.title}
@@ -289,7 +292,7 @@ export function TopCategories({collections}: TopCategoriesProps) {
               marginBottom: '24px',
             }}
           >
-            Handla efter kategori
+            Shoppa efter tema
           </h2>
 
           {/* Mobile Horizontal Scroll Container */}
@@ -345,65 +348,51 @@ export function TopCategories({collections}: TopCategoriesProps) {
                     {category.image?.url ? (
                       <Image
                         data={category.image}
-                        alt={category.image.altText || category.title}
                         className="w-full h-full object-cover"
                         sizes="144px"
-                        loading="eager"
+                        loading="lazy"
                       />
                     ) : (
                       <div
                         className="w-full h-full flex items-center justify-center"
                         style={{
                           backgroundColor:
-                            category.backgroundColor ||
-                            categoryColors[category.handle] ||
-                            '#6B7280',
+                            category.backgroundColor || categoryColors['default'],
                         }}
                       >
-                        <span
-                          className="text-white font-bold text-center px-2"
-                          style={{
-                            fontSize: '15px',
-                            fontWeight: 700,
-                            lineHeight: '19px',
-                            fontFamily:
-                              "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                          }}
-                        >
+                        <span className="text-white text-sm font-medium">
                           {category.title}
                         </span>
                       </div>
                     )}
                   </div>
-                  {/* Category Name - Mobile */}
-                  <div className="mt-2 text-center px-1">
-                    <h3
-                      className="text-black font-medium group-hover:text-blue-600 transition-colors duration-200"
-                      style={{
-                        fontSize: '12px',
-                        fontWeight: 500,
-                        lineHeight: '16.2px',
-                        fontFamily:
-                          "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                        wordWrap: 'break-word',
-                        hyphens: 'auto',
-                        whiteSpace: 'normal',
-                        textAlign: 'center',
-                        maxWidth: '144px',
-                      }}
-                    >
-                      {category.title}
-                    </h3>
-                  </div>
+
+                  {/* Mobile Category Title */}
+                  <h3
+                    className="text-black font-medium leading-tight mt-2"
+                    style={{
+                      fontSize: '14px',
+                      fontWeight: 500,
+                      lineHeight: '18px',
+                      fontFamily:
+                        "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                      color: 'rgb(33, 36, 39)',
+                      whiteSpace: 'normal',
+                      textAlign: 'center',
+                      maxWidth: '144px',
+                    }}
+                  >
+                    {category.title}
+                  </h3>
                 </Link>
               ))}
             </div>
           </div>
 
-          {/* Mobile Shop All Categories Button - Slightly bigger with proper spacing */}
-          <div className="flex justify-center">
+          {/* Mobile Shop All Button */}
+          <div className="flex justify-center mt-4">
             <Link
-              to="/collections"
+              to="/collections/lego"
               className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-10 rounded-full transition-colors duration-200"
               style={{
                 fontSize: '16px',
@@ -413,7 +402,7 @@ export function TopCategories({collections}: TopCategoriesProps) {
                 color: 'white',
               }}
             >
-              Visa alla kategorier
+              Visa alla
             </Link>
           </div>
         </div>
