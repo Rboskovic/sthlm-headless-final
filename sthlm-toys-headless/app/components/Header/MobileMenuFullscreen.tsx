@@ -1,4 +1,4 @@
-// app/components/Header/MobileMenuFullscreen.tsx - Fixed: Two-header layout like Smyths
+// app/components/Header/MobileMenuFullscreen.tsx - Fixed: Proper Logo import
 import {Suspense, useState} from 'react';
 import {Link, Await} from 'react-router';
 import {
@@ -12,6 +12,7 @@ import {
   HelpCircle,
 } from 'lucide-react';
 import {Image} from '@shopify/hydrogen';
+import {Logo} from './Logo'; // ✅ FIXED: Import proper Logo component
 import {WishlistsLink} from '../WishlistsLink';
 import type {Collection} from '@shopify/hydrogen/storefront-api-types';
 import type {Menu, MenuItem} from './types';
@@ -127,13 +128,33 @@ export function MobileMenuFullscreen({
       {/* Full-screen menu with slide animation */}
       <div className="fixed inset-0 bg-white transform transition-transform duration-300 ease-in-out overflow-hidden">
         
-        {/* FIXED BRAND HEADER - Always Visible */}
+        {/* ✅ FIXED BRAND HEADER - Centered Logo */}
         <div className="mobile-brand-header">
-          <MobileLogo shop={shop} />
+          {/* Left spacer to balance the close button */}
+          <div style={{ width: '48px' }}></div>
+          
+          {/* Centered Logo */}
+          <div style={{ 
+            flex: 1, 
+            display: 'flex', 
+            justifyContent: 'center',
+            alignItems: 'center'
+          }}>
+            <Logo 
+              shop={shop}
+              style={{
+                height: '40px',
+                maxWidth: '160px',
+              }}
+            />
+          </div>
+          
+          {/* Close button */}
           <button
             onClick={handleClose}
             className="p-2 text-gray-600 hover:text-gray-900 transition-colors"
             aria-label="Stäng meny"
+            style={{ width: '48px', height: '48px' }}
           >
             <X size={24} />
           </button>
@@ -449,16 +470,6 @@ function DynamicMainNavigation({
 }
 
 // Helper Components
-function MobileLogo({shop}: {shop: any}) {
-  return (
-    <Link to="/" className="flex items-center">
-      <span className="mobile-menu-logo">
-        {shop?.name || 'STHLM TOYS'}
-      </span>
-    </Link>
-  );
-}
-
 function UserGreetingFallback() {
   return (
     <div className="flex items-center justify-between px-4 py-4 bg-white">

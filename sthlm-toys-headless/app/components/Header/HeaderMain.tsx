@@ -1,5 +1,5 @@
 // FILE: app/components/Header/HeaderMain.tsx
-// ✅ ENHANCED: Fixed positioning + Added mobile search & wishlist + Smyths layout
+// ✅ FIXED: Mobile search always visible in second row + Logo centered + Desktop sizing
 
 import {Suspense, useState} from 'react';
 import {Link, Await} from 'react-router';
@@ -24,7 +24,6 @@ export function HeaderMain({
   customer,
 }: HeaderMainPropsUpdated) {
   const [isAccountDropdownOpen, setIsAccountDropdownOpen] = useState(false);
-  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
 
   const toggleAccountDropdown = () => {
     setIsAccountDropdownOpen(!isAccountDropdownOpen);
@@ -32,10 +31,6 @@ export function HeaderMain({
 
   const closeAccountDropdown = () => {
     setIsAccountDropdownOpen(false);
-  };
-
-  const toggleMobileSearch = () => {
-    setIsMobileSearchOpen(!isMobileSearchOpen);
   };
 
   return (
@@ -72,14 +67,13 @@ export function HeaderMain({
                             fontWeight: 500,
                             lineHeight: '18px',
                             gap: '6px',
-                            textDecoration: 'none',
                             padding: '6px 10px',
                             borderRadius: '4px',
                           }}
                         >
                           <User size={15} className="text-white" />
                           <span className="text-white">
-                            Hej, {customer.firstName || 'Customer'}
+                            Hej, {customer.firstName || 'Användare'}
                           </span>
                           <ChevronDown
                             size={14}
@@ -89,60 +83,35 @@ export function HeaderMain({
                           />
                         </button>
 
-                        {/* Dropdown Menu */}
+                        {/* Account Dropdown */}
                         {isAccountDropdownOpen && (
                           <>
                             <div
-                              className="fixed inset-0 z-40"
+                              className="fixed inset-0 z-10"
                               onClick={closeAccountDropdown}
                             />
-                            <div
-                              className="absolute top-full right-0 mt-2 bg-white rounded-lg shadow-lg border border-gray-200 min-w-[200px] z-50"
-                              style={{
-                                animation: 'fadeIn 0.2s ease-out',
-                              }}
-                            >
-                              <div className="py-2">
-                                <Link
-                                  to="/account"
-                                  onClick={closeAccountDropdown}
-                                  className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
-                                  style={{
-                                    fontSize: '14px',
-                                    gap: '8px',
-                                    textDecoration: 'none',
-                                  }}
-                                >
-                                  <User size={16} />
-                                  <span>Min profil</span>
-                                </Link>
-                                <Link
-                                  to="/account/orders"
-                                  onClick={closeAccountDropdown}
-                                  className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
-                                  style={{
-                                    fontSize: '14px',
-                                    gap: '8px',
-                                    textDecoration: 'none',
-                                  }}
-                                >
-                                  <FileText size={16} />
-                                  <span>Mina beställningar</span>
-                                </Link>
-                                <Link
-                                  to="/account/wishlist"
-                                  onClick={closeAccountDropdown}
-                                  className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
-                                  style={{
-                                    fontSize: '14px',
-                                    gap: '8px',
-                                    textDecoration: 'none',
-                                  }}
-                                >
-                                  <Heart size={16} />
-                                  <span>Önskelista</span>
-                                </Link>
-                              </div>
+                            <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg py-2 z-20 min-w-[180px]">
+                              <Link
+                                to="/account"
+                                onClick={closeAccountDropdown}
+                                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                              >
+                                Mitt konto
+                              </Link>
+                              <Link
+                                to="/account/orders"
+                                onClick={closeAccountDropdown}
+                                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                              >
+                                Mina beställningar
+                              </Link>
+                              <Link
+                                to="/account/logout"
+                                onClick={closeAccountDropdown}
+                                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                              >
+                                Logga ut
+                              </Link>
                             </div>
                           </>
                         )}
@@ -162,7 +131,7 @@ export function HeaderMain({
                         }}
                       >
                         <User size={15} className="text-white" />
-                        <span className="text-white">Hej, Logga in</span>
+                        <span className="text-white">Logga in</span>
                       </Link>
                     )}
                   </div>
@@ -207,64 +176,57 @@ export function HeaderMain({
         </div>
       </div>
 
-      {/* Desktop Main Header - Improved Layout */}
-      <div className="hidden lg:block">
+      {/* Desktop Main Header - Logo as overlay, compact layout */}
+      <div className="hidden lg:block relative">
         <div
           className="flex items-center mx-auto"
           style={{
             maxWidth: '1272px',
             paddingLeft: '12px',
-            paddingRight: '40px',
-            paddingTop: '20px',
-            paddingBottom: '20px',
-            gap: '24px',
+            paddingRight: '12px',
+            paddingTop: '20px', // Increased from 16px
+            paddingBottom: '20px', // Increased from 16px  
+            gap: '20px',
             alignItems: 'center',
+            height: '70px', // Increased from 60px for better spacing
           }}
         >
-          {/* Logo - Fixed Sizing */}
-          <div style={{flex: '0 0 auto', width: '180px'}}>
-            <Logo 
-              shop={shop}
-              style={{
-                height: '45px',
-                maxWidth: '180px',
-              }}
-            />
-          </div>
+          {/* Left Spacer - More space for logo breathing room */}
+          <div style={{flex: '0 0 auto', width: '240px'}}></div> {/* Increased from 200px */}
 
-          {/* Search Bar - Centered with Fixed Width */}
+          {/* Search Bar - Full width */}
           <div style={{
-            flex: '1 1 auto', 
-            maxWidth: '600px',
-            margin: '0 auto',
+            flex: '1 1 auto',
+            minWidth: 0,
+            marginRight: '20px',
           }}>
             <SearchBar />
           </div>
 
-          {/* Right Actions - Fixed Positioning */}
+          {/* Right Actions - Compact */}
           <div
             className="flex items-center"
             style={{
               flex: '0 0 auto',
-              gap: '20px',
-              minWidth: '200px',
+              gap: '16px',
               justifyContent: 'flex-end',
             }}
           >
             <WishlistsLink
               className="flex items-center text-white hover:bg-white/10 transition-colors"
               style={{
-                padding: '8px 12px',
+                padding: '6px 10px',
                 borderRadius: '6px',
-                gap: '8px',
+                gap: '6px',
                 textDecoration: 'none',
+                whiteSpace: 'nowrap',
               }}
             >
-              <Heart size={20} className="text-white" />
+              <Heart size={18} className="text-white" />
               <span
                 className="text-white"
                 style={{
-                  fontSize: '16px',
+                  fontSize: '15px',
                   fontWeight: 500,
                 }}
               >
@@ -275,76 +237,67 @@ export function HeaderMain({
             <CartToggle cart={cart} />
           </div>
         </div>
+
+        {/* Logo Overlay - Fixed: Proper responsive padding like content */}
+        <div 
+          style={{
+            position: 'absolute',
+            left: '50%', // Center the container
+            top: '50%',
+            transform: 'translate(-50%, -50%)', // Center the container
+            zIndex: 20,
+            pointerEvents: 'none', // Container doesn't block clicks
+            width: '100%',
+            maxWidth: '1272px', // Match container max-width
+          }}
+        >
+          <div style={{
+            paddingLeft: '12px', // Match container padding
+            paddingRight: '12px',
+          }}>
+            {/* Logo with click events enabled */}
+            <div style={{ pointerEvents: 'auto', width: 'fit-content' }}> {/* Only logo area clickable */}
+              <Logo 
+                shop={shop}
+                style={{
+                  height: '75px',
+                  maxWidth: '220px',
+                  filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))',
+                }}
+              />
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Mobile Header - Enhanced with Search & Wishlist */}
+      {/* Mobile Header - Smaller logo overlay */}
       <div className="lg:hidden">
-        {/* Mobile Search Bar - Collapsible */}
-        {isMobileSearchOpen && (
-          <div
-            style={{
-              padding: '12px 16px',
-              borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
-            }}
-          >
-            <SearchBar isMobile={true} />
-          </div>
-        )}
-
-        {/* Main Mobile Header Row */}
+        {/* First Row: Menu, Actions */}
         <div
-          className="flex items-center justify-between"
+          className="relative flex items-center"
           style={{
-            padding: '12px 16px',
-            gap: '12px',
-            minHeight: '60px',
+            padding: '16px 16px', // Increased from 12px
+            minHeight: '64px', // Increased from 56px
+            position: 'relative',
           }}
         >
           {/* Left: Mobile Menu Button */}
-          <button
-            onClick={onMobileMenuToggle}
-            className="text-white hover:bg-white/10 transition-colors flex-shrink-0"
-            style={{
-              padding: '8px',
-              borderRadius: '4px',
-            }}
-            aria-label="Open menu"
-          >
-            <Menu size={24} />
-          </button>
-
-          {/* Center: Mobile Logo */}
-          <div style={{
-            flex: '1 1 auto', 
-            display: 'flex', 
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}>
-            <Logo 
-              shop={shop}
-              style={{
-                height: '36px',
-                maxWidth: '140px',
-              }}
-            />
-          </div>
-
-          {/* Right: Search, Wishlist, Cart */}
-          <div className="flex items-center gap-2 flex-shrink-0">
-            {/* Mobile Search Toggle */}
+          <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
             <button
-              onClick={toggleMobileSearch}
-              className="text-white hover:bg-white/10 transition-colors"
+              onClick={onMobileMenuToggle}
+              className="text-white hover:bg-white/10 transition-colors flex-shrink-0"
               style={{
                 padding: '8px',
                 borderRadius: '4px',
               }}
-              aria-label="Toggle search"
+              aria-label="Open menu"
             >
-              <Search size={20} />
+              <Menu size={24} />
             </button>
+          </div>
 
-            {/* Mobile Wishlist */}
+          {/* Right: Wishlist, Cart */}
+          <div className="absolute right-4 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
             <WishlistsLink
               className="text-white hover:bg-white/10 transition-colors"
               style={{
@@ -358,9 +311,42 @@ export function HeaderMain({
               <Heart size={20} className="text-white" />
             </WishlistsLink>
 
-            {/* Mobile Cart */}
             <CartToggle cart={cart} />
           </div>
+
+          {/* Mobile Logo Overlay - Fixed: Only logo area, not full width */}
+          <div 
+            style={{ 
+              position: 'absolute',
+              left: '50%',
+              top: '50%',
+              transform: 'translate(-50%, -50%)',
+              zIndex: 10,
+              pointerEvents: 'none', // Container doesn't block clicks
+              width: 'fit-content', // Only as wide as logo
+            }}
+          >
+            {/* Logo with click events enabled */}
+            <div style={{ pointerEvents: 'auto' }}> {/* Only logo can be clicked */}
+              <Logo 
+                shop={shop}
+                style={{
+                  height: '34px', // Increased by 5% from 32px
+                  maxWidth: '126px', // Increased by 5% from 120px
+                  filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.1))',
+                }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Second Row: Always Visible Search Bar */}
+        <div
+          style={{
+            padding: '0 16px 16px 16px', // Increased bottom padding
+          }}
+        >
+          <SearchBar isMobile={true} />
         </div>
       </div>
     </div>

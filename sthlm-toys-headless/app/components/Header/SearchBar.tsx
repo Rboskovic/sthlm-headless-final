@@ -1,14 +1,25 @@
-// app/components/Header/SearchBar.tsx - Simple & Clean Approach
+// app/components/Header/SearchBar.tsx - FIXED: Force full width
 import {Search} from 'lucide-react';
 import {SearchForm} from '~/components/SearchForm';
 import type {SearchBarProps} from './types';
 
 export function SearchBar({isMobile = false, className = ''}: SearchBarProps) {
   return (
-    <SearchForm action="/search">
+    <SearchForm 
+      action="/search"
+      style={{ 
+        width: '100%',
+        maxWidth: 'none', // Remove any default form max-width
+        minWidth: 0,
+      }}
+    >
       {({inputRef}) => (
         <div
           className={`flex w-full rounded-full overflow-hidden bg-white ${className}`}
+          style={{ 
+            width: '100%',
+            maxWidth: 'none', // Ensure no width constraints
+          }}
         >
           <input
             ref={inputRef}
@@ -22,6 +33,8 @@ export function SearchBar({isMobile = false, className = ''}: SearchBarProps) {
               boxShadow: 'none',
               paddingLeft: isMobile ? '20px' : '24px',
               paddingRight: '16px',
+              width: '100%', // Ensure input takes full width
+              maxWidth: 'none', // Remove any input constraints
             }}
             onFocus={(e) => {
               e.target.style.outline = 'none';

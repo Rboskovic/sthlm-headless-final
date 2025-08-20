@@ -1,74 +1,93 @@
-import {Link} from 'react-router';
+// FILE: app/components/ShopByAge.tsx
+// ✅ FIXED: Reduced top padding to minimize gap from hero banner
 
-interface AgeGroup {
-  id: string;
-  ageRange: string;
-  subtitle: string;
-  backgroundColor: string;
-  textColor: string;
-  handle: string; // Shopify collection handle
-}
+import {Link} from 'react-router';
+import type {Collection} from '@shopify/hydrogen/storefront-api-types';
 
 interface ShopByAgeProps {
   title?: string;
+  ageGroups?: Collection[];
 }
 
-// Age groups matching the screenshot with Swedish translations
-const ageGroups: AgeGroup[] = [
-  {
-    id: '0-18-months',
-    ageRange: '0–18',
-    subtitle: 'MÅNADER',
-    backgroundColor: '#B8E6E1', // Light cyan
-    textColor: '#2C5F5D', // Dark teal
-    handle: 'age-0-18-months', // You'll create this collection in Shopify
-  },
-  {
-    id: '18-36-months',
-    ageRange: '18–36',
-    subtitle: 'MÅNADER',
-    backgroundColor: '#C8B5E8', // Light purple
-    textColor: '#6B4C93', // Dark purple
-    handle: 'age-18-36-months',
-  },
-  {
-    id: '3-5-years',
-    ageRange: '3–5',
-    subtitle: 'ÅR',
-    backgroundColor: '#A8E6CF', // Light mint green
-    textColor: '#2D5A41', // Dark green
-    handle: 'age-3-5-years',
-  },
-  {
-    id: '6-8-years',
-    ageRange: '6–8',
-    subtitle: 'ÅR',
-    backgroundColor: '#F5C99B', // Light orange/peach
-    textColor: '#B8651B', // Dark orange
-    handle: 'age-6-8-years',
-  },
-  {
-    id: '9-11-years',
-    ageRange: '9–11',
-    subtitle: 'ÅR',
-    backgroundColor: '#A8C8EC', // Light blue
-    textColor: '#2B5A87', // Dark blue
-    handle: 'age-9-11-years',
-  },
-  {
-    id: 'big-kids',
-    ageRange: 'STÖRRE',
-    subtitle: 'BARN',
-    backgroundColor: '#F5B2C4', // Light pink
-    textColor: '#B8527A', // Dark pink
-    handle: 'age-big-kids',
-  },
-];
+interface AgeGroup {
+  id: string;
+  title: string;
+  ageRange: string;
+  subtitle: string;
+  handle: string;
+  backgroundColor: string;
+  textColor: string;
+}
 
-export function ShopByAge({title = 'Handla efter ålder'}: ShopByAgeProps) {
+/**
+ * ShopByAge Component
+ * ✅ FIXED: Reduced top padding for better spacing from hero banner
+ */
+export function ShopByAge({
+  title = 'Handla efter ålder',
+  ageGroups = [],
+}: ShopByAgeProps) {
+  // Default age groups configuration
+  const defaultAgeGroups: AgeGroup[] = [
+    {
+      id: '1',
+      title: 'Ålder 1½+',
+      ageRange: 'ÅLDER 1½+',
+      subtitle: 'KREATIVITET',
+      handle: 'age-1-5-plus',
+      backgroundColor: '#87CEEB',
+      textColor: '#000000',
+    },
+    {
+      id: '2', 
+      title: 'Ålder 4+',
+      ageRange: 'ÅLDER 4+',
+      subtitle: 'FANTASI',
+      handle: 'age-4-plus',
+      backgroundColor: '#FF6B6B',
+      textColor: '#FFFFFF',
+    },
+    {
+      id: '3',
+      title: 'Ålder 6+',
+      ageRange: 'ÅLDER 6+', 
+      subtitle: 'ÄVENTYR',
+      handle: 'age-6-plus',
+      backgroundColor: '#4ECDC4',
+      textColor: '#000000',
+    },
+    {
+      id: '4',
+      title: 'Ålder 9+',
+      ageRange: 'ÅLDER 9+',
+      subtitle: 'UTMANING',
+      handle: 'age-9-plus',
+      backgroundColor: '#FFD93D',
+      textColor: '#000000',
+    },
+    {
+      id: '5',
+      title: 'Ålder 13+',
+      ageRange: 'ÅLDER 13+',
+      subtitle: 'KOMPLEXITET',
+      handle: 'age-13-plus',
+      backgroundColor: '#FF8ED4',
+      textColor: '#000000',
+    },
+    {
+      id: '6',
+      title: 'Vuxna',
+      ageRange: 'VUXNA',
+      subtitle: 'PASSION',
+      handle: 'age-adults',
+      backgroundColor: '#95A5A6',
+      textColor: '#FFFFFF',
+    },
+  ];
+
   return (
     <section className="w-full bg-white">
-      {/* Container matching header width */}
+      {/* ✅ FIXED: Reduced top padding from 64px to 32px */}
       <div
         className="mx-auto"
         style={{
@@ -76,7 +95,7 @@ export function ShopByAge({title = 'Handla efter ålder'}: ShopByAgeProps) {
           maxWidth: '100%',
           paddingLeft: '12px',
           paddingRight: '12px',
-          paddingTop: '64px',
+          paddingTop: '32px', // ✅ REDUCED: From 64px to 32px
           paddingBottom: '64px',
         }}
       >
@@ -104,7 +123,7 @@ export function ShopByAge({title = 'Handla efter ålder'}: ShopByAgeProps) {
             justifyItems: 'center',
           }}
         >
-          {ageGroups.map((ageGroup) => (
+          {defaultAgeGroups.map((ageGroup) => (
             <Link
               key={ageGroup.id}
               to={`/collections/${ageGroup.handle}`}
@@ -138,7 +157,6 @@ export function ShopByAge({title = 'Handla efter ålder'}: ShopByAgeProps) {
 
                 {/* Subtitle */}
                 <div
-                  className="font-semibold"
                   style={{
                     fontSize: '16px',
                     fontWeight: 600,

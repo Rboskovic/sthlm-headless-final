@@ -1,5 +1,5 @@
 // FILE: app/components/Aside.tsx
-// ✅ FINAL: Swedish translation with wider cart
+// ✅ FIXED: Cart title color changed to white on blue background
 
 import {
   createContext,
@@ -56,6 +56,9 @@ export function Aside({
     return () => abortController.abort();
   }, [close, expanded]);
 
+  // Different header styles for cart vs other types
+  const isCart = type === 'cart';
+  
   return (
     <div
       aria-modal
@@ -64,21 +67,37 @@ export function Aside({
     >
       <button className="close-outside" onClick={close} />
       <aside>
-        {/* Förbättrad header för att matcha skärmbilder */}
-        <header className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-white">
+        {/* ✅ FIXED: Cart header with blue background and white text */}
+        <header 
+          className={`flex items-center justify-between px-6 py-4 border-b ${
+            isCart 
+              ? 'bg-blue-600 border-blue-500' // Blue background for cart
+              : 'bg-white border-gray-200'    // White background for others
+          }`}
+        >
           <div className="flex items-center gap-2">
-            {/* Kundvagnsikon för kundvagnstyp */}
-            {type === 'cart' && (
-              <ShoppingCart size={20} className="text-gray-600" />
+            {/* Cart icon for cart type */}
+            {isCart && (
+              <ShoppingCart size={20} className="text-white" />
             )}
-            <h3 className="text-lg font-semibold text-gray-900">{heading}</h3>
+            <h3 className={`text-lg font-semibold ${
+              isCart 
+                ? 'text-white'      // White text for cart
+                : 'text-gray-900'   // Dark text for others
+            }`}>
+              {heading}
+            </h3>
           </div>
           <button 
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors" 
+            className={`p-2 rounded-lg transition-colors ${
+              isCart 
+                ? 'hover:bg-blue-700 text-white'        // White icon, darker blue hover for cart
+                : 'hover:bg-gray-100 text-gray-600'     // Gray for others
+            }`}
             onClick={close} 
             aria-label="Stäng"
           >
-            <X size={20} className="text-gray-600" />
+            <X size={20} className={isCart ? 'text-white' : 'text-gray-600'} />
           </button>
         </header>
         <main className="flex-1 flex flex-col overflow-hidden">{children}</main>
