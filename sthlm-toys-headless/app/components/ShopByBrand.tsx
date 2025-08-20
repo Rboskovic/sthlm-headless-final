@@ -194,8 +194,8 @@ export function ShopByBrand({brands}: ShopByBrandProps) {
           maxWidth: '100%',
           paddingLeft: '12px',
           paddingRight: '12px',
-          paddingTop: '32px',
-          paddingBottom: '16px',
+          paddingTop: '16px',
+          paddingBottom: '1px',
         }}
       >
         {/* Desktop Layout */}

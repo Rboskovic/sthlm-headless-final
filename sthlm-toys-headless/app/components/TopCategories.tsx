@@ -174,8 +174,8 @@ export function TopCategories({collections}: TopCategoriesProps) {
           maxWidth: '100%',
           paddingLeft: '12px',
           paddingRight: '12px',
-          paddingTop: '32px',
-          paddingBottom: '16px',
+          paddingTop: '8px',
+          paddingBottom: '1px',
         }}
       >
         {/* Desktop Layout */}

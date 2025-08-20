@@ -83,8 +83,8 @@ export function FeaturedBanners({collections}: FeaturedBannersProps) {
           maxWidth: '100%',
           paddingLeft: '12px',
           paddingRight: '12px',
-          paddingTop: '16px', // Reduced from 32px to bring closer to age section
-          paddingBottom: '16px',
+          paddingTop: '2px', // Reduced from 32px to bring closer to age section
+          paddingBottom: '8px',
         }}
       >
         {/* Desktop Layout */}

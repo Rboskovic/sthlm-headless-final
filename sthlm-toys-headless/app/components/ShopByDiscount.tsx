@@ -190,8 +190,8 @@ export function ShopByDiscount({
           paddingLeft: '12px',
           paddingRight: '12px',
           ...(variant === 'collection'
-            ? {paddingTop: '16px', paddingBottom: '16px'}
-            : {paddingTop: '32px', paddingBottom: '16px'}),
+            ? {paddingTop: '8px', paddingBottom: '8x'}
+            : {paddingTop: '8px', paddingBottom: '8px'}),
         }}
       >
         {/* Desktop Layout */}
