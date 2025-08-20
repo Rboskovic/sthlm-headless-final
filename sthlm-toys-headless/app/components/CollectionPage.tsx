@@ -10,6 +10,7 @@ interface CollectionPageProps {
   collection: Collection;
   products: any;
   totalProductCount: number;
+  filteredTotalCount?: number; // ✅ NEW: Actual filtered total count
   appliedFilters?: any;
   sortKey?: string;
 }
@@ -18,23 +19,58 @@ export function CollectionPage({
   collection,
   products,
   totalProductCount,
+  filteredTotalCount,
   appliedFilters = {},
   sortKey = 'BEST_SELLING'
 }: CollectionPageProps) {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false); // ✅ NEW: Loading state
+  const [isLoading, setIsLoading] = useState(false);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  // Sort options
+  // ✅ FIXED: Use actual filtered total count from API
+  const hasActiveFilters = Array.from(searchParams.keys()).some(key => 
+    !['sort_by', '_routes'].includes(key)
+  );
+  
+  // Use the filtered total count from the API, or fall back to total
+  const displayProductCount = hasActiveFilters && filteredTotalCount !== undefined 
+    ? filteredTotalCount 
+    : totalProductCount;
+
+  // ✅ SWEDISH: Product count text function
+  const getProductCountText = (count: number, hasFilters: boolean, total: number) => {
+    const productText = count === 1 ? 'produkt' : 'produkter';
+    
+    if (hasFilters && filteredTotalCount !== undefined) {
+      return (
+        <>
+          <span className="text-lg font-medium">
+            {count} {productText}
+          </span>
+          <span className="text-sm text-gray-500 ml-2">
+            (filtrerade från {total})
+          </span>
+        </>
+      );
+    }
+    
+    return (
+      <span className="text-lg font-medium">
+        {count} {productText}
+      </span>
+    );
+  };
+
+  // Sort options in Swedish
   const sortOptions = [
-    { label: 'Best selling', value: 'BEST_SELLING' },
-    { label: 'Alphabetically, A-Z', value: 'TITLE' },
-    { label: 'Alphabetically, Z-A', value: 'TITLE_REVERSE' },
-    { label: 'Price, low to high', value: 'PRICE' },
-    { label: 'Price, high to low', value: 'PRICE_REVERSE' },
-    { label: 'Date, new to old', value: 'CREATED_REVERSE' },
-    { label: 'Date, old to new', value: 'CREATED' },
+    { label: 'Bäst säljande', value: 'BEST_SELLING' },
+    { label: 'Alfabetisk: A-Ö', value: 'TITLE' },
+    { label: 'Alfabetisk: Ö-A', value: 'TITLE_REVERSE' },
+    { label: 'Pris: Låg till hög', value: 'PRICE' },
+    { label: 'Pris: Hög till låg', value: 'PRICE_REVERSE' },
+    { label: 'Datum: Nyast först', value: 'CREATED_REVERSE' },
+    { label: 'Datum: Äldst först', value: 'CREATED' },
   ];
 
   // ✅ CLEAN: Extract filters from Shopify API response
@@ -109,7 +145,7 @@ export function CollectionPage({
 
   // ✅ CLEAN: Helper functions with loading feedback
   const updateSearchParams = (updates: Record<string, string | null>) => {
-    setIsLoading(true); // ✅ NEW: Show loading
+    setIsLoading(true);
     
     const newSearchParams = new URLSearchParams(searchParams);
     
@@ -123,7 +159,6 @@ export function CollectionPage({
     
     navigate(`?${newSearchParams.toString()}`, { replace: true });
     
-    // ✅ NEW: Hide loading after a short delay (navigation completes)
     setTimeout(() => setIsLoading(false), 500);
   };
 
@@ -160,7 +195,7 @@ export function CollectionPage({
 
   return (
     <>
-      {/* ✅ MODERN: Custom scrollbar styles */}
+      {/* ✅ FIXED: Simplified responsive styles */}
       <style jsx>{`
         .custom-scrollbar::-webkit-scrollbar {
           width: 6px;
@@ -181,7 +216,6 @@ export function CollectionPage({
           scrollbar-color: #cbd5e1 #f1f5f9;
         }
         
-        /* ✅ NEW: Smooth animations */
         .filter-transition {
           transition: all 0.2s ease-in-out;
         }
@@ -211,56 +245,6 @@ export function CollectionPage({
         .loading-spin {
           animation: spin 1s linear infinite;
         }
-        
-        /* ✅ MOBILE: Filter sidebar animation */
-        .mobile-filter-enter {
-          transform: translateX(100%);
-        }
-        .mobile-filter-enter-active {
-          transform: translateX(0);
-          transition: transform 0.3s ease-in-out;
-        }
-        .mobile-filter-exit {
-          transform: translateX(0);
-        }
-        .mobile-filter-exit-active {
-          transform: translateX(100%);
-          transition: transform 0.3s ease-in-out;
-        }
-        
-        /* ✅ FIXED: Force equal height cards - more aggressive */
-        .equal-height-grid {
-          display: grid;
-          grid-auto-rows: 1fr;
-          align-items: stretch;
-        }
-        .equal-height-card {
-          display: flex;
-          flex-direction: column;
-          height: 100%;
-          min-height: 400px; /* Force minimum height */
-        }
-        .equal-height-card > * {
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-          justify-content: space-between;
-        }
-        /* Override ProductItem internal styling */
-        .equal-height-card .product-item,
-        .equal-height-card [class*="product"],
-        .equal-height-card > div {
-          height: 100% !important;
-          display: flex !important;
-          flex-direction: column !important;
-        }
-        .equal-height-card .product-title,
-        .equal-height-card h3,
-        .equal-height-card h2 {
-          min-height: 3rem;
-          display: flex;
-          align-items: center;
-        }
       `}</style>
       
       <div className="w-full bg-gray-50 min-h-screen">
@@ -270,7 +254,7 @@ export function CollectionPage({
           <nav className="flex items-center space-x-2 text-sm">
             <Link to="/" className="text-gray-500 hover:text-gray-700 flex items-center">
               <Home size={16} className="mr-1" />
-              Home
+              Hem
             </Link>
             <ChevronRight size={16} className="text-gray-400" />
             <span className="text-gray-900 font-medium">{collection.title}</span>
@@ -286,7 +270,7 @@ export function CollectionPage({
             className="w-full bg-white border border-gray-300 rounded-lg py-3 px-4 flex items-center justify-center space-x-2 text-gray-700 font-medium"
           >
             <SlidersHorizontal size={20} />
-            <span>Filters</span>
+            <span>Filter</span>
             {activeFilterCount > 0 && (
               <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded-full">
                 {activeFilterCount}
@@ -301,14 +285,13 @@ export function CollectionPage({
             {/* Desktop Filters Sidebar */}
             <div className="w-64 flex-shrink-0">
               <div className="bg-white rounded-lg sticky top-6" style={{ maxHeight: 'calc(100vh - 2rem)' }}>
-                {/* ✅ REMOVED: Filter title and line to save space */}
                 {activeFilterCount > 0 && (
                   <div className="p-4 border-b border-gray-200">
                     <button
                       onClick={clearAllFilters}
                       className="text-blue-600 hover:text-blue-700 text-sm font-medium"
                     >
-                      Clear all ({activeFilterCount})
+                      Rensa alla ({activeFilterCount})
                     </button>
                   </div>
                 )}
@@ -323,7 +306,7 @@ export function CollectionPage({
                 {themesFilter && themesFilter.values?.length > 0 && (
                   <div className="border-b border-gray-200 pb-3">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium text-gray-900">Themes</span>
+                      <span className="font-medium text-gray-900">Teman</span>
                       <ChevronDown size={16} className="text-gray-400" />
                     </div>
                     <div className="space-y-1 max-h-32 overflow-y-auto custom-scrollbar">
@@ -349,7 +332,7 @@ export function CollectionPage({
                           checked={!searchParams.get('themes')}
                           onChange={() => updateSearchParams({ themes: null })}
                         />
-                        <span className="text-sm text-gray-700">All themes</span>
+                        <span className="text-sm text-gray-700">Alla teman</span>
                       </label>
                     </div>
                   </div>
@@ -387,7 +370,7 @@ export function CollectionPage({
                           checked={!searchParams.get('age_group')}
                           onChange={() => updateSearchParams({ age_group: null })}
                         />
-                        <span className="text-sm text-gray-700">All ages</span>
+                        <span className="text-sm text-gray-700">Alla åldrar</span>
                       </label>
                     </div>
                   </div>
@@ -423,7 +406,7 @@ export function CollectionPage({
                           checked={!searchParams.get('piece_count')}
                           onChange={() => updateSearchParams({ piece_count: null })}
                         />
-                        <span className="text-sm text-gray-700">All sizes</span>
+                        <span className="text-sm text-gray-700">Alla storlekar</span>
                       </label>
                     </div>
                   </div>
@@ -458,7 +441,7 @@ export function CollectionPage({
                         checked={!searchParams.get('price_range')}
                         onChange={() => updateSearchParams({ price_range: null })}
                       />
-                      <span className="text-sm text-gray-700">All prices</span>
+                      <span className="text-sm text-gray-700">Alla priser</span>
                     </label>
                   </div>
                 </div>
@@ -467,7 +450,7 @@ export function CollectionPage({
                 {availabilityFilter && availabilityFilter.values?.length > 0 && (
                   <div className="pb-3">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium text-gray-900">Availability</span>
+                      <span className="font-medium text-gray-900">Tillgänglighet</span>
                       <ChevronDown size={16} className="text-gray-400" />
                     </div>
                     <div className="space-y-1">
@@ -497,7 +480,7 @@ export function CollectionPage({
                           checked={!searchParams.get('available')}
                           onChange={() => updateSearchParams({ available: null })}
                         />
-                        <span className="text-sm text-gray-700">All products</span>
+                        <span className="text-sm text-gray-700">Alla produkter</span>
                       </label>
                     </div>
                   </div>
@@ -512,12 +495,13 @@ export function CollectionPage({
               <div className="bg-white rounded-lg p-4 mb-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
-                    <span className="text-lg font-medium">{totalProductCount} products</span>
+                    {/* ✅ FIXED: Show actual filtered count in Swedish */}
+                    {getProductCountText(displayProductCount, hasActiveFilters, totalProductCount)}
                     {/* ✅ NEW: Loading indicator */}
                     {isLoading && (
-                      <div className="flex items-center space-x-2 text-blue-600">
+                      <div className="flex items-center space-x-2 text-blue-600 ml-4">
                         <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full loading-spin"></div>
-                        <span className="text-sm">Filtering...</span>
+                        <span className="text-sm">Filtrerar...</span>
                       </div>
                     )}
                   </div>
@@ -532,7 +516,7 @@ export function CollectionPage({
                     >
                       {sortOptions.map((option) => (
                         <option key={option.value} value={option.value}>
-                          Sort by: {option.label}
+                          Sortera: {option.label}
                         </option>
                       ))}
                     </select>
@@ -540,14 +524,14 @@ export function CollectionPage({
                 </div>
               </div>
 
-              {/* Products Grid with smooth transitions */}
+              {/* ✅ FIXED: Desktop Products Grid - 3 columns like ToysRUs */}
               <div className={`bg-white rounded-lg p-6 products-transition ${isLoading ? 'opacity-50' : 'opacity-100'}`}>
                 <PaginatedResourceSection
                   connection={products}
-                  resourcesClassName="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                  resourcesClassName="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
                 >
                   {({ node: product, index }: { node: Product; index: number }) => (
-                    <div key={product.id} className="transform transition-all duration-200 hover:scale-105 h-full flex flex-col">
+                    <div key={product.id} className="h-full">
                       <ProductItem
                         product={product}
                         loading={index < 6 ? "eager" : undefined}
@@ -560,18 +544,19 @@ export function CollectionPage({
           </div>
         </div>
 
-        {/* Mobile Products Grid */}
+        {/* ✅ FIXED: Mobile Products Grid - 1 column on mobile, 2 on tablet */}
         <div className="lg:hidden">
           {/* Mobile Products Header */}
           <div className="bg-white rounded-lg p-4 mb-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <span className="text-lg font-medium">{totalProductCount} products</span>
+                {/* ✅ FIXED: Show actual filtered count on mobile too in Swedish */}
+                {getProductCountText(displayProductCount, hasActiveFilters, totalProductCount)}
                 {/* Loading indicator for mobile */}
                 {isLoading && (
                   <div className="flex items-center space-x-2 text-blue-600">
                     <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full loading-spin"></div>
-                    <span className="text-sm">Filtering...</span>
+                    <span className="text-sm">Filtrerar...</span>
                   </div>
                 )}
               </div>
@@ -597,30 +582,14 @@ export function CollectionPage({
           <div className={`products-transition ${isLoading ? 'opacity-50' : 'opacity-100'}`}>
             <PaginatedResourceSection
               connection={products}
-              resourcesClassName="grid grid-cols-1 md:grid-cols-2 gap-4"
+              resourcesClassName="grid grid-cols-1 sm:grid-cols-2 gap-4"
             >
               {({ node: product, index }: { node: Product; index: number }) => (
-                <div 
-                  key={product.id} 
-                  className="bg-white rounded-lg overflow-hidden border border-gray-200 transform transition-all duration-200 hover:scale-105"
-                  style={{ 
-                    display: 'flex',
-                    flexDirection: 'column',
-                    minHeight: '400px',
-                    height: '400px' // Force exact height on mobile/tablet
-                  }}
-                >
-                  <div style={{ 
-                    flex: 1, 
-                    display: 'flex', 
-                    flexDirection: 'column',
-                    height: '100%'
-                  }}>
-                    <ProductItem
-                      product={product}
-                      loading={index < 4 ? "eager" : undefined}
-                    />
-                  </div>
+                <div key={product.id} className="h-full">
+                  <ProductItem
+                    product={product}
+                    loading={index < 4 ? "eager" : undefined}
+                  />
                 </div>
               )}
             </PaginatedResourceSection>
@@ -628,7 +597,7 @@ export function CollectionPage({
         </div>
       </div>
 
-      {/* ✅ FIXED: Mobile Filters with proper transparent background */}
+      {/* ✅ FIXED: Complete Mobile Filters with Swedish translations */}
       {mobileFiltersOpen && (
         <>
           {/* ✅ FIXED: Transparent overlay */}
@@ -638,11 +607,11 @@ export function CollectionPage({
             onClick={() => setMobileFiltersOpen(false)}
           />
           
-          {/* ✅ FIXED: Sidebar */}
+          {/* ✅ FIXED: Sidebar with complete filter functionality */}
           <div className="fixed right-0 top-0 h-full w-80 bg-white flex flex-col shadow-2xl z-50 lg:hidden">
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white">
-              <h3 className="text-lg font-medium text-gray-900">Filters</h3>
+              <h3 className="text-lg font-medium text-gray-900">Filter</h3>
               <button
                 onClick={() => setMobileFiltersOpen(false)}
                 className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors"
@@ -651,18 +620,19 @@ export function CollectionPage({
               </button>
             </div>
             
-            {/* Mobile filters content would mirror desktop */}
+            {/* ✅ FIXED: Complete mobile filters content with Swedish translations */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+              
               {/* ✅ MOBILE: Themes Filter */}
               {themesFilter && themesFilter.values?.length > 0 && (
                 <div className="border-b border-gray-200 pb-3">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-medium text-gray-900">Themes</span>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="font-medium text-gray-900">Teman</span>
                     <ChevronDown size={16} className="text-gray-400" />
                   </div>
                   <div className="space-y-2 max-h-40 overflow-y-auto custom-scrollbar">
                     {themesFilter.values.map((option: any) => (
-                      <label key={option.id} className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50">
+                      <label key={option.id} className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50 cursor-pointer">
                         <input
                           type="radio"
                           name="themes_mobile"
@@ -675,7 +645,7 @@ export function CollectionPage({
                       </label>
                     ))}
                     {/* Clear option */}
-                    <label className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50">
+                    <label className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50 cursor-pointer">
                       <input
                         type="radio"
                         name="themes_mobile"
@@ -683,7 +653,7 @@ export function CollectionPage({
                         checked={!searchParams.get('themes')}
                         onChange={() => updateSearchParams({ themes: null })}
                       />
-                      <span className="text-sm text-gray-700">All themes</span>
+                      <span className="text-sm text-gray-700">Alla teman</span>
                     </label>
                   </div>
                 </div>
@@ -692,13 +662,13 @@ export function CollectionPage({
               {/* ✅ MOBILE: Age Group Filter */}
               {ageGroupFilter && ageGroupFilter.values?.length > 0 && (
                 <div className="border-b border-gray-200 pb-3">
-                  <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center justify-between mb-3">
                     <span className="font-medium text-gray-900">Ålder</span>
                     <ChevronDown size={16} className="text-gray-400" />
                   </div>
                   <div className="space-y-2">
                     {ageGroupFilter.values.map((option: any) => (
-                      <label key={option.id} className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50">
+                      <label key={option.id} className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50 cursor-pointer">
                         <input
                           type="radio"
                           name="age_group_mobile"
@@ -713,7 +683,7 @@ export function CollectionPage({
                       </label>
                     ))}
                     {/* Clear option */}
-                    <label className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50">
+                    <label className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50 cursor-pointer">
                       <input
                         type="radio"
                         name="age_group_mobile"
@@ -721,7 +691,7 @@ export function CollectionPage({
                         checked={!searchParams.get('age_group')}
                         onChange={() => updateSearchParams({ age_group: null })}
                       />
-                      <span className="text-sm text-gray-700">All ages</span>
+                      <span className="text-sm text-gray-700">Alla åldrar</span>
                     </label>
                   </div>
                 </div>
@@ -730,13 +700,13 @@ export function CollectionPage({
               {/* ✅ MOBILE: Piece Count Filter */}
               {pieceCountFilter && pieceCountFilter.values?.length > 0 && (
                 <div className="border-b border-gray-200 pb-3">
-                  <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center justify-between mb-3">
                     <span className="font-medium text-gray-900">Antal bitar</span>
                     <ChevronDown size={16} className="text-gray-400" />
                   </div>
                   <div className="space-y-2">
                     {pieceCountFilter.values.map((option: any) => (
-                      <label key={option.id} className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50">
+                      <label key={option.id} className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50 cursor-pointer">
                         <input
                           type="radio"
                           name="piece_count_mobile"
@@ -749,7 +719,7 @@ export function CollectionPage({
                       </label>
                     ))}
                     {/* Clear option */}
-                    <label className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50">
+                    <label className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50 cursor-pointer">
                       <input
                         type="radio"
                         name="piece_count_mobile"
@@ -757,7 +727,7 @@ export function CollectionPage({
                         checked={!searchParams.get('piece_count')}
                         onChange={() => updateSearchParams({ piece_count: null })}
                       />
-                      <span className="text-sm text-gray-700">All sizes</span>
+                      <span className="text-sm text-gray-700">Alla storlekar</span>
                     </label>
                   </div>
                 </div>
@@ -765,13 +735,13 @@ export function CollectionPage({
 
               {/* ✅ MOBILE: Price Range Filter */}
               <div className="border-b border-gray-200 pb-3">
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center justify-between mb-3">
                   <span className="font-medium text-gray-900">Pris</span>
                   <ChevronDown size={16} className="text-gray-400" />
                 </div>
                 <div className="space-y-2">
                   {customPriceRanges.map((range) => (
-                    <label key={range.value} className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50">
+                    <label key={range.value} className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50 cursor-pointer">
                       <input
                         type="radio"
                         name="price_range_mobile"
@@ -784,7 +754,7 @@ export function CollectionPage({
                     </label>
                   ))}
                   {/* Clear option */}
-                  <label className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50">
+                  <label className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50 cursor-pointer">
                     <input
                       type="radio"
                       name="price_range_mobile"
@@ -792,7 +762,7 @@ export function CollectionPage({
                       checked={!searchParams.get('price_range')}
                       onChange={() => updateSearchParams({ price_range: null })}
                     />
-                    <span className="text-sm text-gray-700">All prices</span>
+                    <span className="text-sm text-gray-700">Alla priser</span>
                   </label>
                 </div>
               </div>
@@ -800,13 +770,13 @@ export function CollectionPage({
               {/* ✅ MOBILE: Availability Filter */}
               {availabilityFilter && availabilityFilter.values?.length > 0 && (
                 <div className="pb-3">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-medium text-gray-900">Availability</span>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="font-medium text-gray-900">Tillgänglighet</span>
                     <ChevronDown size={16} className="text-gray-400" />
                   </div>
                   <div className="space-y-2">
                     {availabilityFilter.values.map((option: any) => (
-                      <label key={option.id} className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50">
+                      <label key={option.id} className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50 cursor-pointer">
                         <input
                           type="radio"
                           name="available_mobile"
@@ -823,7 +793,7 @@ export function CollectionPage({
                       </label>
                     ))}
                     {/* Clear option */}
-                    <label className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50">
+                    <label className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50 cursor-pointer">
                       <input
                         type="radio"
                         name="available_mobile"
@@ -831,7 +801,7 @@ export function CollectionPage({
                         checked={!searchParams.get('available')}
                         onChange={() => updateSearchParams({ available: null })}
                       />
-                      <span className="text-sm text-gray-700">All products</span>
+                      <span className="text-sm text-gray-700">Alla produkter</span>
                     </label>
                   </div>
                 </div>
@@ -848,13 +818,13 @@ export function CollectionPage({
                   }}
                   className="flex-1 py-3 px-4 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"
                 >
-                  Remove all
+                  Rensa alla
                 </button>
                 <button
                   onClick={() => setMobileFiltersOpen(false)}
                   className="flex-1 py-3 px-4 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
                 >
-                  Apply
+                  Tillämpa
                 </button>
               </div>
             </div>

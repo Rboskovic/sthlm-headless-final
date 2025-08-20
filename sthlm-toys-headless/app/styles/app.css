@@ -505,6 +505,13 @@ img {
   -webkit-line-clamp: 2;
 }
 
+.line-clamp-3 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
 /* ========================================
    TRUST BADGES
    ======================================== */
@@ -614,5 +621,63 @@ img {
   
   aside {
     transition: none;
+  }
+}
+
+/* ========================================
+   PRODUCT GRID RESPONSIVE FIXES
+   ======================================== */
+
+/* Ensure grid items maintain consistent heights across all viewports */
+.products-grid-equal-height {
+  display: grid;
+  align-items: stretch;
+}
+
+.products-grid-equal-height > * {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ========================================
+   COLLECTION PAGE ENHANCEMENTS
+   ======================================== */
+
+/* Product title height consistency helpers */
+.product-title-desktop {
+  min-height: 3.5rem;
+  display: flex;
+  align-items: flex-start;
+}
+
+.product-title-mobile {
+  min-height: 2.5rem;
+  display: flex;
+  align-items: flex-start;
+}
+
+/* Responsive product grid adjustments */
+@media (max-width: 639px) {
+  /* Mobile: 1 column layout */
+  .collection-products-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  /* Tablet: 2 columns layout */
+  .collection-products-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  /* Desktop: 3 columns layout */
+  .collection-products-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
   }
 }

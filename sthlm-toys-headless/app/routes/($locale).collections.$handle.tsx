@@ -1,5 +1,5 @@
 // FILE: app/routes/($locale).collections.$handle.tsx
-// ✅ SHOPIFY STANDARD: Clean server-side filtering using Search & Discovery
+// ✅ FIXED: Multiple filters now work correctly together
 
 import { type LoaderFunctionArgs, type MetaFunction } from '@shopify/remix-oxygen';
 import { useLoaderData } from 'react-router';
@@ -33,67 +33,85 @@ export async function loader({ context, request, params }: LoaderFunctionArgs) {
   const reverse = sortKey.includes('REVERSE');
   const cleanSortKey = sortKey.replace('_REVERSE', '');
   
-  // ✅ CLEAN: Build Shopify filters from URL parameters
+  // ✅ FIXED: Better filter building logic for multiple filters
   const filters: any[] = [];
   
-  // Parse all filter parameters and convert to Shopify filter format
-  searchParams.forEach((value, key) => {
-    switch (key) {
-      case 'themes':
-        filters.push({
-          productMetafield: {
-            namespace: 'custom',
-            key: 'themes',
-            value: value
-          }
-        });
+  // Debug: Log all search params
+  console.log('🐛 All search params:', Object.fromEntries(searchParams.entries()));
+  
+  // ✅ FIXED: Parse each filter type individually and ensure they all get added
+  const themes = searchParams.get('themes');
+  if (themes) {
+    filters.push({
+      productMetafield: {
+        namespace: 'custom',
+        key: 'themes',
+        value: themes
+      }
+    });
+    console.log('🐛 Added themes filter:', themes);
+  }
+
+  const ageGroup = searchParams.get('age_group');
+  if (ageGroup) {
+    filters.push({
+      productMetafield: {
+        namespace: 'custom',
+        key: 'age_group',
+        value: ageGroup
+      }
+    });
+    console.log('🐛 Added age_group filter:', ageGroup);
+  }
+
+  const pieceCount = searchParams.get('piece_count');
+  if (pieceCount) {
+    filters.push({
+      productMetafield: {
+        namespace: 'custom',
+        key: 'piece_count',
+        value: pieceCount
+      }
+    });
+    console.log('🐛 Added piece_count filter:', pieceCount);
+  }
+
+  const priceRange = searchParams.get('price_range');
+  if (priceRange) {
+    switch (priceRange) {
+      case 'under_220':
+        filters.push({ price: { max: 220 } });
+        console.log('🐛 Added price filter: under 220');
         break;
-      case 'age_group':
-        filters.push({
-          productMetafield: {
-            namespace: 'custom',
-            key: 'age_group', 
-            value: value
-          }
-        });
+      case '220_550':
+        filters.push({ price: { min: 220, max: 550 } });
+        console.log('🐛 Added price filter: 220-550');
         break;
-      case 'piece_count_range':
-        // Handle piece count ranges with proper price-like filtering
-        switch (value) {
-          case 'under_100':
-            // For metafield ranges, we'll need to use available values from S&D
-            break;
-          case '101_250':
-            break;
-          // etc - these will be handled by S&D filter values
-        }
+      case '500_1000':
+        filters.push({ price: { min: 500, max: 1000 } });
+        console.log('🐛 Added price filter: 500-1000');
         break;
-      case 'price_range':
-        // Handle price ranges
-        switch (value) {
-          case 'under_220':
-            filters.push({ price: { max: 220 } });
-            break;
-          case '220_550':
-            filters.push({ price: { min: 220, max: 550 } });
-            break;
-          case '500_1000':
-            filters.push({ price: { min: 500, max: 1000 } });
-            break;
-          case 'over_1100':
-            filters.push({ price: { min: 1100 } });
-            break;
-        }
-        break;
-      case 'available':
-        if (value === 'true') {
-          filters.push({ available: true });
-        } else if (value === 'false') {
-          filters.push({ available: false });
-        }
+      case 'over_1100':
+        filters.push({ price: { min: 1100 } });
+        console.log('🐛 Added price filter: over 1100');
         break;
     }
-  });
+  }
+
+  const available = searchParams.get('available');
+  if (available) {
+    if (available === 'true') {
+      filters.push({ available: true });
+      console.log('🐛 Added availability filter: available only');
+    } else if (available === 'false') {
+      filters.push({ available: false });
+      console.log('🐛 Added availability filter: unavailable only');
+    }
+  }
+
+  // ✅ DEBUG: Log final filters array
+  console.log('🐛 Final filters array:', JSON.stringify(filters, null, 2));
+  console.log('🐛 Number of filters:', filters.length);
 
   try {
     // Step 1: Get collection info
@@ -107,16 +125,34 @@ export async function loader({ context, request, params }: LoaderFunctionArgs) {
 
     const collection = collectionResponse.collection;
 
-    console.log(`🐛 Collection ${handle} - Loading products with filters:`, filters);
-
     // Step 2: Get total count (unfiltered)
     const countResponse = await storefront.query(COLLECTION_COUNT_QUERY, {
       variables: { handle },
     });
 
     const totalProductCount = countResponse.collection?.products?.nodes?.length || 0;
+    console.log('🐛 Total product count (unfiltered):', totalProductCount);
 
-    // Step 3: Get filtered products with Shopify filtering
+    // ✅ FIXED: Get filtered total count with same filters (only if filters exist)
+    let filteredTotalCount = totalProductCount; // Default to total if no filters
+
+    if (filters.length > 0) {
+      console.log('🐛 Getting filtered count with filters:', filters);
+      const filteredCountResponse = await storefront.query(COLLECTION_FILTERED_COUNT_QUERY, {
+        variables: {
+          handle,
+          filters,
+          country: storefront.i18n?.country,
+          language: storefront.i18n?.language,
+        },
+      });
+      
+      filteredTotalCount = filteredCountResponse.collection?.products?.nodes?.length || 0;
+      console.log('🐛 Filtered total count:', filteredTotalCount);
+    }
+
+    // Step 3: Get paginated filtered products with Shopify filtering
+    console.log('🐛 Getting paginated products with filters:', filters);
     const productResponse = await storefront.query(COLLECTION_PRODUCTS_QUERY, {
       variables: {
         handle,
@@ -135,30 +171,39 @@ export async function loader({ context, request, params }: LoaderFunctionArgs) {
       filters: [] 
     };
 
-    console.log(`🐛 Collection ${handle} - Products loaded:`, products.nodes?.length || 0);
-    console.log(`🐛 Collection ${handle} - Available filters:`, products.filters?.length || 0);
+    console.log('🐛 Products loaded:', products.nodes?.length || 0);
+    console.log('🐛 Available Shopify filters:', products.filters?.length || 0);
+
+    // ✅ DEBUG: Log actual product titles to verify filtering
+    if (products.nodes?.length > 0) {
+      console.log('🐛 First few product titles:', 
+        products.nodes.slice(0, 3).map((p: any) => p.title)
+      );
+    }
 
     return {
       collection,
       products,
       totalProductCount,
+      filteredTotalCount, // ✅ Pass the actual filtered total
       appliedFilters: Object.fromEntries(searchParams.entries()),
       sortKey: cleanSortKey,
     };
   } catch (error) {
-    console.error('Error loading collection:', error);
+    console.error('🚨 Error loading collection:', error);
     throw new Response('Error loading collection', { status: 500 });
   }
 }
 
 export default function Collection() {
-  const { collection, products, totalProductCount, appliedFilters, sortKey } = useLoaderData<typeof loader>();
+  const { collection, products, totalProductCount, filteredTotalCount, appliedFilters, sortKey } = useLoaderData<typeof loader>();
 
   return (
     <CollectionPage
       collection={collection}
       products={products}
       totalProductCount={totalProductCount}
+      filteredTotalCount={filteredTotalCount} // ✅ Pass filtered total
       appliedFilters={appliedFilters}
       sortKey={sortKey}
     />
@@ -201,6 +246,27 @@ const COLLECTION_COUNT_QUERY = `#graphql
   ) @inContext(country: $country, language: $language) {
     collection(handle: $handle) {
       products(first: 250) {
+        nodes {
+          id
+        }
+      }
+    }
+  }
+` as const;
+
+// ✅ NEW: Filtered count query to get actual total with filters applied
+const COLLECTION_FILTERED_COUNT_QUERY = `#graphql
+  query CollectionFilteredCount(
+    $handle: String!
+    $country: CountryCode
+    $language: LanguageCode
+    $filters: [ProductFilter!]
+  ) @inContext(country: $country, language: $language) {
+    collection(handle: $handle) {
+      products(
+        first: 250,
+        filters: $filters
+      ) {
         nodes {
           id
         }

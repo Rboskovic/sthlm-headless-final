@@ -1,6 +1,6 @@
 // FILE: app/components/ProductItem.tsx
 // ✅ SHOPIFY STANDARD: Compatible with both collection and product data structures
-// ✅ FIXED: Changed object-cover to object-contain for proper image display
+// ✅ FIXED: Added consistent title heights for proper alignment + Mobile image centering
 
 import {Link, useNavigate} from 'react-router';
 import {useState} from 'react';
@@ -94,8 +94,8 @@ export function ProductItem({
   return (
     <>
       {/* Desktop Layout - PIXEL PERFECT MATCH TO SCREENSHOT */}
-      <div className="hidden lg:block">
-        <div className="bg-white border border-gray-200 rounded-2xl p-6 hover:shadow-lg transition-all duration-300 group relative">
+      <div className="hidden lg:block h-full">
+        <div className="bg-white border border-gray-200 rounded-2xl p-6 hover:shadow-lg transition-all duration-300 group relative h-full flex flex-col">
           {/* Wishlist Heart - Top Right */}
           <div className="absolute top-4 right-4 z-10">
             <WishlistButton
@@ -106,102 +106,103 @@ export function ProductItem({
             />
           </div>
 
-          <div className="flex flex-col h-full">
-            {/* Product Image - SMART: object-cover by default, object-contain for wide images */}
-            <Link to={productUrl} className="block mb-4">
-              <div className="aspect-square bg-gray-50 rounded-xl overflow-hidden mb-4 group-hover:scale-105 transition-transform duration-300">
-                {image && (
-                  <Image
-                    alt={image.altText || product.title}
-                    src={image.url}
-                    width={300}
-                    height={300}
-                    loading={loading}
-                    className="w-full h-full object-cover"
-                    style={{
-                      objectFit: image.width && image.height && (image.width / image.height) > 1.3 ? 'contain' : 'cover'
-                    }}
-                  />
-                )}
-              </div>
+          {/* Product Image - SMART: object-cover by default, object-contain for wide images */}
+          <Link to={productUrl} className="block mb-4">
+            <div className="aspect-square bg-gray-50 rounded-xl overflow-hidden mb-4 group-hover:scale-105 transition-transform duration-300">
+              {image && (
+                <Image
+                  alt={image.altText || product.title}
+                  src={image.url}
+                  width={300}
+                  height={300}
+                  loading={loading}
+                  className="w-full h-full object-cover"
+                  style={{
+                    objectFit: image.width && image.height && (image.width / image.height) > 1.3 ? 'contain' : 'cover'
+                  }}
+                />
+              )}
+            </div>
+          </Link>
+
+          {/* Product Details - Flexible content area */}
+          <div className="flex-1 flex flex-col">
+            <Link
+              className="block mb-3 group-hover:text-blue-600 transition-colors"
+              to={productUrl}
+            >
+              {/* ✅ FIXED: Consistent title height for alignment */}
+              <h3 className="text-lg font-semibold text-gray-900 line-clamp-2 mb-2" style={{ minHeight: '3.5rem', display: 'flex', alignItems: 'flex-start' }}>
+                {product.title}
+              </h3>
+              {product.vendor && (
+                <p className="text-sm text-gray-500 mb-1">{product.vendor}</p>
+              )}
             </Link>
 
-            {/* Product Details */}
-            <div className="flex-1 flex flex-col">
-              <Link
-                className="block mb-3 group-hover:text-blue-600 transition-colors"
-                to={productUrl}
-              >
-                <h3 className="text-lg font-semibold text-gray-900 line-clamp-2 mb-2">
-                  {product.title}
-                </h3>
-                {product.vendor && (
-                  <p className="text-sm text-gray-500 mb-1">{product.vendor}</p>
-                )}
-              </Link>
-
-              {/* Price */}
-              <div className="flex items-center space-x-2 mb-4">
-                <span className="text-xl font-bold text-gray-900">
-                  {price.currencyCode} {price.amount}
+            {/* Price */}
+            <div className="flex items-center space-x-2 mb-4">
+              <span className="text-xl font-bold text-gray-900">
+                {price.currencyCode} {price.amount}
+              </span>
+              {compareAtPrice && (
+                <span className="text-sm text-gray-500 line-through">
+                  {compareAtPrice.currencyCode} {compareAtPrice.amount}
                 </span>
-                {compareAtPrice && (
-                  <span className="text-sm text-gray-500 line-through">
-                    {compareAtPrice.currencyCode} {compareAtPrice.amount}
-                  </span>
-                )}
-              </div>
+              )}
             </div>
 
-            {/* ✅ FIXED: Add to Cart Button - Only show if we have variant data */}
-            {variant ? (
-              <AddToCartButton
-                lines={[
-                  {
-                    merchandiseId: variant.id,
-                    quantity: 1,
-                  },
-                ]}
-                onClick={() => {
-                  console.log('🐛 Opening cart modal from product card');
-                  open('cart');
-                }}
-                disabled={!variant.availableForSale}
-                variant="primary"
-                size="md"
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-xl transition-colors duration-200"
-                analytics={{
-                  products: [
+            {/* ✅ FIXED: Add to Cart Button - Pushes to bottom */}
+            <div className="mt-auto">
+              {variant ? (
+                <AddToCartButton
+                  lines={[
                     {
-                      productGid: product.id,
-                      variantGid: variant.id,
-                      name: product.title,
-                      variantName: variant.title || product.title,
-                      brand: product.vendor,
-                      price: variant.price.amount,
+                      merchandiseId: variant.id,
                       quantity: 1,
                     },
-                  ],
-                }}
-              >
-                {variant.availableForSale ? 'Lägg i varukorg' : 'Slut i lager'}
-              </AddToCartButton>
-            ) : (
-              <div className="w-full bg-gray-100 text-gray-500 font-medium py-3 px-6 rounded-xl text-center">
-                Ej tillgänglig
-              </div>
-            )}
+                  ]}
+                  onClick={() => {
+                    console.log('🐛 Opening cart modal from product card');
+                    open('cart');
+                  }}
+                  disabled={!variant.availableForSale}
+                  variant="primary"
+                  size="md"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-xl transition-colors duration-200"
+                  analytics={{
+                    products: [
+                      {
+                        productGid: product.id,
+                        variantGid: variant.id,
+                        name: product.title,
+                        variantName: variant.title || product.title,
+                        brand: product.vendor,
+                        price: variant.price.amount,
+                        quantity: 1,
+                      },
+                    ],
+                  }}
+                >
+                  {variant.availableForSale ? 'Lägg i varukorg' : 'Slut i lager'}
+                </AddToCartButton>
+              ) : (
+                <div className="w-full bg-gray-100 text-gray-500 font-medium py-3 px-6 rounded-xl text-center">
+                  Ej tillgänglig
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Mobile Layout - FIXED: Also changed to object-contain with padding */}
-      <div className="lg:hidden">
-        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden group">
-          <div className="flex">
-            {/* Mobile Image - SMART: object-cover by default, object-contain for wide images */}
-            <div className="w-32 h-32 flex-shrink-0 relative bg-gray-50">
-              <Link to={productUrl} className="block w-full h-full">
+      {/* Mobile Layout - ✅ FIXED: Mobile image centering */}
+      <div className="lg:hidden h-full">
+        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden group h-full flex flex-col">
+          <div className="flex flex-1">
+            {/* ✅ FIXED: Mobile Image with proper centering */}
+            <div className="w-32 h-32 flex-shrink-0 relative bg-gray-50 flex items-center justify-center">
+              <Link to={productUrl} className="block w-full h-full flex items-center justify-center">
                 {image && (
                   <Image
                     alt={image.altText || product.title}
@@ -230,12 +231,13 @@ export function ProductItem({
 
             {/* Mobile Product Info */}
             <div className="flex-1 p-4 flex flex-col justify-between">
-              <div>
+              <div className="flex-1">
                 <Link
                   to={productUrl}
                   className="block group-hover:text-blue-600 transition-colors"
                 >
-                  <h3 className="text-base font-semibold text-gray-900 line-clamp-2 mb-1">
+                  {/* ✅ FIXED: Consistent title height for mobile alignment */}
+                  <h3 className="text-base font-semibold text-gray-900 line-clamp-2 mb-1" style={{ minHeight: '2.5rem', display: 'flex', alignItems: 'flex-start' }}>
                     {product.title}
                   </h3>
                   {product.vendor && (
@@ -244,7 +246,7 @@ export function ProductItem({
                 </Link>
 
                 {/* Mobile Price */}
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 mb-3">
                   <span className="text-lg font-bold text-gray-900">
                     {price.currencyCode} {price.amount}
                   </span>
@@ -258,7 +260,7 @@ export function ProductItem({
 
               {/* Mobile Add to Cart */}
               {variant && (
-                <div className="mt-3">
+                <div className="mt-auto">
                   <AddToCartButton
                     lines={[
                       {
