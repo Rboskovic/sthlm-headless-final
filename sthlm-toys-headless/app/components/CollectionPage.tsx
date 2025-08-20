@@ -832,7 +832,7 @@ export function CollectionPage({
         </>
       )}
 
-      {/* Analytics */}
+      {/* Analyticss */}
       <Analytics.CollectionView data={{ collection: { id: collection.id, handle: collection.handle } }} />
       </div>
     </>
