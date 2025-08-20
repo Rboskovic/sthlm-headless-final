@@ -211,6 +211,56 @@ export function CollectionPage({
         .loading-spin {
           animation: spin 1s linear infinite;
         }
+        
+        /* ✅ MOBILE: Filter sidebar animation */
+        .mobile-filter-enter {
+          transform: translateX(100%);
+        }
+        .mobile-filter-enter-active {
+          transform: translateX(0);
+          transition: transform 0.3s ease-in-out;
+        }
+        .mobile-filter-exit {
+          transform: translateX(0);
+        }
+        .mobile-filter-exit-active {
+          transform: translateX(100%);
+          transition: transform 0.3s ease-in-out;
+        }
+        
+        /* ✅ FIXED: Force equal height cards - more aggressive */
+        .equal-height-grid {
+          display: grid;
+          grid-auto-rows: 1fr;
+          align-items: stretch;
+        }
+        .equal-height-card {
+          display: flex;
+          flex-direction: column;
+          height: 100%;
+          min-height: 400px; /* Force minimum height */
+        }
+        .equal-height-card > * {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+        }
+        /* Override ProductItem internal styling */
+        .equal-height-card .product-item,
+        .equal-height-card [class*="product"],
+        .equal-height-card > div {
+          height: 100% !important;
+          display: flex !important;
+          flex-direction: column !important;
+        }
+        .equal-height-card .product-title,
+        .equal-height-card h3,
+        .equal-height-card h2 {
+          min-height: 3rem;
+          display: flex;
+          align-items: center;
+        }
       `}</style>
       
       <div className="w-full bg-gray-50 min-h-screen">
@@ -494,10 +544,10 @@ export function CollectionPage({
               <div className={`bg-white rounded-lg p-6 products-transition ${isLoading ? 'opacity-50' : 'opacity-100'}`}>
                 <PaginatedResourceSection
                   connection={products}
-                  resourcesClassName="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+                  resourcesClassName="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
                 >
                   {({ node: product, index }: { node: Product; index: number }) => (
-                    <div key={product.id} className="transform transition-all duration-200 hover:scale-105">
+                    <div key={product.id} className="transform transition-all duration-200 hover:scale-105 h-full flex flex-col">
                       <ProductItem
                         product={product}
                         loading={index < 6 ? "eager" : undefined}
@@ -515,14 +565,24 @@ export function CollectionPage({
           {/* Mobile Products Header */}
           <div className="bg-white rounded-lg p-4 mb-6">
             <div className="flex items-center justify-between">
-              <span className="text-lg font-medium">{totalProductCount} products</span>
+              <div className="flex items-center space-x-2">
+                <span className="text-lg font-medium">{totalProductCount} products</span>
+                {/* Loading indicator for mobile */}
+                {isLoading && (
+                  <div className="flex items-center space-x-2 text-blue-600">
+                    <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full loading-spin"></div>
+                    <span className="text-sm">Filtering...</span>
+                  </div>
+                )}
+              </div>
               
               {/* Mobile Sort Dropdown */}
               <div className="relative">
                 <select 
-                  className="bg-white border border-gray-300 rounded-lg px-3 py-2 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="bg-white border border-gray-300 rounded-lg px-3 py-2 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                   value={sortKey}
                   onChange={(e) => handleSortChange(e.target.value)}
+                  disabled={isLoading}
                 >
                   {sortOptions.map((option) => (
                     <option key={option.value} value={option.value}>
@@ -534,63 +594,272 @@ export function CollectionPage({
             </div>
           </div>
 
-          <PaginatedResourceSection
-            connection={products}
-            resourcesClassName="space-y-4"
-          >
-            {({ node: product, index }: { node: Product; index: number }) => (
-              <div key={product.id} className="bg-white rounded-lg overflow-hidden border border-gray-200">
-                <ProductItem
-                  product={product}
-                  loading={index < 4 ? "eager" : undefined}
-                />
-              </div>
-            )}
-          </PaginatedResourceSection>
+          <div className={`products-transition ${isLoading ? 'opacity-50' : 'opacity-100'}`}>
+            <PaginatedResourceSection
+              connection={products}
+              resourcesClassName="grid grid-cols-1 md:grid-cols-2 gap-4"
+            >
+              {({ node: product, index }: { node: Product; index: number }) => (
+                <div 
+                  key={product.id} 
+                  className="bg-white rounded-lg overflow-hidden border border-gray-200 transform transition-all duration-200 hover:scale-105"
+                  style={{ 
+                    display: 'flex',
+                    flexDirection: 'column',
+                    minHeight: '400px',
+                    height: '400px' // Force exact height on mobile/tablet
+                  }}
+                >
+                  <div style={{ 
+                    flex: 1, 
+                    display: 'flex', 
+                    flexDirection: 'column',
+                    height: '100%'
+                  }}>
+                    <ProductItem
+                      product={product}
+                      loading={index < 4 ? "eager" : undefined}
+                    />
+                  </div>
+                </div>
+              )}
+            </PaginatedResourceSection>
+          </div>
         </div>
       </div>
 
-      {/* Mobile Filters Modal - Same structure as desktop */}
+      {/* ✅ FIXED: Mobile Filters with proper transparent background */}
       {mobileFiltersOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="absolute inset-0 bg-black bg-opacity-50" onClick={() => setMobileFiltersOpen(false)} />
+        <>
+          {/* ✅ FIXED: Transparent overlay */}
+          <div 
+            className="fixed inset-0 z-40 lg:hidden"
+            style={{ backgroundColor: 'rgba(0, 0, 0, 0.2)' }}
+            onClick={() => setMobileFiltersOpen(false)}
+          />
           
-          <div className="absolute right-0 top-0 h-full w-80 bg-white flex flex-col">
+          {/* ✅ FIXED: Sidebar */}
+          <div className="fixed right-0 top-0 h-full w-80 bg-white flex flex-col shadow-2xl z-50 lg:hidden">
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white">
               <h3 className="text-lg font-medium text-gray-900">Filters</h3>
               <button
                 onClick={() => setMobileFiltersOpen(false)}
-                className="p-2 text-gray-400 hover:text-gray-600"
+                className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors"
               >
                 <X size={20} />
               </button>
             </div>
             
             {/* Mobile filters content would mirror desktop */}
-            <div className="flex-1 overflow-y-auto p-4">
-              {/* Copy desktop filter sections here when implementing mobile */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+              {/* ✅ MOBILE: Themes Filter */}
+              {themesFilter && themesFilter.values?.length > 0 && (
+                <div className="border-b border-gray-200 pb-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-medium text-gray-900">Themes</span>
+                    <ChevronDown size={16} className="text-gray-400" />
+                  </div>
+                  <div className="space-y-2 max-h-40 overflow-y-auto custom-scrollbar">
+                    {themesFilter.values.map((option: any) => (
+                      <label key={option.id} className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50">
+                        <input
+                          type="radio"
+                          name="themes_mobile"
+                          className="border-gray-300 text-blue-600"
+                          checked={isFilterActive('themes', option.label)}
+                          onChange={(e) => handleFilterChange('themes', option.label, e.target.checked)}
+                        />
+                        <span className="text-sm text-gray-700 flex-1">{option.label}</span>
+                        <span className="text-sm text-gray-400">({option.count})</span>
+                      </label>
+                    ))}
+                    {/* Clear option */}
+                    <label className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50">
+                      <input
+                        type="radio"
+                        name="themes_mobile"
+                        className="border-gray-300 text-blue-600"
+                        checked={!searchParams.get('themes')}
+                        onChange={() => updateSearchParams({ themes: null })}
+                      />
+                      <span className="text-sm text-gray-700">All themes</span>
+                    </label>
+                  </div>
+                </div>
+              )}
+
+              {/* ✅ MOBILE: Age Group Filter */}
+              {ageGroupFilter && ageGroupFilter.values?.length > 0 && (
+                <div className="border-b border-gray-200 pb-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-medium text-gray-900">Ålder</span>
+                    <ChevronDown size={16} className="text-gray-400" />
+                  </div>
+                  <div className="space-y-2">
+                    {ageGroupFilter.values.map((option: any) => (
+                      <label key={option.id} className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50">
+                        <input
+                          type="radio"
+                          name="age_group_mobile"
+                          className="border-gray-300 text-blue-600"
+                          checked={isFilterActive('age_group', option.label)}
+                          onChange={(e) => handleFilterChange('age_group', option.label, e.target.checked)}
+                        />
+                        <span className="text-sm text-gray-700 flex-1">
+                          {ageGroupMapping[option.label] || `${option.label} år`}
+                        </span>
+                        <span className="text-sm text-gray-400">({option.count})</span>
+                      </label>
+                    ))}
+                    {/* Clear option */}
+                    <label className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50">
+                      <input
+                        type="radio"
+                        name="age_group_mobile"
+                        className="border-gray-300 text-blue-600"
+                        checked={!searchParams.get('age_group')}
+                        onChange={() => updateSearchParams({ age_group: null })}
+                      />
+                      <span className="text-sm text-gray-700">All ages</span>
+                    </label>
+                  </div>
+                </div>
+              )}
+
+              {/* ✅ MOBILE: Piece Count Filter */}
+              {pieceCountFilter && pieceCountFilter.values?.length > 0 && (
+                <div className="border-b border-gray-200 pb-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-medium text-gray-900">Antal bitar</span>
+                    <ChevronDown size={16} className="text-gray-400" />
+                  </div>
+                  <div className="space-y-2">
+                    {pieceCountFilter.values.map((option: any) => (
+                      <label key={option.id} className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50">
+                        <input
+                          type="radio"
+                          name="piece_count_mobile"
+                          className="border-gray-300 text-blue-600"
+                          checked={isFilterActive('piece_count', option.label)}
+                          onChange={(e) => handleFilterChange('piece_count', option.label, e.target.checked)}
+                        />
+                        <span className="text-sm text-gray-700 flex-1">{option.label}</span>
+                        <span className="text-sm text-gray-400">({option.count})</span>
+                      </label>
+                    ))}
+                    {/* Clear option */}
+                    <label className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50">
+                      <input
+                        type="radio"
+                        name="piece_count_mobile"
+                        className="border-gray-300 text-blue-600"
+                        checked={!searchParams.get('piece_count')}
+                        onChange={() => updateSearchParams({ piece_count: null })}
+                      />
+                      <span className="text-sm text-gray-700">All sizes</span>
+                    </label>
+                  </div>
+                </div>
+              )}
+
+              {/* ✅ MOBILE: Price Range Filter */}
+              <div className="border-b border-gray-200 pb-3">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-medium text-gray-900">Pris</span>
+                  <ChevronDown size={16} className="text-gray-400" />
+                </div>
+                <div className="space-y-2">
+                  {customPriceRanges.map((range) => (
+                    <label key={range.value} className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50">
+                      <input
+                        type="radio"
+                        name="price_range_mobile"
+                        className="border-gray-300 text-blue-600"
+                        checked={range.active}
+                        onChange={(e) => handleFilterChange('price_range', range.value, e.target.checked)}
+                      />
+                      <span className="text-sm text-gray-700 flex-1">{range.label}</span>
+                      <span className="text-sm text-gray-400">({range.count})</span>
+                    </label>
+                  ))}
+                  {/* Clear option */}
+                  <label className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50">
+                    <input
+                      type="radio"
+                      name="price_range_mobile"
+                      className="border-gray-300 text-blue-600"
+                      checked={!searchParams.get('price_range')}
+                      onChange={() => updateSearchParams({ price_range: null })}
+                    />
+                    <span className="text-sm text-gray-700">All prices</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* ✅ MOBILE: Availability Filter */}
+              {availabilityFilter && availabilityFilter.values?.length > 0 && (
+                <div className="pb-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-medium text-gray-900">Availability</span>
+                    <ChevronDown size={16} className="text-gray-400" />
+                  </div>
+                  <div className="space-y-2">
+                    {availabilityFilter.values.map((option: any) => (
+                      <label key={option.id} className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50">
+                        <input
+                          type="radio"
+                          name="available_mobile"
+                          className="border-gray-300 text-blue-600"
+                          checked={isFilterActive('available', option.id.includes('true') ? 'true' : 'false')}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              handleFilterChange('available', option.id.includes('true') ? 'true' : 'false', true);
+                            }
+                          }}
+                        />
+                        <span className="text-sm text-gray-700 flex-1">{option.label}</span>
+                        <span className="text-sm text-gray-400">({option.count})</span>
+                      </label>
+                    ))}
+                    {/* Clear option */}
+                    <label className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50">
+                      <input
+                        type="radio"
+                        name="available_mobile"
+                        className="border-gray-300 text-blue-600"
+                        checked={!searchParams.get('available')}
+                        onChange={() => updateSearchParams({ available: null })}
+                      />
+                      <span className="text-sm text-gray-700">All products</span>
+                    </label>
+                  </div>
+                </div>
+              )}
             </div>
             
             {/* Footer */}
             <div className="flex-shrink-0 p-4 border-t border-gray-200 bg-white">
               <div className="flex gap-3">
                 <button
-                  onClick={clearAllFilters}
-                  className="flex-1 py-3 px-4 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50"
+                  onClick={() => {
+                    clearAllFilters();
+                    setMobileFiltersOpen(false);
+                  }}
+                  className="flex-1 py-3 px-4 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"
                 >
                   Remove all
                 </button>
                 <button
                   onClick={() => setMobileFiltersOpen(false)}
-                  className="flex-1 py-3 px-4 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700"
+                  className="flex-1 py-3 px-4 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
                 >
                   Apply
                 </button>
               </div>
             </div>
           </div>
-        </div>
+        </>
       )}
 
       {/* Analytics */}
