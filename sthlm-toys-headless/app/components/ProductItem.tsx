@@ -1,6 +1,7 @@
 // FILE: app/components/ProductItem.tsx
 // ✅ SHOPIFY STANDARD: Compatible with both collection and product data structures
 // ✅ FIXED: Added consistent title heights for proper alignment + Mobile image centering
+// ✅ NEW: Added discount labels when products are on sale
 
 import {Link, useNavigate} from 'react-router';
 import {useState} from 'react';
@@ -90,6 +91,14 @@ export function ProductItem({
     return null;
   }
 
+  // ✅ NEW: Calculate discount percentage for sale badge
+  const isOnSale = compareAtPrice && price && 
+    parseFloat(compareAtPrice.amount) > parseFloat(price.amount);
+  
+  const discountPercentage = isOnSale 
+    ? Math.round(((parseFloat(compareAtPrice.amount) - parseFloat(price.amount)) / parseFloat(compareAtPrice.amount)) * 100)
+    : 0;
+
   // Desktop Layout - FIXED: Changed object-cover to object-contain with padding
   return (
     <>
@@ -105,6 +114,15 @@ export function ProductItem({
               className="w-8 h-8 bg-white rounded-full shadow-sm border border-gray-200 hover:border-red-300"
             />
           </div>
+
+          {/* ✅ NEW: Discount Badge - Top Left */}
+          {isOnSale && discountPercentage > 0 && (
+            <div className="absolute top-4 left-4 z-10">
+              <span className="inline-flex items-center justify-center bg-red-600 text-white text-xs font-bold rounded-full px-2 py-1">
+                -{discountPercentage}%
+              </span>
+            </div>
+          )}
 
           {/* Product Image - SMART: object-cover by default, object-contain for wide images */}
           <Link to={productUrl} className="block mb-4">
@@ -143,11 +161,11 @@ export function ProductItem({
             {/* Price */}
             <div className="flex items-center space-x-2 mb-4">
               <span className="text-xl font-bold text-gray-900">
-                {price.currencyCode} {price.amount}
+                {price.currencyCode} {Math.round(parseFloat(price.amount))}
               </span>
-              {compareAtPrice && (
+              {isOnSale && compareAtPrice && (
                 <span className="text-sm text-gray-500 line-through">
-                  {compareAtPrice.currencyCode} {compareAtPrice.amount}
+                  {compareAtPrice.currencyCode} {Math.round(parseFloat(compareAtPrice.amount))}
                 </span>
               )}
             </div>
@@ -178,7 +196,7 @@ export function ProductItem({
                         name: product.title,
                         variantName: variant.title || product.title,
                         brand: product.vendor,
-                        price: variant.price.amount,
+                        price: price.amount,
                         quantity: 1,
                       },
                     ],
@@ -227,6 +245,15 @@ export function ProductItem({
                   className="w-6 h-6 bg-white rounded-full shadow-sm"
                 />
               </div>
+
+              {/* ✅ NEW: Discount Badge - Mobile Top Left */}
+              {isOnSale && discountPercentage > 0 && (
+                <div className="absolute top-1 left-1">
+                  <span className="inline-flex items-center justify-center bg-red-600 text-white text-xs font-bold rounded-full px-1.5 py-0.5">
+                    -{discountPercentage}%
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Mobile Product Info */}
@@ -248,11 +275,11 @@ export function ProductItem({
                 {/* Mobile Price */}
                 <div className="flex items-center space-x-2 mb-3">
                   <span className="text-lg font-bold text-gray-900">
-                    {price.currencyCode} {price.amount}
+                    {price.currencyCode} {Math.round(parseFloat(price.amount))}
                   </span>
-                  {compareAtPrice && (
+                  {isOnSale && compareAtPrice && (
                     <span className="text-sm text-gray-500 line-through">
-                      {compareAtPrice.currencyCode} {compareAtPrice.amount}
+                      {compareAtPrice.currencyCode} {Math.round(parseFloat(compareAtPrice.amount))}
                     </span>
                   )}
                 </div>

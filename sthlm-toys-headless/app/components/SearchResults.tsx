@@ -1,7 +1,8 @@
-// app/components/SearchResults.tsx - Enhanced Search Results with Add to Cart
+// app/components/SearchResults.tsx - Enhanced Search Results with ProductItem
 import {Link} from 'react-router';
 import {Image, Money, Pagination} from '@shopify/hydrogen';
 import {urlWithTrackingParams, type RegularSearchReturn} from '~/lib/search';
+import {ProductItem} from '~/components/ProductItem';
 import {AddToCartButton} from '~/components/AddToCartButton';
 import {useAside} from '~/components/Aside';
 
@@ -121,98 +122,27 @@ function SearchResultsProducts({
         {({nodes, isLoading, NextLink, PreviousLink}) => {
           return (
             <>
-              {/* Product Grid */}
+              {/* ✅ UPDATED: Product Grid using ProductItem for consistency */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12">
-                {nodes.map((product) => {
+                {nodes.map((product, index) => {
                   const productUrl = urlWithTrackingParams({
                     baseUrl: `/products/${product.handle}`,
                     trackingParams: product.trackingParameters,
                     term,
                   });
 
-                  const selectedVariant = product.selectedOrFirstAvailableVariant;
+                  // Transform product to be compatible with ProductItem
+                  const transformedProduct = {
+                    ...product,
+                    handle: product.handle, // Keep original handle for ProductItem
+                  };
 
                   return (
-                    <div className="search-results-item bg-white border border-gray-100 rounded-lg p-4 hover:shadow-md transition-shadow shadow-sm" key={product.id}>
-                      <div className="block h-full flex flex-col">
-                        {/* Product Image */}
-                        <Link prefetch="intent" to={productUrl}>
-                          {selectedVariant?.image && (
-                            <div className="aspect-square mb-4">
-                              <Image
-                                alt={selectedVariant.image.altText || product.title}
-                                src={selectedVariant.image.url}
-                                className="w-full h-full object-cover rounded"
-                                sizes="(min-width: 768px) 25vw, 50vw"
-                                loading="lazy"
-                              />
-                            </div>
-                          )}
-
-                          {/* Product Info */}
-                          <div className="flex-1 flex flex-col">
-                            <h3 className="font-medium text-gray-900 mb-2 line-clamp-2 min-h-[3rem] leading-tight">
-                              {product.title}
-                            </h3>
-                            
-                            {/* Brand */}
-                            {product.vendor && (
-                              <p className="text-sm text-gray-600 mb-2">{product.vendor}</p>
-                            )}
-                            
-                            {/* Price */}
-                            {selectedVariant?.price && (
-                              <div className="flex items-center gap-2 mb-4">
-                                <Money 
-                                  data={selectedVariant.price} 
-                                  className="text-lg font-semibold text-gray-900"
-                                />
-                                {selectedVariant?.compareAtPrice && (
-                                  <Money 
-                                    data={selectedVariant.compareAtPrice} 
-                                    className="text-sm text-gray-500 line-through"
-                                  />
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        </Link>
-
-                        {/* Add to Cart Button */}
-                        {selectedVariant && (
-                          <AddToCartButton
-                            disabled={!selectedVariant.availableForSale}
-                            onClick={() => {
-                              open('cart');
-                            }}
-                            lines={[
-                              {
-                                merchandiseId: selectedVariant.id,
-                                quantity: 1,
-                              },
-                            ]}
-                            analytics={{
-                              products: [
-                                {
-                                  productGid: product.id,
-                                  variantGid: selectedVariant.id,
-                                  name: product.title,
-                                  variantName: selectedVariant.title || product.title,
-                                  brand: product.vendor,
-                                  price: selectedVariant.price.amount,
-                                  quantity: 1,
-                                },
-                              ],
-                            }}
-                            variant="addToCart"
-                            size="md"
-                            className="w-full mt-auto"
-                          >
-                            {selectedVariant.availableForSale ? 'Lägg i kundvagn' : 'Slutsåld'}
-                          </AddToCartButton>
-                        )}
-                      </div>
-                    </div>
+                    <ProductItem
+                      key={product.id}
+                      product={transformedProduct}
+                      loading={index < 8 ? 'eager' : 'lazy'}
+                    />
                   );
                 })}
               </div>

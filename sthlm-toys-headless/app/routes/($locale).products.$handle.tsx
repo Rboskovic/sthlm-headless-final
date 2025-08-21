@@ -1,5 +1,6 @@
 // FILE: app/routes/($locale).products.$handle.tsx
 // ✅ SHOPIFY HYDROGEN STANDARD: Complete Product Detail Page with metafields
+// ✅ UPDATED: Now uses ProductItem for recommended products
 
 import {redirect, type LoaderFunctionArgs} from '@shopify/remix-oxygen';
 import {useLoaderData, type MetaFunction, Await} from 'react-router';
@@ -15,6 +16,7 @@ import {
 } from '@shopify/hydrogen';
 import {ProductImageGallery} from '~/components/ProductImageGallery';
 import {ProductForm} from '~/components/ProductForm';
+import {ProductItem} from '~/components/ProductItem';
 import {PriceDisplay} from '~/components/ui/PriceDisplay';
 import {ShopButton} from '~/components/ui/ShopButton';
 import {AddToCartButton} from '~/components/AddToCartButton';
@@ -414,7 +416,7 @@ export default function Product() {
           </div>
         )}
 
-        {/* FIX 11: Recommended Products Section */}
+        {/* ✅ UPDATED: Recommended Products Section - Now uses ProductItem */}
         <Suspense fallback={<RecommendedProductsSkeleton />}>
           <Await
             resolve={deferredData.recommendedProducts}
@@ -569,6 +571,12 @@ const RECOMMENDED_PRODUCTS_QUERY = `#graphql
       width
       height
     }
+    priceRange {
+      minVariantPrice {
+        amount
+        currencyCode
+      }
+    }
     selectedOrFirstAvailableVariant(selectedOptions: []) {
       id
       title
@@ -603,7 +611,7 @@ const RECOMMENDED_PRODUCTS_QUERY = `#graphql
   }
 ` as const;
 
-// ✅ RECOMMENDED PRODUCTS COMPONENT
+// ✅ UPDATED: Recommended Products Component - Now uses ProductItem
 function RecommendedProducts({
   products,
   currentProductId,
@@ -620,67 +628,17 @@ function RecommendedProducts({
 
   return (
     <div className="mt-16 border-t border-gray-200 pt-8">
-      <h3 className="text-xl font-semibold text-gray-900 mb-4">
+      <h3 className="text-xl font-semibold text-gray-900 mb-6">
         Du kanske också gillar
       </h3>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {filteredProducts.map((product) => (
-          <RecommendedProductCard key={product.id} product={product} />
+        {filteredProducts.map((product, index) => (
+          <ProductItem
+            key={product.id}
+            product={product}
+            loading={index < 4 ? 'eager' : 'lazy'}
+          />
         ))}
-      </div>
-    </div>
-  );
-}
-
-// ✅ RECOMMENDED PRODUCT CARD
-function RecommendedProductCard({product}: {product: any}) {
-  const image = product.selectedOrFirstAvailableVariant?.image || product.featuredImage;
-  const price = product.selectedOrFirstAvailableVariant?.price;
-  const compareAtPrice = product.selectedOrFirstAvailableVariant?.compareAtPrice;
-  const productUrl = `/products/${product.handle}`;
-
-  return (
-    <div className="group">
-      {/* Make image clickable */}
-      <a href={productUrl} className="block">
-        <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-3">
-          {image && (
-            <img
-              src={image.url}
-              alt={image.altText || product.title}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              style={{
-                objectFit: image.width && image.height && (image.width / image.height) > 1.3 ? 'contain' : 'cover'
-              }}
-              loading="lazy"
-            />
-          )}
-        </div>
-      </a>
-      <div className="space-y-2">
-        <h4 className="text-sm font-medium text-gray-900 line-clamp-2">
-          <a 
-            href={productUrl}
-            className="hover:text-blue-600 transition-colors"
-          >
-            {product.title}
-          </a>
-        </h4>
-        {product.vendor && (
-          <p className="text-xs text-gray-500">{product.vendor}</p>
-        )}
-        {price && (
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-semibold text-gray-900">
-              {price.currencyCode} {price.amount}
-            </span>
-            {compareAtPrice && (
-              <span className="text-xs text-gray-500 line-through">
-                {compareAtPrice.currencyCode} {compareAtPrice.amount}
-              </span>
-            )}
-          </div>
-        )}
       </div>
     </div>
   );

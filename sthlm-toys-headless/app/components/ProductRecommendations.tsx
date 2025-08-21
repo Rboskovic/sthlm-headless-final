@@ -1,10 +1,11 @@
 // FILE: app/components/ProductRecommendations.tsx
-// ✅ CONVERSION-OPTIMIZED: "You might also like" recommendations section
+// ✅ CONVERSION-OPTIMIZED: "You might also like" recommendations section using ProductItem
 
 import {useState, useRef} from 'react';
 import {Link} from 'react-router';
 import {Image, Money} from '@shopify/hydrogen';
 import {ChevronLeft, ChevronRight} from 'lucide-react';
+import {ProductItem} from '~/components/ProductItem';
 import {AddToCartButton} from './AddToCartButton';
 import type {ProductFragment} from 'storefrontapi.generated';
 
@@ -161,15 +162,20 @@ export function ProductRecommendations({
         </div>
       </div>
 
-      {/* Products Grid/Carousel */}
+      {/* ✅ UPDATED: Products Grid/Carousel using ProductItem */}
       <div 
         ref={scrollRef}
-        className="flex overflow-x-auto space-x-4 pb-4 scrollbar-hide"
+        className="flex lg:overflow-x-auto lg:space-x-4 lg:pb-4 lg:scrollbar-hide grid grid-cols-2 lg:grid-cols-none gap-4 lg:gap-0"
         onScroll={checkScrollPosition}
         style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}
       >
-        {recommendedProducts.map((product) => (
-          <RecommendationCard key={product.id} product={product} />
+        {recommendedProducts.map((product, index) => (
+          <div key={product.id} className="lg:flex-shrink-0 lg:w-64">
+            <ProductItem
+              product={product}
+              loading={index < 4 ? 'eager' : 'lazy'}
+            />
+          </div>
         ))}
       </div>
 
@@ -185,74 +191,5 @@ export function ProductRecommendations({
         </div>
       )}
     </section>
-  );
-}
-
-function RecommendationCard({product}: {product: RecommendationProduct}) {
-  const variant = product.selectedOrFirstAvailableVariant;
-  const price = variant?.price || product.priceRange.minVariantPrice;
-  const compareAtPrice = variant?.compareAtPrice;
-
-  return (
-    <div className="flex-shrink-0 w-64 bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
-      {/* Product Image */}
-      <Link to={`/products/${product.handle}`} className="block">
-        <div className="aspect-square bg-gray-100 overflow-hidden">
-          {product.featuredImage ? (
-            <Image
-              data={product.featuredImage}
-              aspectRatio="1/1"
-              sizes="256px"
-              className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-gray-400">
-              <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-            </div>
-          )}
-        </div>
-      </Link>
-
-      {/* Product Info */}
-      <div className="p-4">
-        {/* Brand */}
-        {product.vendor && (
-          <p className="text-xs text-gray-500 mb-1">{product.vendor}</p>
-        )}
-
-        {/* Title */}
-        <Link to={`/products/${product.handle}`}>
-          <h3 className="text-sm font-medium text-gray-900 mb-2 line-clamp-2 hover:text-blue-600 transition-colors">
-            {product.title}
-          </h3>
-        </Link>
-
-        {/* Price */}
-        <div className="flex items-center space-x-2 mb-3">
-          <Money data={price} className="text-lg font-semibold text-gray-900" />
-          {compareAtPrice && (
-            <Money 
-              data={compareAtPrice} 
-              className="text-sm text-gray-500 line-through" 
-            />
-          )}
-        </div>
-
-        {/* Add to Cart Button */}
-        {variant && (
-          <AddToCartButton
-            lines={[{merchandiseId: variant.id, quantity: 1}]}
-            variant="secondary"
-            size="small"
-            disabled={!variant.availableForSale}
-            className="w-full"
-          >
-            {variant.availableForSale ? 'Quick Add' : 'Out of Stock'}
-          </AddToCartButton>
-        )}
-      </div>
-    </div>
   );
 }

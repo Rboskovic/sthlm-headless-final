@@ -1,5 +1,5 @@
 // FILE: app/routes/($locale)._index.tsx
-// ✅ SHOPIFY HYDROGEN STANDARDS: Updated homepage with requested changes
+// ✅ SHOPIFY HYDROGEN STANDARDS: Updated homepage with ProductItem for recommended products
 
 import {type LoaderFunctionArgs} from '@shopify/remix-oxygen';
 import {Await, useLoaderData, Link, type MetaFunction} from 'react-router';
@@ -7,6 +7,7 @@ import {Suspense, useState} from 'react';
 import {Image, Money} from '@shopify/hydrogen';
 import { AddToCartButton } from '~/components/AddToCartButton';
 import { useAside } from '~/components/Aside';
+import { ProductItem } from '~/components/ProductItem';
 import type {
   FeaturedCollectionFragment,
   RecommendedProductsQuery,
@@ -234,7 +235,7 @@ export default function Homepage() {
         </Await>
       </Suspense>
 
-      {/* ✅ FIXED: Recommended Products Section - NOW WITH ADD TO CART */}
+      {/* ✅ UPDATED: Recommended Products Section - NOW USES ProductItem */}
       <Suspense fallback={<RecommendedProductsSkeleton />}>
         <Await resolve={data.recommendedProducts}>
           {(response) => {
@@ -257,7 +258,7 @@ export default function Homepage() {
                     paddingBottom: '16px',
                   }}
                 >
-                  {/* ✅ FIXED: Desktop layout - NO "Visa alla" link */}
+                  {/* ✅ UPDATED: Desktop layout - Using ProductItem */}
                   <div className="hidden md:block">
                     {/* Header with ONLY centered title */}
                     <div className="flex items-center justify-center mb-8">
@@ -277,77 +278,19 @@ export default function Homepage() {
                       </h2>
                     </div>
 
-                    {/* Desktop Product Grid */}
+                    {/* Desktop Product Grid - Using ProductItem */}
                     <div className="grid grid-cols-4 gap-6">
-                      {recommendedProducts.slice(0, 4).map((product: ProductFragment) => (
-                        <div key={product.id} className="group">
-                          {/* Product Card */}
-                          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden group-hover:shadow-lg transition-shadow duration-200 h-full flex flex-col">
-                            {/* Product Image */}
-                            <Link to={`/products/${product.handle}`} className="block">
-                              <div className="relative aspect-square bg-gray-50">
-                                {product.featuredImage?.url ? (
-                                  <Image
-                                    data={product.featuredImage}
-                                    aspectRatio="1/1"
-                                    sizes="(min-width: 768px) 25vw, 50vw"
-                                    className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-200"
-                                    loading="lazy"
-                                    style={{ padding: '8px' }}
-                                  />
-                                ) : (
-                                  <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                                    <span className="text-gray-400 text-sm">Ingen bild</span>
-                                  </div>
-                                )}
-                              </div>
-                            </Link>
-
-                            {/* Product Info */}
-                            <div className="p-4 flex flex-col flex-grow">
-                              <Link to={`/products/${product.handle}`}>
-                                <h3 className="font-medium text-gray-900 mb-2 line-clamp-2 hover:text-blue-600 transition-colors">
-                                  {product.title}
-                                </h3>
-                              </Link>
-
-                              {/* Price */}
-                              <div className="mb-4">
-                                {product.priceRange?.minVariantPrice && (
-                                  <Money
-                                    data={product.priceRange.minVariantPrice}
-                                    className="text-lg font-semibold text-gray-900"
-                                  />
-                                )}
-                              </div>
-
-                              {/* ✅ ADDED: Add to Cart Button */}
-                              <div className="mt-auto">
-                                <AddToCartButton
-                                  disabled={!product.selectedOrFirstAvailableVariant?.availableForSale}
-                                  onClick={() => {
-                                    const {open} = useAside();
-                                    open('cart');
-                                  }}
-                                  lines={product.selectedOrFirstAvailableVariant ? [{
-                                    merchandiseId: product.selectedOrFirstAvailableVariant.id,
-                                    quantity: 1,
-                                    selectedVariant: product.selectedOrFirstAvailableVariant,
-                                  }] : []}
-                                >
-                                  {product.selectedOrFirstAvailableVariant?.availableForSale
-                                    ? 'Lägg till i kundvagn'
-                                    : 'Slutsåld'}
-                                </AddToCartButton>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
+                      {recommendedProducts.slice(0, 4).map((product: ProductFragment, index) => (
+                        <ProductItem
+                          key={product.id}
+                          product={product}
+                          loading={index < 4 ? 'eager' : 'lazy'}
+                        />
                       ))}
                     </div>
                   </div>
 
-                  {/* Mobile Layout */}
+                  {/* ✅ UPDATED: Mobile Layout - Using ProductItem */}
                   <div className="block md:hidden">
                     <h2
                       className="text-black font-semibold text-center mb-6"
@@ -364,65 +307,14 @@ export default function Homepage() {
                       Rekommenderade produkter
                     </h2>
 
-                    {/* Mobile Stack */}
-                    <div className="space-y-4">
-                      {recommendedProducts.slice(0, 4).map((product: ProductFragment) => (
-                        <div key={product.id} className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-                          <div className="flex">
-                            {/* Product Image */}
-                            <Link to={`/products/${product.handle}`} className="block w-24 h-24">
-                              {product.featuredImage?.url ? (
-                                <Image
-                                  data={product.featuredImage}
-                                  aspectRatio="1/1"
-                                  sizes="96px"
-                                  className="w-full h-full object-contain"
-                                  loading="lazy"
-                                />
-                              ) : (
-                                <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                                  <span className="text-gray-400 text-xs">Ingen bild</span>
-                                </div>
-                              )}
-                            </Link>
-
-                            {/* Product Info */}
-                            <div className="flex-1 p-4 flex flex-col">
-                              <Link to={`/products/${product.handle}`}>
-                                <h3 className="font-medium text-gray-900 mb-1 text-sm line-clamp-2">
-                                  {product.title}
-                                </h3>
-                              </Link>
-
-                              {/* Price */}
-                              {product.priceRange?.minVariantPrice && (
-                                <Money
-                                  data={product.priceRange.minVariantPrice}
-                                  className="text-base font-semibold text-gray-900 mb-2"
-                                />
-                              )}
-
-                              {/* ✅ ADDED: Mobile Add to Cart Button */}
-                              <AddToCartButton
-                                disabled={!product.selectedOrFirstAvailableVariant?.availableForSale}
-                                onClick={() => {
-                                  const {open} = useAside();
-                                  open('cart');
-                                }}
-                                lines={product.selectedOrFirstAvailableVariant ? [{
-                                  merchandiseId: product.selectedOrFirstAvailableVariant.id,
-                                  quantity: 1,
-                                  selectedVariant: product.selectedOrFirstAvailableVariant,
-                                }] : []}
-                                className="text-sm py-2"
-                              >
-                                {product.selectedOrFirstAvailableVariant?.availableForSale
-                                  ? 'Lägg till'
-                                  : 'Slutsåld'}
-                              </AddToCartButton>
-                            </div>
-                          </div>
-                        </div>
+                    {/* Mobile Grid - Using ProductItem */}
+                    <div className="grid grid-cols-2 gap-4">
+                      {recommendedProducts.slice(0, 4).map((product: ProductFragment, index) => (
+                        <ProductItem
+                          key={product.id}
+                          product={product}
+                          loading={index < 4 ? 'eager' : 'lazy'}
+                        />
                       ))}
                     </div>
                   </div>
@@ -442,6 +334,7 @@ const RECOMMENDED_PRODUCTS_QUERY = `#graphql
     id
     title
     handle
+    vendor
     priceRange {
       minVariantPrice {
         amount
@@ -663,7 +556,7 @@ const FEATURED_COLLECTION_QUERY = `#graphql
   }
 ` as const;
 
-// Skeleton components
+// ✅ UPDATED: Skeleton components using same layout as ProductItem
 function RecommendedProductsSkeleton() {
   return (
     <section>
@@ -685,13 +578,12 @@ function RecommendedProductsSkeleton() {
           </div>
           <div className="grid grid-cols-4 gap-6">
             {Array.from({length: 4}).map((_, i) => (
-              <div key={i} className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-                <div className="aspect-square bg-gray-200 animate-pulse"></div>
-                <div className="p-4">
-                  <div className="h-4 bg-gray-200 rounded mb-2 animate-pulse"></div>
-                  <div className="h-6 bg-gray-200 rounded mb-4 animate-pulse"></div>
-                  <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
-                </div>
+              <div key={i} className="bg-white border border-gray-200 rounded-2xl p-6">
+                <div className="aspect-square bg-gray-200 rounded-xl mb-4 animate-pulse"></div>
+                <div className="h-4 bg-gray-200 rounded mb-2 animate-pulse"></div>
+                <div className="h-3 bg-gray-200 rounded w-3/4 mb-4 animate-pulse"></div>
+                <div className="h-6 bg-gray-200 rounded mb-4 animate-pulse"></div>
+                <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
               </div>
             ))}
           </div>
@@ -700,16 +592,15 @@ function RecommendedProductsSkeleton() {
         {/* Mobile */}
         <div className="block md:hidden">
           <div className="h-8 w-48 bg-gray-200 rounded mx-auto mb-6 animate-pulse"></div>
-          <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
             {Array.from({length: 4}).map((_, i) => (
-              <div key={i} className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-                <div className="flex">
-                  <div className="w-24 h-24 bg-gray-200 animate-pulse"></div>
-                  <div className="flex-1 p-4">
-                    <div className="h-4 bg-gray-200 rounded mb-2 animate-pulse"></div>
-                    <div className="h-5 bg-gray-200 rounded mb-2 animate-pulse"></div>
-                    <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
-                  </div>
+              <div key={i} className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+                <div className="w-32 h-32 bg-gray-200 animate-pulse"></div>
+                <div className="p-4">
+                  <div className="h-4 bg-gray-200 rounded mb-2 animate-pulse"></div>
+                  <div className="h-3 bg-gray-200 rounded w-3/4 mb-2 animate-pulse"></div>
+                  <div className="h-5 bg-gray-200 rounded mb-2 animate-pulse"></div>
+                  <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
                 </div>
               </div>
             ))}
