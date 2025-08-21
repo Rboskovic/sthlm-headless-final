@@ -1,6 +1,7 @@
 // FILE: app/routes/($locale).products.$handle.tsx
 // ✅ SHOPIFY HYDROGEN STANDARD: Complete Product Detail Page with metafields
 // ✅ UPDATED: Now uses ProductItem for recommended products
+// ✅ FIXED: GraphQL fragment AND query naming conflicts resolved
 
 import {redirect, type LoaderFunctionArgs} from '@shopify/remix-oxygen';
 import {useLoaderData, type MetaFunction, Await} from 'react-router';
@@ -557,9 +558,9 @@ const SHOP_METAFIELDS_QUERY = `#graphql
   }
 ` as const;
 
-// ✅ RECOMMENDED PRODUCTS: Query for product recommendations
+// ✅ RECOMMENDED PRODUCTS: Query for product recommendations - FIXED BOTH FRAGMENT AND QUERY NAMES
 const RECOMMENDED_PRODUCTS_QUERY = `#graphql
-  fragment RecommendedProduct on Product {
+  fragment ProductPageRecommendedProduct on Product {
     id
     title
     handle
@@ -598,14 +599,14 @@ const RECOMMENDED_PRODUCTS_QUERY = `#graphql
       }
     }
   }
-  query RecommendedProducts(
+  query ProductPageRecommendedProducts(
     $country: CountryCode, 
     $language: LanguageCode,
     $first: Int = 8
   ) @inContext(country: $country, language: $language) {
     products(first: $first, sortKey: UPDATED_AT, reverse: true) {
       nodes {
-        ...RecommendedProduct
+        ...ProductPageRecommendedProduct
       }
     }
   }

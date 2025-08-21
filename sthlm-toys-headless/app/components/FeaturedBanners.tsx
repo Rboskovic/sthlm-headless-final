@@ -1,9 +1,9 @@
 import {Link} from 'react-router';
 import {Image} from '@shopify/hydrogen';
-import type {FeaturedCollectionFragment} from 'storefrontapi.generated';
+import type {CollectionFragment} from 'storefrontapi.generated';
 
 interface FeaturedBannersProps {
-  collections: FeaturedCollectionFragment[];
+  collections: CollectionFragment[];
 }
 
 // Fallback banners for testing/development

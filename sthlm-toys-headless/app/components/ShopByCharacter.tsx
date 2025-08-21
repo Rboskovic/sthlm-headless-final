@@ -1,7 +1,7 @@
 import {Link} from 'react-router';
 import {Image} from '@shopify/hydrogen';
 import {useState, useRef} from 'react';
-import type {FeaturedCollectionFragment} from 'storefrontapi.generated';
+import type {CollectionFragment} from 'storefrontapi.generated';
 
 // Character colors matching the theme
 const characterColors: Record<string, string> = {
@@ -64,12 +64,12 @@ const fallbackCharacters = [
   },
 ];
 
-interface CharacterWithColor extends FeaturedCollectionFragment {
+interface CharacterWithColor extends CollectionFragment {
   backgroundColor?: string;
 }
 
 interface ShopByCharacterProps {
-  characters: FeaturedCollectionFragment[];
+  characters: CollectionFragment[];
 }
 
 export function ShopByCharacter({characters}: ShopByCharacterProps) {

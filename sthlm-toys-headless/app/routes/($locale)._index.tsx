@@ -1,5 +1,6 @@
 // FILE: app/routes/($locale)._index.tsx
 // ✅ SHOPIFY HYDROGEN STANDARDS: Updated homepage with ProductItem for recommended products
+// ✅ CLEANED: Removed all unused queries and code
 
 import {type LoaderFunctionArgs} from '@shopify/remix-oxygen';
 import {Await, useLoaderData, Link, type MetaFunction} from 'react-router';
@@ -9,7 +10,7 @@ import { AddToCartButton } from '~/components/AddToCartButton';
 import { useAside } from '~/components/Aside';
 import { ProductItem } from '~/components/ProductItem';
 import type {
-  FeaturedCollectionFragment,
+  CollectionFragment,
   RecommendedProductsQuery,
   ProductFragment,
 } from 'storefrontapi.generated';
@@ -20,7 +21,6 @@ import {TopCategories} from '~/components/TopCategories';
 import {ShopByDiscount} from '~/components/ShopByDiscount';
 import {FeaturedBanners} from '~/components/FeaturedBanners';
 import {ShopByBrand} from '~/components/ShopByBrand';
-// import {ShopByCharacter} from '~/components/ShopByCharacter'; // ✅ DISABLED: Shop by character section
 
 // ✅ UPDATED: New horizontal scrolling product components
 import {FeaturedProducts, FeaturedProductsSkeleton} from '~/components/FeaturedProducts';
@@ -46,50 +46,42 @@ export async function loader(args: LoaderFunctionArgs) {
 }
 
 /**
- * ✅ EXISTING: Keep your exact loadCriticalData function with all existing sections
+ * ✅ CLEANED: Removed unused featuredCollection query
  * Load data necessary for rendering content above the fold. This is the critical data
  * needed to render the page. If it's unavailable, the whole page should 400 or 500 error.
  */
 async function loadCriticalData({context}: LoaderFunctionArgs) {
   try {
     const [
-      featuredCollectionData,
       topCategoriesData,
       shopByBrandData,
       featuredBannersData,
-      // shopByCharacterData, // ✅ DISABLED: Character data query
       shopByDiscountData,
-      heroData, // ✅ EXISTING: Hero metafields query
+      heroData,
     ] = await Promise.all([
-      context.storefront.query(FEATURED_COLLECTION_QUERY),
       context.storefront.query(TOP_CATEGORIES_QUERY),
       context.storefront.query(SHOP_BY_BRAND_QUERY),
       context.storefront.query(FEATURED_BANNERS_QUERY),
-      // context.storefront.query(SHOP_BY_CHARACTER_QUERY), // ✅ DISABLED: Character query
       context.storefront.query(SHOP_BY_DISCOUNT_QUERY),
-      context.storefront.query(HERO_BANNER_QUERY), // ✅ EXISTING: Hero query
+      context.storefront.query(HERO_BANNER_QUERY),
     ]);
 
     return {
-      featuredCollection: featuredCollectionData.collections.nodes[0],
       topCategories: topCategoriesData.collections.nodes || [],
       shopByBrandData: shopByBrandData.collections.nodes || [],
       featuredBanners: featuredBannersData.collections.nodes || [],
-      // shopByCharacterData: shopByCharacterData.collections.nodes || [], // ✅ DISABLED: Character data
       shopByDiscountData: shopByDiscountData.collections.nodes || [],
-      heroMetafields: heroData.shop.metafields || [], // ✅ EXISTING: Hero metafields
+      heroMetafields: heroData.shop.metafields || [],
     };
   } catch (error) {
     console.error('Error loading collections:', error);
     // Fallback to empty arrays if queries fail
     return {
-      featuredCollection: null,
       topCategories: [],
       shopByBrandData: [],
       featuredBanners: [],
-      // shopByCharacterData: [], // ✅ DISABLED: Character fallback
       shopByDiscountData: [],
-      heroMetafields: [], // ✅ EXISTING: Fallback for hero metafields
+      heroMetafields: [],
     };
   }
 }
@@ -175,10 +167,6 @@ export default function Homepage() {
 
       {/* ✅ UPDATED: Featured Banners Section - Title removed for closer spacing */}
       <FeaturedBanners collections={data.featuredBanners} />
-
-      {/* ✅ DISABLED: Shop By Character Section - Now commented out 
-      <ShopByCharacter characters={data.shopByCharacterData} />
-      */}
 
       {/* ✅ UPDATED: Shop By Discount Section - Repurposed for Price */}
       <ShopByDiscount discounts={data.shopByDiscountData} />
@@ -328,7 +316,7 @@ export default function Homepage() {
   );
 }
 
-// ✅ EXISTING: Keep all your exact queries
+// ✅ EXISTING: Keep all your exact queries that are actually used
 const RECOMMENDED_PRODUCTS_QUERY = `#graphql
   fragment RecommendedProduct on Product {
     id
@@ -371,7 +359,6 @@ const RECOMMENDED_PRODUCTS_QUERY = `#graphql
   }
 ` as const;
 
-// ✅ EXISTING: All your collection queries - keep exactly as you had them
 // Top Categories Query
 const TOP_CATEGORIES_QUERY = `#graphql
   fragment TopCategory on Collection {
@@ -531,26 +518,6 @@ const HERO_BANNER_QUERY = `#graphql
         key
         value
         namespace
-      }
-    }
-  }
-` as const;
-
-// Featured Collection Query
-const FEATURED_COLLECTION_QUERY = `#graphql
-  query FeaturedCollection($country: CountryCode, $language: LanguageCode)
-    @inContext(country: $country, language: $language) {
-    collections(first: 1, sortKey: UPDATED_AT, reverse: true) {
-      nodes {
-        id
-        title
-        handle
-        image {
-          altText
-          width
-          height
-          url
-        }
       }
     }
   }

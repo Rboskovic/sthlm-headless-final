@@ -1,7 +1,7 @@
 import {Link} from 'react-router';
 import {Image} from '@shopify/hydrogen';
 import {useState, useRef} from 'react';
-import type {FeaturedCollectionFragment} from 'storefrontapi.generated';
+import type {CollectionFragment} from 'storefrontapi.generated';
 
 // Category colors matching the Smyths theme
 const categoryColors: Record<string, string> = {
@@ -63,12 +63,12 @@ const fallbackCategories = [
   },
 ];
 
-interface CategoryWithColor extends FeaturedCollectionFragment {
+interface CategoryWithColor extends CollectionFragment {
   backgroundColor?: string;
 }
 
 interface TopCategoriesProps {
-  collections: FeaturedCollectionFragment[];
+  collections: CollectionFragment[];
 }
 
 export function TopCategories({collections}: TopCategoriesProps) {

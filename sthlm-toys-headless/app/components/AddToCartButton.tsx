@@ -1,7 +1,7 @@
-import {ShopButton} from '~/components/ui/ShopButton';
 // FILE: app/components/AddToCartButton.tsx
-// ✅ SHOPIFY STANDARD: Updated to use ShopButton consistently
+// ✅ SHOPIFY STANDARD: Fixed TypeScript errors
 
+import React from 'react';
 import {CartForm, type OptimisticCartLineInput} from '@shopify/hydrogen';
 import {type FetcherWithComponents} from 'react-router';
 import {ShopButton} from '~/components/ui/ShopButton';
@@ -42,7 +42,6 @@ export function AddToCartButton({
               />
             )}
             
-            {/* ✅ FIXED: Using ShopButton instead of custom button */}
             <ShopButton
               type="submit"
               onClick={onClick}
@@ -54,7 +53,6 @@ export function AddToCartButton({
               className={className}
               {...props}
             >
-              {/* ✅ ENSURES: White text is handled by ShopButton variants */}
               {children}
             </ShopButton>
           </>

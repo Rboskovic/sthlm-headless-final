@@ -1,7 +1,7 @@
 import {Link} from 'react-router';
 import {Image} from '@shopify/hydrogen';
 import {useState, useRef} from 'react';
-import type {FeaturedCollectionFragment} from 'storefrontapi.generated';
+import type {CollectionFragment} from 'storefrontapi.generated';
 
 // Age-based colors for the fallback placeholders
 const ageColors: Record<string, string> = {
@@ -60,12 +60,12 @@ const fallbackAgeGroups = [
   },
 ];
 
-interface AgeGroupWithColor extends FeaturedCollectionFragment {
+interface AgeGroupWithColor extends CollectionFragment {
   backgroundColor?: string;
 }
 
 interface ShopByBrandProps {
-  brands: FeaturedCollectionFragment[];
+  brands: CollectionFragment[];
 }
 
 export function ShopByBrand({brands}: ShopByBrandProps) {
