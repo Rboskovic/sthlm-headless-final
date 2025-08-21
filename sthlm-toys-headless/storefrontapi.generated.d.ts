@@ -848,23 +848,6 @@ export type HeroBannerQuery = {
   };
 };
 
-export type FeaturedCollectionQueryVariables = StorefrontAPI.Exact<{
-  country?: StorefrontAPI.InputMaybe<StorefrontAPI.CountryCode>;
-  language?: StorefrontAPI.InputMaybe<StorefrontAPI.LanguageCode>;
-}>;
-
-export type FeaturedCollectionQuery = {
-  collections: {
-    nodes: Array<
-      Pick<StorefrontAPI.Collection, 'id' | 'title' | 'handle'> & {
-        image?: StorefrontAPI.Maybe<
-          Pick<StorefrontAPI.Image, 'altText' | 'width' | 'height' | 'url'>
-        >;
-      }
-    >;
-  };
-};
-
 export type ArticleQueryVariables = StorefrontAPI.Exact<{
   articleHandle: StorefrontAPI.Scalars['String']['input'];
   blogHandle: StorefrontAPI.Scalars['String']['input'];
@@ -2012,10 +1995,6 @@ interface GeneratedQueryTypes {
   '#graphql\n  query HeroBanner($country: CountryCode, $language: LanguageCode)\n    @inContext(country: $country, language: $language) {\n    shop {\n      metafields(identifiers: [\n        {namespace: "hero", key: "hero-homepage-title"},\n        {namespace: "hero", key: "hero-homepage-subtitle"},\n        {namespace: "hero", key: "hero-homepage-button-text"},\n        {namespace: "hero", key: "hero-homepage-button-link"},\n        {namespace: "hero", key: "hero-homepage-background-color"},\n        {namespace: "hero", key: "hero-homepage-text-color"}\n      ]) {\n        key\n        value\n        namespace\n      }\n    }\n  }\n': {
     return: HeroBannerQuery;
     variables: HeroBannerQueryVariables;
-  };
-  '#graphql\n  query FeaturedCollection($country: CountryCode, $language: LanguageCode)\n    @inContext(country: $country, language: $language) {\n    collections(first: 1, sortKey: UPDATED_AT, reverse: true) {\n      nodes {\n        id\n        title\n        handle\n        image {\n          altText\n          width\n          height\n          url\n        }\n      }\n    }\n  }\n': {
-    return: FeaturedCollectionQuery;
-    variables: FeaturedCollectionQueryVariables;
   };
   '#graphql\n  query Article(\n    $articleHandle: String!\n    $blogHandle: String!\n    $country: CountryCode\n    $language: LanguageCode\n  ) @inContext(language: $language, country: $country) {\n    blog(handle: $blogHandle) {\n      handle\n      articleByHandle(handle: $articleHandle) {\n        handle\n        title\n        contentHtml\n        publishedAt\n        author: authorV2 {\n          name\n        }\n        image {\n          id\n          altText\n          url\n          width\n          height\n        }\n        seo {\n          description\n          title\n        }\n      }\n    }\n  }\n': {
     return: ArticleQuery;

@@ -8,8 +8,10 @@ interface ShopByDiscountProps {
   discounts?: Collection[] | null;
 }
 
-interface PriceRangeWithColor extends Collection {
+// ✅ TYPESCRIPT FIX: Create a proper interface that extends Collection with optional properties
+interface PriceRangeWithColor extends Omit<Collection, 'metafields'> {
   backgroundColor?: string;
+  metafields?: any; // Make metafields optional for fallback data
 }
 
 // Price range color mapping for fallbacks
@@ -22,7 +24,7 @@ const priceColors: Record<string, string> = {
   'best-value': '#F44336',   // Red for best value
 };
 
-// Fallback price ranges (popular price categories)
+// ✅ TYPESCRIPT FIX: Add all required Collection properties to fallback data
 const fallbackPriceRanges: PriceRangeWithColor[] = [
   {
     id: 'under-100',
@@ -30,6 +32,25 @@ const fallbackPriceRanges: PriceRangeWithColor[] = [
     handle: 'under-100',
     backgroundColor: priceColors['under-100'],
     image: null,
+    // Required Collection properties
+    description: '',
+    descriptionHtml: '',
+    products: {
+      nodes: [],
+      edges: [],
+      filters: [],
+      pageInfo: {
+        hasNextPage: false,
+        hasPreviousPage: false,
+        startCursor: null,
+        endCursor: null,
+      },
+    },
+    seo: {
+      title: null,
+      description: null,
+    },
+    updatedAt: new Date().toISOString(),
   },
   {
     id: 'under-250',
@@ -37,6 +58,25 @@ const fallbackPriceRanges: PriceRangeWithColor[] = [
     handle: 'under-250',
     backgroundColor: priceColors['under-250'],
     image: null,
+    // Required Collection properties
+    description: '',
+    descriptionHtml: '',
+    products: {
+      nodes: [],
+      edges: [],
+      filters: [],
+      pageInfo: {
+        hasNextPage: false,
+        hasPreviousPage: false,
+        startCursor: null,
+        endCursor: null,
+      },
+    },
+    seo: {
+      title: null,
+      description: null,
+    },
+    updatedAt: new Date().toISOString(),
   },
   {
     id: 'under-500',
@@ -44,6 +84,25 @@ const fallbackPriceRanges: PriceRangeWithColor[] = [
     handle: 'under-500',
     backgroundColor: priceColors['under-500'],
     image: null,
+    // Required Collection properties
+    description: '',
+    descriptionHtml: '',
+    products: {
+      nodes: [],
+      edges: [],
+      filters: [],
+      pageInfo: {
+        hasNextPage: false,
+        hasPreviousPage: false,
+        startCursor: null,
+        endCursor: null,
+      },
+    },
+    seo: {
+      title: null,
+      description: null,
+    },
+    updatedAt: new Date().toISOString(),
   },
   {
     id: 'under-1000',
@@ -51,6 +110,25 @@ const fallbackPriceRanges: PriceRangeWithColor[] = [
     handle: 'under-1000',
     backgroundColor: priceColors['under-1000'],
     image: null,
+    // Required Collection properties
+    description: '',
+    descriptionHtml: '',
+    products: {
+      nodes: [],
+      edges: [],
+      filters: [],
+      pageInfo: {
+        hasNextPage: false,
+        hasPreviousPage: false,
+        startCursor: null,
+        endCursor: null,
+      },
+    },
+    seo: {
+      title: null,
+      description: null,
+    },
+    updatedAt: new Date().toISOString(),
   },
   {
     id: 'best-value',
@@ -58,6 +136,25 @@ const fallbackPriceRanges: PriceRangeWithColor[] = [
     handle: 'best-value',
     backgroundColor: priceColors['best-value'],
     image: null,
+    // Required Collection properties
+    description: '',
+    descriptionHtml: '',
+    products: {
+      nodes: [],
+      edges: [],
+      filters: [],
+      pageInfo: {
+        hasNextPage: false,
+        hasPreviousPage: false,
+        startCursor: null,
+        endCursor: null,
+      },
+    },
+    seo: {
+      title: null,
+      description: null,
+    },
+    updatedAt: new Date().toISOString(),
   },
   {
     id: 'over-1000',
@@ -65,6 +162,25 @@ const fallbackPriceRanges: PriceRangeWithColor[] = [
     handle: 'over-1000',
     backgroundColor: priceColors['over-1000'],
     image: null,
+    // Required Collection properties
+    description: '',
+    descriptionHtml: '',
+    products: {
+      nodes: [],
+      edges: [],
+      filters: [],
+      pageInfo: {
+        hasNextPage: false,
+        hasPreviousPage: false,
+        startCursor: null,
+        endCursor: null,
+      },
+    },
+    seo: {
+      title: null,
+      description: null,
+    },
+    updatedAt: new Date().toISOString(),
   },
 ];
 
@@ -83,7 +199,7 @@ export function ShopByDiscount({
   // Drag threshold in pixels - only disable pointer events after this distance
   const DRAG_THRESHOLD = 10;
 
-  // Helper function to get metafield value (NAMESPACE-AWARE LIKE TOPCATEGORIES)
+  // ✅ TYPESCRIPT FIX: Proper typing for metafield helper function
   const getMetafieldValue = (metafields: any, key: string): string | null => {
     if (!metafields || !Array.isArray(metafields)) return null;
     // Check both custom and app namespaces like TopCategories does
@@ -91,8 +207,8 @@ export function ShopByDiscount({
       field && 
       field.key === key && 
       (field.namespace === 'custom' || field.namespace === 'app')
-    );
-    return metafield?.value ? metafield.value : null;
+    ) as any;
+    return metafield && metafield.value ? metafield.value : null;
   };
 
   // Helper function to check if a value represents "true"
@@ -110,17 +226,20 @@ export function ShopByDiscount({
   const featuredPriceRanges =
     discounts && discounts.length > 0
       ? discounts.filter((discount: Collection) => {
+          // ✅ TYPESCRIPT FIX: Cast to access metafields safely
+          const discountWithMetafields = discount as Collection & { metafields?: any };
+          
           // Check all possible metafield variations like TopCategories does
           const featuredValue =
-            getMetafieldValue(discount.metafields, 'featured-discount') ||
-            getMetafieldValue(discount.metafields, 'featured_discount');
+            getMetafieldValue(discountWithMetafields.metafields, 'featured-discount') ||
+            getMetafieldValue(discountWithMetafields.metafields, 'featured_discount');
           const isFeatured = isTrueValue(featuredValue);
           
           // DEBUG: Log each collection for troubleshooting (can be disabled)
           const DEBUG_LOGS = true; // Set to false to disable logs
           if (DEBUG_LOGS) {
             console.log(`💰 Price Collection: ${discount.title}`, {
-              metafields: discount.metafields,
+              metafields: discountWithMetafields.metafields,
               featuredValue,
               isFeatured,
               hasImage: !!discount.image?.url
@@ -130,9 +249,13 @@ export function ShopByDiscount({
           return isFeatured;
         })
         .sort((a, b) => {
+          // ✅ TYPESCRIPT FIX: Cast to access metafields safely for sorting
+          const aWithMetafields = a as Collection & { metafields?: any };
+          const bWithMetafields = b as Collection & { metafields?: any };
+          
           // Sort by sort_order metafield (underscore, not hyphen), then alphabetically as fallback
-          const sortOrderA = parseInt(getMetafieldValue(a.metafields, 'sort_order') || '999');
-          const sortOrderB = parseInt(getMetafieldValue(b.metafields, 'sort_order') || '999');
+          const sortOrderA = parseInt(getMetafieldValue(aWithMetafields.metafields, 'sort_order') || '999');
+          const sortOrderB = parseInt(getMetafieldValue(bWithMetafields.metafields, 'sort_order') || '999');
           
           if (sortOrderA !== sortOrderB) {
             return sortOrderA - sortOrderB; // Numeric sort
@@ -143,9 +266,14 @@ export function ShopByDiscount({
         })
       : [];
 
-  // Use Shopify price ranges or fallback
+  // ✅ TYPESCRIPT FIX: Cast Shopify collections to include backgroundColor
   const displayPriceRanges: PriceRangeWithColor[] =
-    featuredPriceRanges.length > 0 ? featuredPriceRanges : fallbackPriceRanges;
+    featuredPriceRanges.length > 0 
+      ? featuredPriceRanges.map((range) => ({
+          ...range,
+          backgroundColor: priceColors[range.handle] || priceColors['under-100'],
+        }))
+      : fallbackPriceRanges;
 
   // Desktop: Show only first 6 price ranges (no scrolling/pagination)
   const visiblePriceRanges = displayPriceRanges.slice(0, 6);

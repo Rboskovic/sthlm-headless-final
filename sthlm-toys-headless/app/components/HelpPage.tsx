@@ -80,9 +80,9 @@ function parseFAQData(faqMetafield: string | null): FAQ[] {
     const parsed = JSON.parse(faqMetafield);
     if (Array.isArray(parsed)) {
       return parsed.map((item, index) => ({
-        id: item.id || `faq-${index + 1}`,
-        question: item.question || '',
-        answer: item.answer || '',
+        id: (item as any).id || `faq-${index + 1}`,
+        question: (item as any).question || '',
+        answer: (item as any).answer || '',
       }));
     }
   } catch (error) {

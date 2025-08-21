@@ -241,7 +241,7 @@ export function ProductItem({
                 <WishlistButton
                   productId={product.id}
                   productTitle={product.title}
-                  size="xs"
+                  size="sm"
                   className="w-6 h-6 bg-white rounded-full shadow-sm"
                 />
               </div>
