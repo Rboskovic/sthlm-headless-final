@@ -23,8 +23,9 @@ export function DesktopNav({
     return url;
   };
 
-  const handleMenuHover = (itemId: string) => {
-    setActiveMenu(itemId);
+  const handleMenuHover = (itemId: string, hasSubItems: boolean) => {
+    // Set activeMenu to itemId only if item has sub-items, otherwise clear it
+    setActiveMenu(hasSubItems ? itemId : null);
   };
 
   const handleMenuLeave = () => {
@@ -72,7 +73,7 @@ export function DesktopNav({
               <li
                 key={item.id}
                 className="relative flex items-center h-full"
-                onMouseEnter={() => hasSubItems && handleMenuHover(item.id)}
+                onMouseEnter={() => handleMenuHover(item.id, hasSubItems)}
               >
                 <Link
                   to={getUrl(item.url)}

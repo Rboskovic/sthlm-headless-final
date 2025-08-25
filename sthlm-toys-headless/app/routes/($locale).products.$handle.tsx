@@ -130,7 +130,7 @@ function parseWhyTheyLoveIt(metafieldValue: string | null | undefined): string[]
   
   // Split by comma and clean up whitespace
   return metafieldValue
-    .split(',')
+    .split(';')
     .map(item => item.trim())
     .filter(item => item.length > 0);
 }
