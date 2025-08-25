@@ -1936,6 +1936,45 @@ export type PredictiveSearchQuery = {
   }>;
 };
 
+export type SearchMobileCollectionFragment = Pick<
+  StorefrontAPI.Collection,
+  'id' | 'title' | 'handle'
+> & {
+  image?: StorefrontAPI.Maybe<
+    Pick<StorefrontAPI.Image, 'id' | 'url' | 'altText' | 'width' | 'height'>
+  >;
+  metafields: Array<
+    StorefrontAPI.Maybe<
+      Pick<StorefrontAPI.Metafield, 'key' | 'value' | 'namespace'>
+    >
+  >;
+};
+
+export type SearchMobileCollectionsQueryVariables = StorefrontAPI.Exact<{
+  country?: StorefrontAPI.InputMaybe<StorefrontAPI.CountryCode>;
+  language?: StorefrontAPI.InputMaybe<StorefrontAPI.LanguageCode>;
+}>;
+
+export type SearchMobileCollectionsQuery = {
+  collections: {
+    nodes: Array<
+      Pick<StorefrontAPI.Collection, 'id' | 'title' | 'handle'> & {
+        image?: StorefrontAPI.Maybe<
+          Pick<
+            StorefrontAPI.Image,
+            'id' | 'url' | 'altText' | 'width' | 'height'
+          >
+        >;
+        metafields: Array<
+          StorefrontAPI.Maybe<
+            Pick<StorefrontAPI.Metafield, 'key' | 'value' | 'namespace'>
+          >
+        >;
+      }
+    >;
+  };
+};
+
 export type StoreRobotsQueryVariables = StorefrontAPI.Exact<{
   country?: StorefrontAPI.InputMaybe<StorefrontAPI.CountryCode>;
   language?: StorefrontAPI.InputMaybe<StorefrontAPI.LanguageCode>;
@@ -1952,7 +1991,7 @@ interface GeneratedQueryTypes {
     return: FooterQuery;
     variables: FooterQueryVariables;
   };
-  '#graphql\n  query MobileMenuCollections($country: CountryCode, $language: LanguageCode)\n    @inContext(country: $country, language: $language) {\n    collections(first: 50, sortKey: TITLE) {\n      nodes {\n        ...MobileMenuCollection\n      }\n    }\n  }\n  #graphql\n  fragment MobileMenuCollection on Collection {\n    id\n    title\n    handle\n    image {\n      id\n      url\n      altText\n      width\n      height\n    }\n    metafields(identifiers: [\n      {namespace: "custom", key: "mobile_menu_featured"}\n    ]) {\n      key\n      value\n      namespace\n    }\n  }\n\n': {
+  '#graphql\n  query MobileMenuCollections($country: CountryCode, $language: LanguageCode)\n    @inContext(country: $country, language: $language) {\n    collections(first: 50, sortKey: TITLE) {\n      nodes {\n        ...MobileMenuCollection\n      }\n    }\n  }\n  #graphql\n  fragment MobileMenuCollection on Collection {\n    id\n    title\n    handle\n    image {\n      id\n      url\n      altText\n      width\n      height\n    }\n    metafields(identifiers: [\n      {namespace: "custom", key: "mobile_menu_featured"},\n      {namespace: "custom", key: "mobile_menu_image"}\n    ]) {\n      key\n      value\n      namespace\n    }\n  }\n\n': {
     return: MobileMenuCollectionsQuery;
     variables: MobileMenuCollectionsQueryVariables;
   };
@@ -2075,6 +2114,10 @@ interface GeneratedQueryTypes {
   '#graphql\n  query PredictiveSearch(\n    $country: CountryCode\n    $language: LanguageCode\n    $limit: Int!\n    $limitScope: PredictiveSearchLimitScope!\n    $term: String!\n    $types: [PredictiveSearchType!]\n  ) @inContext(country: $country, language: $language) {\n    predictiveSearch(\n      limit: $limit,\n      limitScope: $limitScope,\n      query: $term,\n      types: $types,\n    ) {\n      articles {\n        ...PredictiveArticle\n      }\n      collections {\n        ...PredictiveCollection\n      }\n      pages {\n        ...PredictivePage\n      }\n      products {\n        ...PredictiveProduct\n      }\n      queries {\n        ...PredictiveQuery\n      }\n    }\n  }\n  #graphql\n  fragment PredictiveArticle on Article {\n    __typename\n    id\n    title\n    handle\n    blog {\n      handle\n    }\n    image {\n      url\n      altText\n      width\n      height\n    }\n    trackingParameters\n  }\n\n  #graphql\n  fragment PredictiveCollection on Collection {\n    __typename\n    id\n    title\n    handle\n    image {\n      url\n      altText\n      width\n      height\n    }\n    trackingParameters\n  }\n\n  #graphql\n  fragment PredictivePage on Page {\n    __typename\n    id\n    title\n    handle\n    trackingParameters\n  }\n\n  #graphql\n  fragment PredictiveProduct on Product {\n    __typename\n    id\n    title\n    handle\n    trackingParameters\n    selectedOrFirstAvailableVariant(\n      selectedOptions: []\n      ignoreUnknownOptions: true\n      caseInsensitiveMatch: true\n    ) {\n      id\n      image {\n        url\n        altText\n        width\n        height\n      }\n      price {\n        amount\n        currencyCode\n      }\n    }\n  }\n\n  #graphql\n  fragment PredictiveQuery on SearchQuerySuggestion {\n    __typename\n    text\n    styledText\n    trackingParameters\n  }\n\n': {
     return: PredictiveSearchQuery;
     variables: PredictiveSearchQueryVariables;
+  };
+  '#graphql\n  query SearchMobileCollections($country: CountryCode, $language: LanguageCode)\n    @inContext(country: $country, language: $language) {\n    collections(first: 50, sortKey: TITLE) {\n      nodes {\n        ...SearchMobileCollection\n      }\n    }\n  }\n  #graphql\n  fragment SearchMobileCollection on Collection {\n    id\n    title\n    handle\n    image {\n      id\n      url\n      altText\n      width\n      height\n    }\n    metafields(identifiers: [\n      {namespace: "custom", key: "mobile_menu_featured"}\n    ]) {\n      key\n      value\n      namespace\n    }\n  }\n\n': {
+    return: SearchMobileCollectionsQuery;
+    variables: SearchMobileCollectionsQueryVariables;
   };
   '#graphql\n  query StoreRobots($country: CountryCode, $language: LanguageCode)\n   @inContext(country: $country, language: $language) {\n    shop {\n      id\n    }\n  }\n': {
     return: StoreRobotsQuery;

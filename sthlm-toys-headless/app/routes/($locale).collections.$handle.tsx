@@ -37,7 +37,7 @@ export async function loader({ context, request, params }: LoaderFunctionArgs) {
   const filters: any[] = [];
   
   // Debug: Log all search params
-  console.log('🐛 All search params:', Object.fromEntries(searchParams.entries()));
+  // console.log('🐛 All search params:', Object.fromEntries(searchParams.entries()));
   
   // ✅ FIXED: Parse each filter type individually and ensure they all get added
   const themes = searchParams.get('themes');
@@ -49,7 +49,7 @@ export async function loader({ context, request, params }: LoaderFunctionArgs) {
         value: themes
       }
     });
-    console.log('🐛 Added themes filter:', themes);
+    // console.log('🐛 Added themes filter:', themes);
   }
 
   const ageGroup = searchParams.get('age_group');
@@ -61,7 +61,7 @@ export async function loader({ context, request, params }: LoaderFunctionArgs) {
         value: ageGroup
       }
     });
-    console.log('🐛 Added age_group filter:', ageGroup);
+    // console.log('🐛 Added age_group filter:', ageGroup);
   }
 
   const pieceCount = searchParams.get('piece_count');
@@ -73,7 +73,7 @@ export async function loader({ context, request, params }: LoaderFunctionArgs) {
         value: pieceCount
       }
     });
-    console.log('🐛 Added piece_count filter:', pieceCount);
+    // console.log('🐛 Added piece_count filter:', pieceCount);
   }
 
   const priceRange = searchParams.get('price_range');
@@ -81,19 +81,19 @@ export async function loader({ context, request, params }: LoaderFunctionArgs) {
     switch (priceRange) {
       case 'under_220':
         filters.push({ price: { max: 220 } });
-        console.log('🐛 Added price filter: under 220');
+        // console.log('🐛 Added price filter: under 220');
         break;
       case '220_550':
         filters.push({ price: { min: 220, max: 550 } });
-        console.log('🐛 Added price filter: 220-550');
+        // console.log('🐛 Added price filter: 220-550');
         break;
       case '500_1000':
         filters.push({ price: { min: 500, max: 1000 } });
-        console.log('🐛 Added price filter: 500-1000');
+        // console.log('🐛 Added price filter: 500-1000');
         break;
       case 'over_1100':
         filters.push({ price: { min: 1100 } });
-        console.log('🐛 Added price filter: over 1100');
+        // console.log('🐛 Added price filter: over 1100');
         break;
     }
   }
@@ -102,16 +102,16 @@ export async function loader({ context, request, params }: LoaderFunctionArgs) {
   if (available) {
     if (available === 'true') {
       filters.push({ available: true });
-      console.log('🐛 Added availability filter: available only');
+      // console.log('🐛 Added availability filter: available only');
     } else if (available === 'false') {
       filters.push({ available: false });
-      console.log('🐛 Added availability filter: unavailable only');
+      // console.log('🐛 Added availability filter: unavailable only');
     }
   }
 
   // ✅ DEBUG: Log final filters array
-  console.log('🐛 Final filters array:', JSON.stringify(filters, null, 2));
-  console.log('🐛 Number of filters:', filters.length);
+  // console.log('🐛 Final filters array:', JSON.stringify(filters, null, 2));
+  // console.log('🐛 Number of filters:', filters.length);
 
   try {
     // Step 1: Get collection info
@@ -131,13 +131,13 @@ export async function loader({ context, request, params }: LoaderFunctionArgs) {
     });
 
     const totalProductCount = countResponse.collection?.products?.nodes?.length || 0;
-    console.log('🐛 Total product count (unfiltered):', totalProductCount);
+    // console.log('🐛 Total product count (unfiltered):', totalProductCount);
 
     // ✅ FIXED: Get filtered total count with same filters (only if filters exist)
     let filteredTotalCount = totalProductCount; // Default to total if no filters
 
     if (filters.length > 0) {
-      console.log('🐛 Getting filtered count with filters:', filters);
+      // console.log('🐛 Getting filtered count with filters:', filters);
       const filteredCountResponse = await storefront.query(COLLECTION_FILTERED_COUNT_QUERY, {
         variables: {
           handle,
@@ -148,11 +148,11 @@ export async function loader({ context, request, params }: LoaderFunctionArgs) {
       });
       
       filteredTotalCount = filteredCountResponse.collection?.products?.nodes?.length || 0;
-      console.log('🐛 Filtered total count:', filteredTotalCount);
+      // console.log('🐛 Filtered total count:', filteredTotalCount);
     }
 
     // Step 3: Get paginated filtered products with Shopify filtering
-    console.log('🐛 Getting paginated products with filters:', filters);
+    // console.log('🐛 Getting paginated products with filters:', filters);
     const productResponse = await storefront.query(COLLECTION_PRODUCTS_QUERY, {
       variables: {
         handle,
@@ -171,15 +171,15 @@ export async function loader({ context, request, params }: LoaderFunctionArgs) {
       filters: [] 
     };
 
-    console.log('🐛 Products loaded:', products.nodes?.length || 0);
-    console.log('🐛 Available Shopify filters:', products.filters?.length || 0);
+    // console.log('🐛 Products loaded:', products.nodes?.length || 0);
+    // console.log('🐛 Available Shopify filters:', products.filters?.length || 0);
 
     // ✅ DEBUG: Log actual product titles to verify filtering
-    if (products.nodes?.length > 0) {
-      console.log('🐛 First few product titles:', 
-        products.nodes.slice(0, 3).map((p: any) => p.title)
-      );
-    }
+    //if (products.nodes?.length > 0) {
+    // console.log('🐛 First few product titles:', 
+    //    products.nodes.slice(0, 3).map((p: any) => p.title)
+    //  );
+    // }
 
     return {
       collection,

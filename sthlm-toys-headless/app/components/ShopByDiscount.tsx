@@ -236,7 +236,7 @@ export function ShopByDiscount({
           const isFeatured = isTrueValue(featuredValue);
           
           // DEBUG: Log each collection for troubleshooting (can be disabled)
-          const DEBUG_LOGS = true; // Set to false to disable logs
+          const DEBUG_LOGS = false; // Set to false to disable logs
           if (DEBUG_LOGS) {
             console.log(`💰 Price Collection: ${discount.title}`, {
               metafields: discountWithMetafields.metafields,

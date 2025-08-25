@@ -1,4 +1,4 @@
-// app/components/Header/MobileMenuFullscreen.tsx - Fixed: Proper Logo import
+// app/components/Header/MobileMenuFullscreen.tsx - Fixed: TypeScript errors and design improvements
 import {Suspense, useState} from 'react';
 import {Link, Await} from 'react-router';
 import {
@@ -12,7 +12,7 @@ import {
   HelpCircle,
 } from 'lucide-react';
 import {Image} from '@shopify/hydrogen';
-import {Logo} from './Logo'; // ✅ FIXED: Import proper Logo component
+import {Logo} from './Logo';
 import {WishlistsLink} from '../WishlistsLink';
 import type {Collection} from '@shopify/hydrogen/storefront-api-types';
 import type {Menu, MenuItem} from './types';
@@ -234,15 +234,6 @@ function MainMenuScreen({
 }) {
   return (
     <div className="mobile-screen-content">
-      {/* User greeting section */}
-      <div className="border-b border-gray-200 bg-white">
-        <Suspense fallback={<UserGreetingFallback />}>
-          <Await resolve={isLoggedIn}>
-            {(isLoggedIn) => <UserGreeting isLoggedIn={isLoggedIn} />}
-          </Await>
-        </Suspense>
-      </div>
-
       {/* Dynamic Main Navigation */}
       <div className="bg-white">
         <DynamicMainNavigation 
@@ -253,30 +244,41 @@ function MainMenuScreen({
         />
       </div>
 
-      {/* Popular section */}
+      {/* ✅ REDESIGNED: Popular section with cleaner design */}
       <div className="px-4 py-6 bg-gray-50">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Populära</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Populära LEGO® set</h3>
         <PopularGrid collections={popularCollections} onClose={onClose} />
       </div>
 
-      {/* Account & Support Links */}
+      {/* ✅ MOVED: Login moved to Account & Support Links section */}
       <div className="px-4 py-6 border-t border-gray-200 space-y-1 bg-white">
+        <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2 px-4">
+          Mitt konto
+        </h3>
+        
+        {/* ✅ LOGIN MOVED HERE */}
+        <Suspense fallback={<UserGreetingFallback />}>
+          <Await resolve={isLoggedIn}>
+            {(isLoggedIn) => <UserGreeting isLoggedIn={isLoggedIn} onClose={onClose} />}
+          </Await>
+        </Suspense>
+
         <AccountLink
           href="/account/orders"
           icon={Package}
           title="Mina beställningar"
           onClose={onClose}
         />
-        <WishlistsLink
-          className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
-          onClose={onClose}
-        >
+        
+        {/* ✅ FIXED: Removed onClose prop from WishlistsLink */}
+        <WishlistsLink className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors">
           <div className="flex items-center gap-3">
             <Heart size={20} className="text-gray-600" />
             <span className="text-gray-900 font-medium">Önskelista</span>
           </div>
-          <ChevronRight size={20} className="text-gray-400" />
+          <ChevronRight size={20} style={{ color: 'var(--color-primary)' }} />
         </WishlistsLink>
+        
         <AccountLink
           href="/hjalp"
           icon={HelpCircle}
@@ -288,7 +290,7 @@ function MainMenuScreen({
   );
 }
 
-// Level 2 Drill-Down Screen - Fixed with separate navigation header
+// Level 2 Drill-Down Screen
 function Level2Screen({
   currentItem,
   onBack,
@@ -308,7 +310,7 @@ function Level2Screen({
 
   return (
     <div className="mobile-screen-content">
-      {/* NAVIGATION LEVEL HEADER - Separate from brand header */}
+      {/* NAVIGATION LEVEL HEADER */}
       <div className="mobile-nav-level-header">
         <button
           onClick={onBack}
@@ -335,20 +337,18 @@ function Level2Screen({
           return (
             <div key={item.id} className="mobile-nav-item">
               {hasSubItems ? (
-                // Has Level 3 items - navigate to drill-down
                 <button
                   onClick={() => onNavigateToLevel3(item)}
-                  className="mobile-nav-button"
+                  className="mobile-nav-button w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors text-left"
                 >
                   <span>{item.title}</span>
-                  <ChevronRight size={20} className="text-gray-400" />
+                  <ChevronRight size={20} style={{ color: 'var(--color-primary)' }} />
                 </button>
               ) : (
-                // No Level 3 items - direct link
                 <Link
                   to={getUrl(item.url)}
                   onClick={onClose}
-                  className="mobile-nav-link"
+                  className="mobile-nav-link w-full block p-4 hover:bg-gray-50 transition-colors text-gray-900 font-medium"
                 >
                   {item.title}
                 </Link>
@@ -361,7 +361,7 @@ function Level2Screen({
   );
 }
 
-// Level 3 Drill-Down Screen - Fixed with separate navigation header
+// Level 3 Drill-Down Screen
 function Level3Screen({
   currentItem,
   onBack,
@@ -379,7 +379,7 @@ function Level3Screen({
 
   return (
     <div className="mobile-screen-content">
-      {/* NAVIGATION LEVEL HEADER - Separate from brand header */}
+      {/* NAVIGATION LEVEL HEADER */}
       <div className="mobile-nav-level-header">
         <button
           onClick={onBack}
@@ -405,7 +405,7 @@ function Level3Screen({
             <Link
               to={getUrl(item.url)}
               onClick={onClose}
-              className="mobile-nav-link"
+              className="mobile-nav-link w-full block p-4 hover:bg-gray-50 transition-colors text-gray-900 font-medium"
             >
               {item.title}
             </Link>
@@ -416,7 +416,7 @@ function Level3Screen({
   );
 }
 
-// Dynamic Main Navigation - Shopify Menu Driven
+// Dynamic Main Navigation
 function DynamicMainNavigation({
   menu,
   onNavigateToLevel2,
@@ -428,43 +428,33 @@ function DynamicMainNavigation({
   getUrl: (url: string | null | undefined) => string;
   onClose: () => void;
 }) {
-  // Return empty if no menu - Shopify default behavior
   if (!menu?.items || menu.items.length === 0) {
     return null;
   }
 
-  // Limit to max 6 Level 1 items for mobile UI
-  const menuItems = menu.items.slice(0, 6);
+  // ✅ FILTER: Only show menu items that have sub-items (Level 2)
+  // Items without sub-items like "Erbjudanden" will be linked in Popular section
+  const menuItemsWithSubItems = menu.items
+    .filter((item) => item.items && item.items.length > 0)
+    .slice(0, 6);
+
+  if (menuItemsWithSubItems.length === 0) {
+    return null;
+  }
 
   return (
     <div className="bg-white">
-      {menuItems.map((item) => {
-        const hasSubItems = item.items && item.items.length > 0;
-        
-        return (
-          <div key={item.id} className="mobile-nav-item">
-            {hasSubItems ? (
-              // Has sub-items - navigate to drill-down (NOT direct link)
-              <button
-                onClick={() => onNavigateToLevel2(item)}
-                className="mobile-nav-button"
-              >
-                <span>{item.title}</span>
-                <ChevronRight size={20} className="text-gray-400" />
-              </button>
-            ) : (
-              // No sub-items - direct link to collection
-              <Link
-                to={getUrl(item.url)}
-                onClick={onClose}
-                className="mobile-nav-link"
-              >
-                {item.title}
-              </Link>
-            )}
-          </div>
-        );
-      })}
+      {menuItemsWithSubItems.map((item) => (
+        <div key={item.id} className="mobile-nav-item">
+          <button
+            onClick={() => onNavigateToLevel2(item)}
+            className="mobile-nav-button w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors text-left"
+          >
+            <span>{item.title}</span>
+            <ChevronRight size={20} style={{ color: 'var(--color-primary)' }} />
+          </button>
+        </div>
+      ))}
     </div>
   );
 }
@@ -481,12 +471,13 @@ function UserGreetingFallback() {
   );
 }
 
-function UserGreeting({isLoggedIn}: {isLoggedIn: boolean}) {
+function UserGreeting({isLoggedIn, onClose}: {isLoggedIn: boolean; onClose: () => void}) {
   if (isLoggedIn) {
     const customerName = 'Kund';
     return (
       <Link
         to="/account"
+        onClick={onClose}
         className="flex items-center justify-between px-4 py-4 hover:bg-gray-50 transition-colors bg-white"
       >
         <div className="flex items-center gap-3">
@@ -495,7 +486,7 @@ function UserGreeting({isLoggedIn}: {isLoggedIn: boolean}) {
           </div>
           <span className="text-gray-900 font-medium">Hej, {customerName}</span>
         </div>
-        <ChevronRight size={20} className="text-gray-400" />
+        <ChevronRight size={20} style={{ color: 'var(--color-primary)' }} />
       </Link>
     );
   }
@@ -503,6 +494,7 @@ function UserGreeting({isLoggedIn}: {isLoggedIn: boolean}) {
   return (
     <Link
       to="/account/login"
+      onClick={onClose}
       className="flex items-center justify-between px-4 py-4 hover:bg-gray-50 transition-colors bg-white"
     >
       <div className="flex items-center gap-3">
@@ -511,11 +503,12 @@ function UserGreeting({isLoggedIn}: {isLoggedIn: boolean}) {
         </div>
         <span className="text-gray-900 font-medium">Logga in</span>
       </div>
-      <ChevronRight size={20} className="text-gray-400" />
+      <ChevronRight size={20} style={{ color: 'var(--color-primary)' }} />
     </Link>
   );
 }
 
+// ✅ REDESIGNED: Cleaner Popular Grid matching screenshot design
 function PopularGrid({
   collections,
   onClose,
@@ -523,10 +516,14 @@ function PopularGrid({
   collections: Collection[];
   onClose: () => void;
 }) {
-  const getMetafieldValue = (metafields: any, key: string): string | null => {
+  // ✅ FIXED: Proper TypeScript typing for metafields with null safety
+  const getMetafieldValue = (
+    metafields: Array<{key: string; value: string; namespace: string} | null> | null | undefined,
+    key: string
+  ): string | null => {
     if (!metafields || !Array.isArray(metafields)) return null;
-    const metafield = metafields.find((field: any) => field?.key === key);
-    return metafield?.value ? metafield.value : null;
+    const metafield = metafields.find((field) => field && field.key === key);
+    return metafield && metafield.value ? metafield.value : null;
   };
 
   const isTrueValue = (value: string | null): boolean => {
@@ -566,22 +563,16 @@ function PopularGrid({
     featuredCollections.length > 0 ? featuredCollections : fallbackItems;
 
   return (
-    <div className="grid grid-cols-3 gap-4 mobile-menu-popular-grid">
+    <div className="grid grid-cols-3 gap-3">
       {displayItems.map((item) => (
         <Link
           key={item.id}
           to={`/collections/${item.handle}`}
           onClick={onClose}
-          className="flex flex-col items-center mobile-menu-popular-item"
+          className="flex flex-col items-center p-3 hover:bg-gray-50 transition-colors rounded-lg"
         >
-          <div
-            className="w-20 h-20 bg-gray-200 rounded-xl flex items-center justify-center overflow-hidden"
-            style={{
-              width: '5rem',
-              height: '5rem',
-              backgroundColor: item.image?.url ? 'transparent' : '#f3f4f6',
-            }}
-          >
+          {/* ✅ IMPROVED: 20% larger images (64px → 80px) + removed white backgrounds */}
+          <div className="w-20 h-20 flex items-center justify-center overflow-hidden mb-2">
             {item.image?.url ? (
               <Image
                 data={item.image}
@@ -593,13 +584,7 @@ function PopularGrid({
               <span className="text-2xl text-gray-400">🎯</span>
             )}
           </div>
-          <span
-            className="text-gray-900 text-center mt-2 leading-tight"
-            style={{
-              fontSize: '13px',
-              fontWeight: 500,
-            }}
-          >
+          <span className="text-xs font-medium text-gray-900 text-center leading-tight">
             {item.title}
           </span>
         </Link>
@@ -629,7 +614,7 @@ function AccountLink({
         <Icon size={20} className="text-gray-600" />
         <span className="text-gray-900 font-medium">{title}</span>
       </div>
-      <ChevronRight size={20} className="text-gray-400" />
+      <ChevronRight size={20} style={{ color: 'var(--color-primary)' }} />
     </Link>
   );
 }

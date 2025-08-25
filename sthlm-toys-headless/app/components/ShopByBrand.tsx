@@ -117,7 +117,7 @@ export function ShopByBrand({brands}: ShopByBrandProps) {
           const isFeatured = isTrueValue(featuredBrandValue);
           
           // DEBUG: Log each collection for troubleshooting (can be disabled)
-          const DEBUG_LOGS = true; // Set to false to disable logs
+          const DEBUG_LOGS = false; // Set to false to disable logs
           if (DEBUG_LOGS) {
             console.log(`🔍 Age Collection: ${brand.title}`, {
               metafields: brand.metafields,

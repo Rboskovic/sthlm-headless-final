@@ -21,7 +21,7 @@ export async function loader({request, context}: LoaderFunctionArgs) {
   const isPredictive = url.searchParams.has('predictive');
   
   // Get popular collections for empty state
-  const popularCollectionsPromise = context.storefront.query(MOBILE_MENU_COLLECTIONS_QUERY, {
+  const popularCollectionsPromise = context.storefront.query(SEARCH_MOBILE_COLLECTIONS_QUERY, {
     variables: {},
   });
   
@@ -553,9 +553,9 @@ const PREDICTIVE_SEARCH_QUERY = `#graphql
   ${PREDICTIVE_SEARCH_QUERY_FRAGMENT}
 ` as const;
 
-// Mobile menu collections query for popular categories
-const MOBILE_MENU_COLLECTION_FRAGMENT = `#graphql
-  fragment MobileMenuCollection on Collection {
+// ✅ FIXED: Renamed to avoid fragment conflict with fragments.ts
+const SEARCH_MOBILE_COLLECTION_FRAGMENT = `#graphql
+  fragment SearchMobileCollection on Collection {
     id
     title
     handle
@@ -576,14 +576,14 @@ const MOBILE_MENU_COLLECTION_FRAGMENT = `#graphql
   }
 ` as const;
 
-const MOBILE_MENU_COLLECTIONS_QUERY = `#graphql
-  query MobileMenuCollections($country: CountryCode, $language: LanguageCode)
+const SEARCH_MOBILE_COLLECTIONS_QUERY = `#graphql
+  query SearchMobileCollections($country: CountryCode, $language: LanguageCode)
     @inContext(country: $country, language: $language) {
     collections(first: 50, sortKey: TITLE) {
       nodes {
-        ...MobileMenuCollection
+        ...SearchMobileCollection
       }
     }
   }
-  ${MOBILE_MENU_COLLECTION_FRAGMENT}
+  ${SEARCH_MOBILE_COLLECTION_FRAGMENT}
 ` as const;

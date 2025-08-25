@@ -1,4 +1,4 @@
-// app/lib/fragments.ts - Fixed with mobile menu collections query
+// app/lib/fragments.ts - Fixed with mobile menu collections query + mobile images
 
 // Fragment for money fields
 const MONEY_FRAGMENT = `#graphql
@@ -191,7 +191,7 @@ export const FOOTER_QUERY = `#graphql
   ${MENU_FRAGMENT}
 ` as const;
 
-// MOBILE MENU COLLECTIONS QUERY - FIXED AND WORKING
+// ✅ UPDATED: MOBILE MENU COLLECTIONS QUERY - Now includes mobile_menu_image metafield
 const MOBILE_MENU_COLLECTION_FRAGMENT = `#graphql
   fragment MobileMenuCollection on Collection {
     id
@@ -205,7 +205,8 @@ const MOBILE_MENU_COLLECTION_FRAGMENT = `#graphql
       height
     }
     metafields(identifiers: [
-      {namespace: "custom", key: "mobile_menu_featured"}
+      {namespace: "custom", key: "mobile_menu_featured"},
+      {namespace: "custom", key: "mobile_menu_image"}
     ]) {
       key
       value
