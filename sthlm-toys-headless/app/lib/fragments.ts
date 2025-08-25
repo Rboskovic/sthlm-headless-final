@@ -191,7 +191,7 @@ export const FOOTER_QUERY = `#graphql
   ${MENU_FRAGMENT}
 ` as const;
 
-// ✅ UPDATED: MOBILE MENU COLLECTIONS QUERY - Now includes mobile_menu_image metafield
+// ✅ FIXED: MOBILE MENU COLLECTIONS QUERY - Increased limit and better sorting
 const MOBILE_MENU_COLLECTION_FRAGMENT = `#graphql
   fragment MobileMenuCollection on Collection {
     id
@@ -218,7 +218,7 @@ const MOBILE_MENU_COLLECTION_FRAGMENT = `#graphql
 export const MOBILE_MENU_COLLECTIONS_QUERY = `#graphql
   query MobileMenuCollections($country: CountryCode, $language: LanguageCode)
     @inContext(country: $country, language: $language) {
-    collections(first: 50, sortKey: TITLE) {
+    collections(first: 75, sortKey: UPDATED_AT, reverse: true) {
       nodes {
         ...MobileMenuCollection
       }

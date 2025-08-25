@@ -153,7 +153,7 @@ function CartEmpty({layout, popularCollections}: {layout: CartLayout; popularCol
 }
 
 /**
- * Popular Categories Grid Component - Exact copy from mobile menu for consistency
+ * Popular Categories Grid Component - ONLY UPDATED: Added mobile_menu_image support
  */
 function PopularCategoriesGrid({
   collections,
@@ -163,14 +163,13 @@ function PopularCategoriesGrid({
   onClose?: () => void;
 }) {
   // Helper functions from mobile menu
-  const getMetafieldValue = (metafields: any[], key: string) => {
-    const metafield = metafields?.find(
-      (field) =>
-        field?.namespace === 'custom' &&  // ✅ FIXED: Should be 'custom' not 'mobile_menu'
-        field?.key === key &&
-        field?.value
-    );
-    return metafield ? metafield.value : null;
+  const getMetafieldValue = (
+    metafields: Array<{key: string; value: string; namespace: string} | null> | null | undefined,
+    key: string
+  ): string | null => {
+    if (!metafields || !Array.isArray(metafields)) return null;
+    const metafield = metafields.find((field) => field && field.key === key);
+    return metafield && metafield.value ? metafield.value : null;
   };
 
   const isTrueValue = (value: string | null): boolean => {
@@ -178,6 +177,7 @@ function PopularCategoriesGrid({
     const normalizedValue = value.toLowerCase().trim();
     return (
       normalizedValue === 'true' ||
+      normalizedValue === 'True' ||
       normalizedValue === '1' ||
       normalizedValue === 'yes'
     );
@@ -213,38 +213,48 @@ function PopularCategoriesGrid({
 
   return (
     <div className="mobile-menu-popular-grid">
-      {displayItems.map((item) => (
-        <Link
-          key={item.id}
-          to={`/collections/${item.handle}`}
-          onClick={onClose}
-          className="mobile-menu-popular-item"
-        >
-          <div
-            className="w-20 h-20 bg-gray-200 rounded-xl flex items-center justify-center overflow-hidden mb-2"
-            style={{
-              width: '5rem',
-              height: '5rem',
-              backgroundColor: item.image?.url ? 'transparent' : '#f3f4f6',
-            }}
+      {displayItems.map((item) => {
+        // ✅ ONLY CHANGE: Added mobile_menu_image support
+        const customImageUrl = 'metafields' in item ? getMetafieldValue(
+          item.metafields,
+          'mobile_menu_image'
+        ) : null;
+        
+        const imageUrl = customImageUrl || item.image?.url;
+
+        return (
+          <Link
+            key={item.id}
+            to={`/collections/${item.handle}`}
+            onClick={onClose}
+            className="mobile-menu-popular-item"
           >
-            {item.image?.url ? (
-              <img
-                src={item.image.url}
-                alt={item.title}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <span className="text-gray-500 font-medium text-xs text-center px-1 leading-tight">
-                {item.title}
-              </span>
-            )}
-          </div>
-          <span className="text-xs font-medium text-gray-900 leading-tight text-center block">
-            {item.title}
-          </span>
-        </Link>
-      ))}
+            <div
+              className="w-20 h-20 bg-gray-200 rounded-xl flex items-center justify-center overflow-hidden mb-2"
+              style={{
+                width: '5rem',
+                height: '5rem',
+                backgroundColor: imageUrl ? 'transparent' : '#f3f4f6',
+              }}
+            >
+              {imageUrl ? (
+                <img
+                  src={imageUrl}
+                  alt={item.title}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="text-gray-500 font-medium text-xs text-center px-1 leading-tight">
+                  {item.title}
+                </span>
+              )}
+            </div>
+            <span className="text-xs font-medium text-gray-900 leading-tight text-center block">
+              {item.title}
+            </span>
+          </Link>
+        );
+      })}
     </div>
   );
 }

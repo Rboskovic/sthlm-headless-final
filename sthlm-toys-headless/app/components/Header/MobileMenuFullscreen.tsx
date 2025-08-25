@@ -235,42 +235,28 @@ function MainMenuScreen({
   return (
     <div className="mobile-screen-content">
       {/* Dynamic Main Navigation */}
-      <div className="bg-white">
-        <DynamicMainNavigation 
-          menu={menu}
-          onNavigateToLevel2={onNavigateToLevel2}
-          getUrl={getUrl}
-          onClose={onClose}
-        />
-      </div>
+      <DynamicMainNavigation
+        menu={menu}
+        onNavigateToLevel2={onNavigateToLevel2}
+        getUrl={getUrl}
+        onClose={onClose}
+      />
 
-      {/* ✅ REDESIGNED: Popular section with cleaner design */}
-      <div className="px-4 py-6 bg-gray-50">
+      {/* Popular Categories section */}
+      <div className="bg-gray-50 px-4 py-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Populära LEGO® set</h3>
         <PopularGrid collections={popularCollections} onClose={onClose} />
       </div>
 
-      {/* ✅ MOVED: Login moved to Account & Support Links section */}
-      <div className="px-4 py-6 border-t border-gray-200 space-y-1 bg-white">
-        <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2 px-4">
-          Mitt konto
-        </h3>
-        
-        {/* ✅ LOGIN MOVED HERE */}
+      {/* Account Links - At bottom with LOGIN FIRST */}
+      <div className="border-t border-gray-200 bg-white">
+        {/* ✅ LOGIN MOVED TO FOOTER AS FIRST ITEM */}
         <Suspense fallback={<UserGreetingFallback />}>
           <Await resolve={isLoggedIn}>
             {(isLoggedIn) => <UserGreeting isLoggedIn={isLoggedIn} onClose={onClose} />}
           </Await>
         </Suspense>
 
-        <AccountLink
-          href="/account/orders"
-          icon={Package}
-          title="Mina beställningar"
-          onClose={onClose}
-        />
-        
-        {/* ✅ FIXED: Removed onClose prop from WishlistsLink */}
         <WishlistsLink className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors">
           <div className="flex items-center gap-3">
             <Heart size={20} className="text-gray-600" />
@@ -278,9 +264,15 @@ function MainMenuScreen({
           </div>
           <ChevronRight size={20} style={{ color: 'var(--color-primary)' }} />
         </WishlistsLink>
-        
+
         <AccountLink
-          href="/hjalp"
+          href="/account/orders"
+          icon={Package}
+          title="Mina beställningar"
+          onClose={onClose}
+        />
+        <AccountLink
+          href="/pages/kundservice"
           icon={HelpCircle}
           title="Kundservice"
           onClose={onClose}
@@ -508,7 +500,7 @@ function UserGreeting({isLoggedIn, onClose}: {isLoggedIn: boolean; onClose: () =
   );
 }
 
-// ✅ REDESIGNED: Cleaner Popular Grid matching screenshot design
+// ✅ PRODUCTION-READY: PopularGrid with mobile_menu_image support (debug removed)
 function PopularGrid({
   collections,
   onClose,
@@ -516,7 +508,6 @@ function PopularGrid({
   collections: Collection[];
   onClose: () => void;
 }) {
-  // ✅ FIXED: Proper TypeScript typing for metafields with null safety
   const getMetafieldValue = (
     metafields: Array<{key: string; value: string; namespace: string} | null> | null | undefined,
     key: string
@@ -531,6 +522,7 @@ function PopularGrid({
     const normalizedValue = value.toLowerCase().trim();
     return (
       normalizedValue === 'true' ||
+      normalizedValue === 'True' ||
       normalizedValue === '1' ||
       normalizedValue === 'yes'
     );
@@ -544,8 +536,9 @@ function PopularGrid({
           'mobile_menu_featured',
         );
         return isTrueValue(featuredValue);
-      })
-      ?.slice(0, 9) || [];
+      }) || [];
+  
+  const finalFeaturedCollections = featuredCollections.slice(0, 9);
 
   const fallbackItems = [
     {id: 'deals', title: 'Erbjudanden', image: null, handle: 'deals'},
@@ -560,35 +553,49 @@ function PopularGrid({
   ];
 
   const displayItems =
-    featuredCollections.length > 0 ? featuredCollections : fallbackItems;
+    finalFeaturedCollections.length > 0 ? finalFeaturedCollections : fallbackItems;
 
   return (
-    <div className="grid grid-cols-3 gap-3">
-      {displayItems.map((item) => (
-        <Link
-          key={item.id}
-          to={`/collections/${item.handle}`}
-          onClick={onClose}
-          className="flex flex-col items-center p-3 hover:bg-gray-50 transition-colors rounded-lg"
-        >
-          {/* ✅ IMPROVED: 20% larger images (64px → 80px) + removed white backgrounds */}
-          <div className="w-20 h-20 flex items-center justify-center overflow-hidden mb-2">
-            {item.image?.url ? (
-              <Image
-                data={item.image}
-                sizes="80px"
-                className="w-full h-full object-cover rounded-xl"
-                loading="lazy"
-              />
-            ) : (
-              <span className="text-2xl text-gray-400">🎯</span>
-            )}
-          </div>
-          <span className="text-xs font-medium text-gray-900 text-center leading-tight">
-            {item.title}
-          </span>
-        </Link>
-      ))}
+    <div className="grid grid-cols-3 gap-1 px-1">
+      {displayItems.map((item) => {
+        // ✅ TYPESCRIPT FIX: Check if item has metafields (is a Collection vs fallback item)
+        const customImageUrl = 'metafields' in item ? getMetafieldValue(
+          item.metafields,
+          'mobile_menu_image'
+        ) : null;
+        
+        const imageUrl = customImageUrl || item.image?.url;
+
+        return (
+          <Link
+            key={item.id}
+            to={`/collections/${item.handle}`}
+            onClick={onClose}
+            className="flex flex-col items-center text-center"
+          >
+            <div className="w-full aspect-[3/2] flex items-center justify-center overflow-hidden mb-1 bg-gray-50 rounded-lg max-w-[140px] mx-auto">
+              {imageUrl ? (
+                <Image
+                  data={{
+                    url: imageUrl,
+                    altText: item.title,
+                    width: 160,
+                    height: 107,
+                  }}
+                  sizes="(max-width: 380px) 110px, (max-width: 500px) 130px, 140px"
+                  className="w-full h-full object-contain rounded-lg"
+                  loading="lazy"
+                />
+              ) : (
+                <span className="text-2xl text-gray-400">🎯</span>
+              )}
+            </div>
+            <span className="text-xs font-medium text-gray-900 text-center leading-tight px-1 max-w-[140px]">
+              {item.title}
+            </span>
+          </Link>
+        );
+      })}
     </div>
   );
 }
