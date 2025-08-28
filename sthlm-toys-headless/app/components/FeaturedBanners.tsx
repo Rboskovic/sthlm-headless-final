@@ -1,3 +1,7 @@
+// FILE: app/components/FeaturedBanners.tsx
+// ✅ SHOPIFY HYDROGEN STANDARDS: Featured banner component
+// ✅ FIXED: Removed white background on desktop, using object-contain for full image visibility
+
 import {Link} from 'react-router';
 import {Image} from '@shopify/hydrogen';
 import type {CollectionFragment} from 'storefrontapi.generated';
@@ -72,27 +76,17 @@ export function FeaturedBanners({collections}: FeaturedBannersProps) {
 
   // Use Shopify banners or fallback
   const displayBanners = featuredBanners.length > 0 ? featuredBanners : fallbackBanners;
+  
+  // Return null if no banners
+  if (displayBanners.length === 0) return null;
 
   return (
-    <section className="w-full bg-white">
-      {/* Container matching other sections */}
-      <div
-        className="mx-auto relative"
-        style={{
-          width: '1272px',
-          maxWidth: '100%',
-          paddingLeft: '12px',
-          paddingRight: '12px',
-          paddingTop: '2px', // Reduced from 32px to bring closer to age section
-          paddingBottom: '8px',
-        }}
-      >
+    <section className="w-full bg-white py-6 md:py-8">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
         {/* Desktop Layout */}
         <div className="hidden md:block">
-          {/* REMOVED: Header with title - no title anymore for closer spacing */}
-
-          {/* Desktop Grid - 2 columns for banners */}
-          <div className="grid grid-cols-2 gap-6">
+          {/* Desktop Grid */}
+          <div className="grid grid-cols-2 gap-4">
             {displayBanners.slice(0, 2).map((banner) => (
               <Link
                 key={banner.id}
@@ -100,24 +94,21 @@ export function FeaturedBanners({collections}: FeaturedBannersProps) {
                 className="group block"
               >
                 <div
-                  className="relative overflow-hidden group-hover:shadow-lg transition-shadow duration-200"
+                  className="relative overflow-hidden rounded-2xl group-hover:shadow-lg transition-shadow duration-200"
                   style={{
-                    height: '280px',
-                    borderRadius: '12px',
+                    height: '400px',
                   }}
                 >
-                  {/* Banner Image */}
+                  {/* Banner Image - ✅ FIXED: Using object-contain for full image visibility */}
                   {banner.image?.url ? (
                     <>
                       <Image
                         data={banner.image}
                         alt={banner.image.altText || banner.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
                         sizes="(min-width: 768px) 50vw, 100vw"
                         loading="lazy"
                       />
-                      {/* TEMPORARILY REMOVED: Dark overlay for debugging */}
-                      {/* <div className="absolute inset-0 bg-black bg-opacity-30" /> */}
                     </>
                   ) : (
                     /* Fallback colored background */
@@ -131,18 +122,19 @@ export function FeaturedBanners({collections}: FeaturedBannersProps) {
                     </>
                   )}
 
-                  {/* Content overlay */}
+                  {/* Content overlay - ✅ FIXED: Removed white background, using text shadow only */}
                   <div className="absolute inset-0 flex flex-col justify-end p-6">
                     <div className="text-left">
                       {/* Collection Title */}
                       <h3
-                        className="text-black font-bold mb-2 bg-white bg-opacity-90 px-2 py-1 rounded"
+                        className="text-white font-bold mb-2"
                         style={{
                           fontSize: '28px',
                           fontWeight: 700,
                           lineHeight: '32px',
                           fontFamily:
                             "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                          textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
                         }}
                       >
                         {banner.title}
@@ -151,7 +143,7 @@ export function FeaturedBanners({collections}: FeaturedBannersProps) {
                       {/* Collection Description */}
                       {banner.description && (
                         <p
-                          className="text-black mb-8 bg-white bg-opacity-90 px-2 py-1 rounded"
+                          className="text-white mb-8"
                           style={{
                             fontSize: '16px',
                             fontWeight: 400,
@@ -159,6 +151,7 @@ export function FeaturedBanners({collections}: FeaturedBannersProps) {
                             fontFamily:
                               "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
                             marginBottom: '32px',
+                            textShadow: '1px 1px 3px rgba(0,0,0,0.8)',
                           }}
                           dangerouslySetInnerHTML={{ 
                             __html: typeof banner.description === 'string' 
@@ -190,8 +183,6 @@ export function FeaturedBanners({collections}: FeaturedBannersProps) {
 
         {/* Mobile Layout */}
         <div className="block md:hidden">
-          {/* REMOVED: Mobile Title - no title anymore */}
-
           {/* Mobile Stack */}
           <div className="space-y-4">
             {displayBanners.slice(0, 2).map((banner) => (
@@ -201,24 +192,21 @@ export function FeaturedBanners({collections}: FeaturedBannersProps) {
                 className="group block"
               >
                 <div
-                  className="relative overflow-hidden group-hover:shadow-lg transition-shadow duration-200"
+                  className="relative overflow-hidden rounded-xl group-hover:shadow-lg transition-shadow duration-200"
                   style={{
-                    height: '200px',
-                    borderRadius: '12px',
+                    height: '250px',
                   }}
                 >
-                  {/* Banner Image */}
+                  {/* Banner Image - ✅ FIXED: Mobile also uses object-contain */}
                   {banner.image?.url ? (
                     <>
                       <Image
                         data={banner.image}
                         alt={banner.image.altText || banner.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
                         sizes="100vw"
                         loading="lazy"
                       />
-                      {/* TEMPORARILY REMOVED: Dark overlay for debugging */}
-                      {/* <div className="absolute inset-0 bg-black bg-opacity-30" /> */}
                     </>
                   ) : (
                     /* Fallback colored background */

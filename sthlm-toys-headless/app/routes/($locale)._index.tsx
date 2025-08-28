@@ -228,127 +228,106 @@ function SmythsStyleProductSection({
 }) {
   const [currentPage, setCurrentPage] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
+
+  const productsPerPageDesktop = 4;
+  const productsPerPageMobile = 4;
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  const productsPerPage = isMobile ? productsPerPageMobile : productsPerPageDesktop;
   
-  const productsPerPage = 4;
   const totalPages = Math.ceil(products.length / productsPerPage);
-  const hasMultiplePages = totalPages > 1;
-  
   const currentProducts = products.slice(
-    currentPage * productsPerPage, 
+    currentPage * productsPerPage,
     (currentPage + 1) * productsPerPage
   );
 
-  const goToPage = (pageIndex: number) => {
-    if (isAnimating || pageIndex === currentPage) return;
+  const hasMultiplePages = totalPages > 1;
+
+  const changePage = (newPage: number) => {
+    if (newPage === currentPage || isAnimating) return;
     
     setIsAnimating(true);
     
-    // Use setTimeout to ensure smooth transition
     setTimeout(() => {
-      setCurrentPage(pageIndex);
-      setTimeout(() => setIsAnimating(false), 50);
-    }, 200);
+      setCurrentPage(newPage);
+      
+      setTimeout(() => {
+        setIsAnimating(false);
+      }, 100);
+    }, 150);
   };
 
   const nextPage = () => {
-    if (currentPage < totalPages - 1) {
-      goToPage(currentPage + 1);
-    }
+    const next = currentPage + 1 >= totalPages ? 0 : currentPage + 1;
+    changePage(next);
   };
 
   const prevPage = () => {
-    if (currentPage > 0) {
-      goToPage(currentPage - 1);
-    }
+    const prev = currentPage - 1 < 0 ? totalPages - 1 : currentPage - 1;
+    changePage(prev);
   };
 
   return (
-    <section>
-      <div
-        className="mx-auto relative"
-        style={{
-          width: '1272px',
-          maxWidth: '100%',
-          paddingLeft: '12px',
-          paddingRight: '12px',
-          paddingTop: '32px',
-          paddingBottom: '16px',
-        }}
-      >
+    <section className="w-full bg-white">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Desktop Layout */}
         <div className="hidden md:block">
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex-1">
-              <h2
-                className="text-black font-semibold"
-                style={{
-                  fontSize: '36px',
-                  fontWeight: 600,
-                  lineHeight: '42px',
-                  fontFamily: "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                  color: 'rgb(33, 36, 39)',
-                  textAlign: 'center',
-                }}
-              >
-                {title}
-              </h2>
-            </div>
-            
-            {/* Desktop Arrow Navigation */}
+          <div className="flex justify-between items-center mb-6">
+            <h2
+              className="text-black font-semibold"
+              style={{
+                fontSize: '28px',
+                fontWeight: 600,
+                lineHeight: '32px',
+                fontFamily: "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                color: 'rgb(33, 36, 39)',
+              }}
+            >
+              {title}
+            </h2>
+
             {hasMultiplePages && (
               <div className="flex items-center gap-2">
                 <button
                   onClick={prevPage}
                   disabled={currentPage === 0}
-                  className={`p-3 rounded-full border-2 transition-all duration-300 transform hover:scale-105 ${
+                  className={`p-2 rounded-full transition-all duration-300 ${
                     currentPage === 0 
-                      ? 'border-gray-200 text-gray-400 cursor-not-allowed' 
-                      : 'border-gray-300 text-gray-600 hover:border-blue-500 hover:text-blue-600 hover:bg-blue-50'
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                      : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 hover:shadow-md'
                   }`}
+                  aria-label="Previous products"
                 >
-                  <ChevronLeft className="w-5 h-5" />
+                  <ChevronLeft size={20} />
                 </button>
-                <span className="text-sm text-gray-500 mx-3 font-medium">
-                  {currentPage + 1} / {totalPages}
-                </span>
+
                 <button
                   onClick={nextPage}
                   disabled={currentPage === totalPages - 1}
-                  className={`p-3 rounded-full border-2 transition-all duration-300 transform hover:scale-105 ${
+                  className={`p-2 rounded-full transition-all duration-300 ${
                     currentPage === totalPages - 1
-                      ? 'border-gray-200 text-gray-400 cursor-not-allowed'
-                      : 'border-gray-300 text-gray-600 hover:border-blue-500 hover:text-blue-600 hover:bg-blue-50'
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                      : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 hover:shadow-md'
                   }`}
+                  aria-label="Next products"
                 >
-                  <ChevronRight className="w-5 h-5" />
+                  <ChevronRight size={20} />
                 </button>
               </div>
             )}
           </div>
           
-          {/* Product Grid with Crossfade Animation */}
+          {/* Desktop Product Grid with Crossfade */}
           <div 
             className={`grid grid-cols-4 gap-6 transition-opacity duration-300 ${
               isAnimating ? 'opacity-50' : 'opacity-100'
             }`}
           >
             {currentProducts.map((product, index) => (
-              <div key={`${product.id}-${currentPage}`} className="relative">
-                <ProductItem
-                  product={product}
-                  loading={index < 4 ? 'eager' : 'lazy'}
-                />
-                
-                {/* Custom labels positioned on product card - no duplicates */}
-                <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
-                  {/* Added days ago label for new products */}
-                  {showAddedLabels && (
-                    <div className="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded-full w-fit">
-                      {getDaysAgo(product.updatedAt || new Date().toISOString())}
-                    </div>
-                  )}
-                </div>
-              </div>
+              <ProductItem
+                key={`${product.id}-${currentPage}`}
+                product={product}
+                loading={index < 4 ? 'eager' : 'lazy'}
+              />
             ))}
           </div>
         </div>
@@ -377,21 +356,11 @@ function SmythsStyleProductSection({
             }`}
           >
             {currentProducts.map((product, index) => (
-              <div key={`${product.id}-${currentPage}-mobile`} className="relative">
-                <ProductItem
-                  product={product}
-                  loading={index < 4 ? 'eager' : 'lazy'}
-                />
-                
-                {/* Mobile custom labels */}
-                <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
-                  {showAddedLabels && (
-                    <div className="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded-full w-fit">
-                      {getDaysAgo(product.updatedAt || new Date().toISOString())}
-                    </div>
-                  )}
-                </div>
-              </div>
+              <ProductItem
+                key={`${product.id}-${currentPage}-mobile`}
+                product={product}
+                loading={index < 4 ? 'eager' : 'lazy'}
+              />
             ))}
           </div>
 
@@ -403,27 +372,40 @@ function SmythsStyleProductSection({
                 disabled={currentPage === 0}
                 className={`p-2 rounded-full transition-all duration-300 ${
                   currentPage === 0 
-                    ? 'text-gray-400 cursor-not-allowed' 
-                    : 'text-gray-600 hover:bg-gray-100'
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                    : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
                 }`}
+                aria-label="Previous products"
               >
-                <ChevronLeft className="w-5 h-5" />
+                <ChevronLeft size={20} />
               </button>
-              
-              <span className="text-sm text-gray-500 font-medium">
-                {currentPage + 1} / {totalPages}
-              </span>
-              
+
+              <div className="flex gap-2">
+                {[...Array(totalPages)].map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => changePage(index)}
+                    className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                      currentPage === index 
+                        ? 'bg-gray-900 w-6' 
+                        : 'bg-gray-400 hover:bg-gray-600'
+                    }`}
+                    aria-label={`Page ${index + 1}`}
+                  />
+                ))}
+              </div>
+
               <button
                 onClick={nextPage}
                 disabled={currentPage === totalPages - 1}
                 className={`p-2 rounded-full transition-all duration-300 ${
-                  currentPage === totalPages - 1
-                    ? 'text-gray-400 cursor-not-allowed'
-                    : 'text-gray-600 hover:bg-gray-100'
+                  currentPage === totalPages - 1 
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                    : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
                 }`}
+                aria-label="Next products"
               >
-                <ChevronRight className="w-5 h-5" />
+                <ChevronRight size={20} />
               </button>
             </div>
           )}
@@ -433,213 +415,105 @@ function SmythsStyleProductSection({
   );
 }
 
-// Recommended Products Section with show more button
-function RecommendedProductsSection({ products, title }: { products: ProductFragment[]; title: string }) {
-  const [showCount, setShowCount] = useState(4);
+// Recommended Products Section with inline show more
+function RecommendedProductsSection({ 
+  products, 
+  title 
+}: { 
+  products: ProductFragment[]; 
+  title: string; 
+}) {
+  const [displayCount, setDisplayCount] = useState(8);
   
-  const canShowMore = products.length > showCount;
-  const displayProducts = products.slice(0, showCount);
-
   const showMore = () => {
-    setShowCount(prev => Math.min(prev + 4, products.length));
+    setDisplayCount(prev => Math.min(prev + 8, products.length));
   };
+  
+  const currentProducts = products.slice(0, displayCount);
+  const hasMore = displayCount < products.length;
 
   return (
-    <section>
-      <div
-        className="mx-auto relative"
-        style={{
-          width: '1272px',
-          maxWidth: '100%',
-          paddingLeft: '12px',
-          paddingRight: '12px',
-          paddingTop: '32px',
-          paddingBottom: '16px',
-        }}
-      >
-        {/* Desktop Layout */}
-        <div className="hidden md:block">
-          <div className="flex items-center justify-center mb-8">
-            <h2
-              className="text-black font-semibold"
-              style={{
-                fontSize: '36px',
-                fontWeight: 600,
-                lineHeight: '42px',
-                fontFamily: "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                color: 'rgb(33, 36, 39)',
-                textAlign: 'center',
-              }}
-            >
-              {title}
-            </h2>
-          </div>
-          
-          <div className="grid grid-cols-4 gap-6">
-            {displayProducts.map((product, index) => (
-              <ProductItem
-                key={product.id}
-                product={product}
-                loading={index < 4 ? 'eager' : 'lazy'}
-              />
-            ))}
-          </div>
-
-          {/* Show More Button - Desktop */}
-          {canShowMore && (
-            <div className="text-center mt-8">
-              <button
-                onClick={showMore}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-8 rounded-xl transition-colors duration-200"
-              >
-                Visa fler produkter
-              </button>
-            </div>
-          )}
+    <section className="w-full bg-gray-50">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="text-center mb-8">
+          <h2
+            className="text-black font-semibold mb-2"
+            style={{
+              fontSize: '32px',
+              fontWeight: 600,
+              lineHeight: '36px',
+              fontFamily: "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+              color: 'rgb(33, 36, 39)',
+            }}
+          >
+            {title}
+          </h2>
+          <p className="text-gray-600 text-lg">
+            Handplockade favoriter bara för dig
+          </p>
         </div>
 
-        {/* Mobile Layout */}
-        <div className="block md:hidden">
-          <div className="text-center mb-6">
-            <h2
-              className="text-black font-semibold"
+        {/* Desktop Grid */}
+        <div className="hidden md:grid md:grid-cols-4 gap-6">
+          {currentProducts.map((product, index) => (
+            <ProductItem
+              key={product.id}
+              product={product}
+              loading={index < 4 ? 'eager' : 'lazy'}
+            />
+          ))}
+        </div>
+
+        {/* Mobile Grid */}
+        <div className="grid grid-cols-2 gap-4 md:hidden">
+          {currentProducts.slice(0, Math.min(displayCount, 4)).map((product, index) => (
+            <ProductItem
+              key={product.id}
+              product={product}
+              loading={index < 2 ? 'eager' : 'lazy'}
+            />
+          ))}
+        </div>
+
+        {/* Show More Button - Inline loading */}
+        {hasMore && (
+          <div className="text-center mt-8">
+            <button
+              onClick={showMore}
+              className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-8 rounded-full transition-colors duration-200 shadow-md hover:shadow-lg"
               style={{
-                fontSize: '24px',
-                fontWeight: 600,
-                lineHeight: '28px',
+                fontSize: '16px',
+                fontWeight: 500,
                 fontFamily: "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                color: 'rgb(33, 36, 39)',
+                color: 'white',
               }}
             >
-              {title}
-            </h2>
+              Visa fler produkter
+            </button>
           </div>
-          
-          <div className="grid grid-cols-2 gap-4">
-            {displayProducts.map((product, index) => (
-              <ProductItem
-                key={product.id}
-                product={product}
-                loading={index < 4 ? 'eager' : 'lazy'}
-              />
-            ))}
-          </div>
-
-          {/* Show More Button - Mobile */}
-          {canShowMore && (
-            <div className="text-center mt-6">
-              <button
-                onClick={showMore}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-xl transition-colors duration-200"
-              >
-                Visa fler produkter
-              </button>
-            </div>
-          )}
-        </div>
+        )}
       </div>
     </section>
   );
 }
 
-// Inline Skeleton Component
+// Product Section Skeleton
 function ProductSectionSkeleton({ title }: { title: string }) {
   return (
-    <section>
-      <div
-        className="mx-auto relative"
-        style={{
-          width: '1272px',
-          maxWidth: '100%',
-          paddingLeft: '12px',
-          paddingRight: '12px',
-          paddingTop: '32px',
-          paddingBottom: '16px',
-        }}
-      >
-        <div className="hidden md:block">
-          <div className="flex items-center justify-center mb-8">
-            <div className="h-10 w-64 bg-gray-200 rounded animate-pulse"></div>
-          </div>
-          <div className="grid grid-cols-4 gap-6">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="bg-white border border-gray-200 rounded-2xl p-6">
-                <div className="aspect-square bg-gray-200 rounded-xl mb-4 animate-pulse"></div>
-                <div className="h-4 bg-gray-200 rounded mb-2 animate-pulse"></div>
-                <div className="h-3 bg-gray-200 rounded w-3/4 mb-4 animate-pulse"></div>
-                <div className="h-6 bg-gray-200 rounded mb-4 animate-pulse"></div>
-                <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
-              </div>
-            ))}
-          </div>
-        </div>
-        
-        <div className="block md:hidden">
-          <div className="h-8 w-48 bg-gray-200 rounded mx-auto mb-6 animate-pulse"></div>
-          <div className="grid grid-cols-2 gap-4">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-                <div className="w-full aspect-square bg-gray-200 animate-pulse"></div>
-                <div className="p-4">
-                  <div className="h-4 bg-gray-200 rounded mb-2 animate-pulse"></div>
-                  <div className="h-3 bg-gray-200 rounded w-3/4 mb-2 animate-pulse"></div>
-                  <div className="h-5 bg-gray-200 rounded mb-2 animate-pulse"></div>
-                  <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
-                </div>
-              </div>
-            ))}
-          </div>
+    <section className="w-full bg-white">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <h2 className="text-2xl font-semibold mb-6 text-gray-900">{title}</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="bg-gray-200 rounded-lg h-80 animate-pulse" />
+          ))}
         </div>
       </div>
     </section>
   );
 }
 
-// Updated New Products Query
-const NEW_PRODUCTS_QUERY = `#graphql
-  fragment NewProduct on Product {
-    id
-    title
-    handle
-    vendor
-    updatedAt
-    priceRange {
-      minVariantPrice {
-        amount
-        currencyCode
-      }
-    }
-    featuredImage {
-      id
-      url
-      altText
-      width
-      height
-    }
-    selectedOrFirstAvailableVariant(selectedOptions: [], ignoreUnknownOptions: true, caseInsensitiveMatch: true) {
-      id
-      availableForSale
-      price {
-        amount
-        currencyCode
-      }
-      compareAtPrice {
-        amount
-        currencyCode
-      }
-    }
-  }
-  query NewProducts($country: CountryCode, $language: LanguageCode, $first: Int = 12)
-    @inContext(country: $country, language: $language) {
-    products(first: $first, sortKey: UPDATED_AT, reverse: true) {
-      nodes {
-        ...NewProduct
-      }
-    }
-  }
-` as const;
-
-// All other existing queries remain the same
+// Queries
 const TOP_CATEGORIES_QUERY = `#graphql
   fragment TopCategory on Collection {
     id
@@ -689,12 +563,12 @@ const SHOP_BY_BRAND_QUERY = `#graphql
       height
     }
     metafields(identifiers: [
-      {namespace: "custom", key: "featured-brand"},
       {namespace: "custom", key: "featured_brand"},
-      {namespace: "app", key: "featured-brand"},
+      {namespace: "custom", key: "featured-brand"},
       {namespace: "app", key: "featured_brand"},
-      {namespace: "custom", key: "sort_order"},
-      {namespace: "app", key: "sort_order"}
+      {namespace: "app", key: "featured-brand"},
+      {namespace: "app", key: "sort_order"},
+      {namespace: "custom", key: "sort_order"}
     ]) {
       id
       key
@@ -725,10 +599,10 @@ const SHOP_BY_DISCOUNT_QUERY = `#graphql
       height
     }
     metafields(identifiers: [
-      {namespace: "custom", key: "featured-discount"},
       {namespace: "custom", key: "featured_discount"},
-      {namespace: "app", key: "featured-discount"},
+      {namespace: "custom", key: "featured-discount"},
       {namespace: "app", key: "featured_discount"},
+      {namespace: "app", key: "featured-discount"},
       {namespace: "custom", key: "sort_order"},
       {namespace: "app", key: "sort_order"}
     ]) {
@@ -799,6 +673,57 @@ const HERO_BANNER_QUERY = `#graphql
         key
         value
         namespace
+      }
+    }
+  }
+` as const;
+
+const NEW_PRODUCTS_QUERY = `#graphql
+  query NewProducts($first: Int = 12) {
+    products(first: $first, sortKey: CREATED_AT, reverse: true) {
+      nodes {
+        id
+        title
+        handle
+        vendor
+        updatedAt
+        featuredImage {
+          id
+          url
+          altText
+          width
+          height
+        }
+        priceRange {
+          minVariantPrice {
+            amount
+            currencyCode
+          }
+        }
+        compareAtPriceRange {
+          minVariantPrice {
+            amount
+            currencyCode
+          }
+        }
+        selectedOrFirstAvailableVariant(selectedOptions: []) {
+          id
+          availableForSale
+          price {
+            amount
+            currencyCode
+          }
+          compareAtPrice {
+            amount
+            currencyCode
+          }
+          image {
+            url
+            altText
+            width
+            height
+          }
+        }
       }
     }
   }
