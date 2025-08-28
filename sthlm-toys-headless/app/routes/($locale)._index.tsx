@@ -146,13 +146,14 @@ export default function Homepage() {
         </Await>
       </Suspense>
 
-      {/* ✅ 2. Shop By Brand/Age (Shoppa efter tema) - Keep as is */}
-      <ShopByBrand brands={data.shopByBrandData} />
+      {/* ✅ 2. Shop By Age (Handla efter ålder) - MOVED UP */}
+      <TopCategories collections={data.topCategories} />
 
       {/* ✅ 3. Featured Banners - Keep as is */}
       <FeaturedBanners collections={data.featuredBanners} />
 
-      {/* ✅ 4. Sale Products Section - Smyths-style arrows */}
+      {/* ✅ 4. REA PRODUKTER SECTION - TURNED OFF */}
+      {/* 
       <Suspense fallback={<ProductSectionSkeleton title="Rea Produkter" />}>
         <Await resolve={data.homepageProducts}>
           {(response) => {
@@ -171,12 +172,13 @@ export default function Homepage() {
           }}
         </Await>
       </Suspense>
+      */}
 
       {/* ✅ 5. Shop By Discount (Handla efter pris) */}
       <ShopByDiscount discounts={data.shopByDiscountData as any} />
 
-      {/* ✅ 6. Shop By Age (Handla efter ålder) - TopCategories moved here */}
-      <TopCategories collections={data.topCategories} />
+      {/* ✅ 6. Shop By Brand/Theme (Shoppa efter tema) - MOVED DOWN */}
+      <ShopByBrand brands={data.shopByBrandData} />
 
       {/* ✅ 7. Recommended Products Section - Keep button style */}
       <Suspense fallback={<ProductSectionSkeleton title="Rekommenderade produkter" />}>
@@ -214,7 +216,7 @@ function getDaysAgo(updatedAt: string): string {
   return `${Math.floor(diffDays / 30)} månader sedan`;
 }
 
-// Smyths-Style Product Section with arrow navigation
+// Smyths-Style Product Section with proper crossfade animation
 function SmythsStyleProductSection({ 
   products, 
   title, 
@@ -240,10 +242,12 @@ function SmythsStyleProductSection({
     if (isAnimating || pageIndex === currentPage) return;
     
     setIsAnimating(true);
-    setCurrentPage(pageIndex);
     
-    // Reset animation after transition
-    setTimeout(() => setIsAnimating(false), 300);
+    // Use setTimeout to ensure smooth transition
+    setTimeout(() => {
+      setCurrentPage(pageIndex);
+      setTimeout(() => setIsAnimating(false), 50);
+    }, 200);
   };
 
   const nextPage = () => {
@@ -296,24 +300,24 @@ function SmythsStyleProductSection({
                 <button
                   onClick={prevPage}
                   disabled={currentPage === 0}
-                  className={`p-2 rounded-full border transition-all duration-200 ${
+                  className={`p-3 rounded-full border-2 transition-all duration-300 transform hover:scale-105 ${
                     currentPage === 0 
                       ? 'border-gray-200 text-gray-400 cursor-not-allowed' 
-                      : 'border-gray-300 text-gray-600 hover:border-blue-500 hover:text-blue-600'
+                      : 'border-gray-300 text-gray-600 hover:border-blue-500 hover:text-blue-600 hover:bg-blue-50'
                   }`}
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </button>
-                <span className="text-sm text-gray-500 mx-2">
+                <span className="text-sm text-gray-500 mx-3 font-medium">
                   {currentPage + 1} / {totalPages}
                 </span>
                 <button
                   onClick={nextPage}
                   disabled={currentPage === totalPages - 1}
-                  className={`p-2 rounded-full border transition-all duration-200 ${
+                  className={`p-3 rounded-full border-2 transition-all duration-300 transform hover:scale-105 ${
                     currentPage === totalPages - 1
                       ? 'border-gray-200 text-gray-400 cursor-not-allowed'
-                      : 'border-gray-300 text-gray-600 hover:border-blue-500 hover:text-blue-600'
+                      : 'border-gray-300 text-gray-600 hover:border-blue-500 hover:text-blue-600 hover:bg-blue-50'
                   }`}
                 >
                   <ChevronRight className="w-5 h-5" />
@@ -322,10 +326,10 @@ function SmythsStyleProductSection({
             )}
           </div>
           
-          {/* Product Grid with Animation */}
+          {/* Product Grid with Crossfade Animation */}
           <div 
-            className={`grid grid-cols-4 gap-6 transition-all duration-300 ${
-              isAnimating ? 'opacity-0 transform translate-x-4' : 'opacity-100 transform translate-x-0'
+            className={`grid grid-cols-4 gap-6 transition-opacity duration-300 ${
+              isAnimating ? 'opacity-50' : 'opacity-100'
             }`}
           >
             {currentProducts.map((product, index) => (
@@ -334,12 +338,16 @@ function SmythsStyleProductSection({
                   product={product}
                   loading={index < 4 ? 'eager' : 'lazy'}
                 />
-                {/* Added days ago label for new products */}
-                {showAddedLabels && (
-                  <div className="absolute top-2 left-2 bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded-full">
-                    {getDaysAgo(product.updatedAt || new Date().toISOString())}
-                  </div>
-                )}
+                
+                {/* Custom labels positioned on product card - no duplicates */}
+                <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
+                  {/* Added days ago label for new products */}
+                  {showAddedLabels && (
+                    <div className="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded-full w-fit">
+                      {getDaysAgo(product.updatedAt || new Date().toISOString())}
+                    </div>
+                  )}
+                </div>
               </div>
             ))}
           </div>
@@ -362,10 +370,10 @@ function SmythsStyleProductSection({
             </h2>
           </div>
           
-          {/* Mobile Product Grid */}
+          {/* Mobile Product Grid with Crossfade */}
           <div 
-            className={`grid grid-cols-2 gap-4 transition-all duration-300 ${
-              isAnimating ? 'opacity-0' : 'opacity-100'
+            className={`grid grid-cols-2 gap-4 transition-opacity duration-300 ${
+              isAnimating ? 'opacity-50' : 'opacity-100'
             }`}
           >
             {currentProducts.map((product, index) => (
@@ -374,11 +382,15 @@ function SmythsStyleProductSection({
                   product={product}
                   loading={index < 4 ? 'eager' : 'lazy'}
                 />
-                {showAddedLabels && (
-                  <div className="absolute top-2 left-2 bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded-full">
-                    {getDaysAgo(product.updatedAt || new Date().toISOString())}
-                  </div>
-                )}
+                
+                {/* Mobile custom labels */}
+                <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
+                  {showAddedLabels && (
+                    <div className="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded-full w-fit">
+                      {getDaysAgo(product.updatedAt || new Date().toISOString())}
+                    </div>
+                  )}
+                </div>
               </div>
             ))}
           </div>
@@ -389,26 +401,26 @@ function SmythsStyleProductSection({
               <button
                 onClick={prevPage}
                 disabled={currentPage === 0}
-                className={`p-2 rounded-full ${
+                className={`p-2 rounded-full transition-all duration-300 ${
                   currentPage === 0 
                     ? 'text-gray-400 cursor-not-allowed' 
-                    : 'text-gray-600'
+                    : 'text-gray-600 hover:bg-gray-100'
                 }`}
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
               
-              <span className="text-sm text-gray-500">
+              <span className="text-sm text-gray-500 font-medium">
                 {currentPage + 1} / {totalPages}
               </span>
               
               <button
                 onClick={nextPage}
                 disabled={currentPage === totalPages - 1}
-                className={`p-2 rounded-full ${
+                className={`p-2 rounded-full transition-all duration-300 ${
                   currentPage === totalPages - 1
                     ? 'text-gray-400 cursor-not-allowed'
-                    : 'text-gray-600'
+                    : 'text-gray-600 hover:bg-gray-100'
                 }`}
               >
                 <ChevronRight className="w-5 h-5" />
