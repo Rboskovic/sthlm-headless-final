@@ -1,32 +1,59 @@
 // FILE: app/routes/($locale).account_.logout.tsx
-// ✅ FIXED: Enhanced logout with proper redirect
+// ✅ FIXED: Complete logout route with proper session handling
 
 import {redirect, type ActionFunctionArgs, type LoaderFunctionArgs} from '@shopify/remix-oxygen';
 
-// Redirect anyone who visits /account/logout directly
+// Handle GET requests - redirect anyone who visits /account/logout directly
 export async function loader() {
-  return redirect('/');
+  return redirect('/', {
+    headers: {
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+    },
+  });
 }
 
+// Handle POST requests - actual logout action
 export async function action({context}: ActionFunctionArgs) {
+  const {customerAccount, session} = context;
+  
   try {
-    // Call Shopify's logout
-    const logoutResponse = await context.customerAccount.logout();
+    // Call Shopify's logout method
+    const logoutResponse = await customerAccount.logout();
     
-    // If logout returns a response, use it (might include redirect)
-    if (logoutResponse) {
+    // Clear any local session data
+    session.unset('customerId');
+    session.unset('customerAccessToken');
+    
+    // If logout returns a response (redirect), use it
+    if (logoutResponse instanceof Response) {
       return logoutResponse;
     }
     
-    // Otherwise, manually redirect to home
+    // Otherwise, redirect to home with cleared session
     return redirect('/', {
       headers: {
-        'Set-Cookie': await context.session.commit(),
+        'Set-Cookie': await session.commit(),
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
       },
     });
+    
   } catch (error) {
-    // If logout fails for any reason, still redirect home
     console.error('Logout error:', error);
-    return redirect('/');
+    
+    // Even if logout fails, clear session and redirect
+    try {
+      session.unset('customerId');
+      session.unset('customerAccessToken');
+      
+      return redirect('/', {
+        headers: {
+          'Set-Cookie': await session.commit(),
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+        },
+      });
+    } catch (sessionError) {
+      console.error('Session cleanup error:', sessionError);
+      return redirect('/');
+    }
   }
 }
