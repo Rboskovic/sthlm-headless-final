@@ -25,42 +25,42 @@ export function CartSummary({cart, layout}: CartSummaryProps) {
       {/* Rabatter */}
       <CartDiscounts discountCodes={cart.discountCodes} />
 
-      {/* Sammanställning (Price Breakdown) - Compact Design */}
-      <div className="border-t border-gray-200 pt-3 space-y-2">
-        <h3 className="text-base font-semibold text-gray-900 mb-2">Sammanställning</h3>
+      {/* Sammanställning (Price Breakdown) - Modern Design */}
+      <div className="bg-gray-50 rounded-xl border border-gray-100 p-4 space-y-3">
+        <h3 className="text-lg font-semibold text-gray-900 mb-3">Sammanställning</h3>
         
-        {/* Compact breakdown items */}
-        <div className="space-y-1 text-sm">
+        {/* Modern breakdown items */}
+        <div className="space-y-2 text-sm">
           {/* Delsumma (Subtotal without VAT) */}
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center py-1">
             <span className="text-gray-600">Delsumma:</span>
-            <span className="text-gray-900 font-medium">
+            <span className="text-gray-900 font-semibold">
               {Math.round(subtotalExclVAT)} kr
             </span>
           </div>
 
           {/* Moms (VAT 25%) */}
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center py-1">
             <span className="text-gray-600">Moms (25%):</span>
-            <span className="text-gray-900 font-medium">
+            <span className="text-gray-900 font-semibold">
               {Math.round(vatAmount)} kr
             </span>
           </div>
 
           {/* Frakt */}
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center py-1">
             <span className="text-gray-600">Frakt:</span>
-            <span className="text-gray-600 text-xs">beräknas i kassan</span>
+            <span className="text-gray-500 text-xs font-medium">beräknas i kassan</span>
           </div>
         </div>
 
-        {/* Divider */}
-        <hr className="border-gray-200 my-2" />
+        {/* Modern divider */}
+        <div className="border-t border-gray-200 my-3"></div>
 
-        {/* Totalt att betala - Compact */}
-        <div className="flex justify-between items-center py-1">
-          <span className="text-base font-semibold text-gray-900">Totalt att betala:</span>
-          <span className="text-base font-semibold text-gray-900">
+        {/* Totalt att betala - Modern styling */}
+        <div className="flex justify-between items-center py-2 bg-white rounded-lg px-3 border border-gray-100">
+          <span className="text-lg font-bold text-gray-900">Totalt att betala:</span>
+          <span className="text-lg font-bold text-blue-600">
             {cart.cost?.totalAmount?.amount ? (
               <Money data={cart.cost.totalAmount} />
             ) : (
@@ -69,8 +69,8 @@ export function CartSummary({cart, layout}: CartSummaryProps) {
           </span>
         </div>
         
-        {/* Disclaimer - Compact */}
-        <p className="text-xs text-gray-500 leading-tight mt-1">
+        {/* Disclaimer - Modern styling */}
+        <p className="text-xs text-gray-500 text-center bg-gray-100 rounded-lg px-3 py-2 leading-relaxed">
           (Alla priser visas inkl. moms. Rabatter och frakt beräknas i kassan.)
         </p>
       </div>

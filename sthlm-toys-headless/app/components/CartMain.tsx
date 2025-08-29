@@ -1,5 +1,5 @@
 // FILE: app/components/CartMain.tsx
-// ✅ FINAL: Fixed collections, spacing, and mobile menu styling match
+// ✅ FIXED: Cart summary always visible + proper scrolling for products
 
 import {useOptimisticCart} from '@shopify/hydrogen';
 import {Link} from 'react-router';
@@ -38,18 +38,19 @@ export function CartMain({layout, cart: originalCart, popularCollections}: CartM
       ) : (
         <>
           {layout === 'aside' ? (
-            // Aside-layout - matchande skärmbilder
+            // ✅ FIXED: Aside-layout with forced height structure
             <>
-              {/* Kundvagnsartiklar - Rullbar */}
-              <div className="flex-1 overflow-y-auto cart-items-container">
-                <div className="py-2">
-                  {/* Produkter och Total-header - På samma rad */}
-                  <div className="mb-4 flex justify-between items-center">
-                    <h3 className="text-sm font-medium text-gray-900">Produkter</h3>
-                    <span className="text-sm font-medium text-gray-900">Total</span>
-                  </div>
+              {/* Header - Fixed */}
+              <div className="px-4 py-3 border-b border-gray-200">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-sm font-medium text-gray-900">Produkter</h3>
+                  <span className="text-sm font-medium text-gray-900">Total</span>
+                </div>
+              </div>
 
-                  {/* Kundvagnens artikellista */}
+              {/* ✅ FIXED: Products with better height constraint */}
+              <div className="flex-1 overflow-y-auto" style={{maxHeight: 'calc(100vh - 320px)'}}>
+                <div className="px-4 py-2">
                   <div className="space-y-0">
                     {(cart?.lines?.nodes ?? []).map((line, index) => (
                       <CartLineItem
@@ -62,13 +63,13 @@ export function CartMain({layout, cart: originalCart, popularCollections}: CartM
                 </div>
               </div>
 
-              {/* Kundvagnssammanfattning - Fast längst ner */}
-              <div className="cart-summary-container">
+              {/* ✅ FIXED: Modern styled summary with more space */}
+              <div className="border-t border-gray-100 bg-white px-4 py-5 shadow-lg">
                 <CartSummary cart={cart} layout={layout} />
               </div>
             </>
           ) : (
-            // Sidlayout
+            // Sidlayout - no changes needed
             <div className="lg:grid lg:grid-cols-12 lg:gap-x-12 lg:items-start">
               <section className="lg:col-span-7">
                 {/* Kundvagnshuvud */}

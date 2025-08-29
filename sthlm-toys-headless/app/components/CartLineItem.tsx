@@ -1,5 +1,5 @@
 // FILE: app/components/CartLineItem.tsx
-// ✅ FINAL: Swedish translation with larger product cards
+// ✅ FIXED: Images show full product (object-contain) instead of cropped
 
 import type {CartLineUpdateInput} from '@shopify/hydrogen/storefront-api-types';
 import type {CartLayout} from '~/components/CartMain';
@@ -30,7 +30,7 @@ export function CartLineItem({
 
   return (
     <div className="flex items-start gap-4 py-6 border-b border-gray-100 last:border-b-0">
-      {/* Produktbild - Större */}
+      {/* ✅ FIXED: Produktbild - Shows full image instead of cropped */}
       <div className="flex-shrink-0">
         <Link
           to={lineItemUrl}
@@ -48,7 +48,7 @@ export function CartLineItem({
               height={120}
               width={120}
               loading="lazy"
-              className="rounded-lg object-cover bg-gray-50 border border-gray-100"
+              className="rounded-lg object-contain bg-gray-50 border border-gray-100 p-2"
             />
           )}
         </Link>
