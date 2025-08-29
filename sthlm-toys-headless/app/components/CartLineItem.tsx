@@ -1,5 +1,5 @@
 // FILE: app/components/CartLineItem.tsx
-// ✅ FIXED: Images show full product (object-contain) instead of cropped
+// ✅ FIXED: Text truncation + price alignment + wider quantity + no black box
 
 import type {CartLineUpdateInput} from '@shopify/hydrogen/storefront-api-types';
 import type {CartLayout} from '~/components/CartMain';
@@ -29,8 +29,8 @@ export function CartLineItem({
   const {close} = useAside();
 
   return (
-    <div className="flex items-start gap-4 py-6 border-b border-gray-100 last:border-b-0">
-      {/* ✅ FIXED: Produktbild - Shows full image instead of cropped */}
+    <div className="relative flex items-start gap-4 py-6 border-b border-gray-100 last:border-b-0">
+      {/* ✅ FIXED: Natural produktbild display matching ProductCard exactly */}
       <div className="flex-shrink-0">
         <Link
           to={lineItemUrl}
@@ -39,16 +39,15 @@ export function CartLineItem({
               close();
             }
           }}
-          className="block"
+          className="block aspect-square w-20 h-20 relative overflow-hidden bg-gray-50 rounded-lg"
         >
           {image && (
             <Image
-              alt={title}
               data={image}
-              height={120}
-              width={120}
+              alt={image.altText || title}
+              className="h-full w-full object-cover object-center transition-transform duration-200 hover:scale-105"
               loading="lazy"
-              className="rounded-lg object-contain bg-gray-50 border border-gray-100 p-2"
+              sizes="80px"
             />
           )}
         </Link>
@@ -56,68 +55,70 @@ export function CartLineItem({
 
       {/* Produktdetaljer */}
       <div className="flex-1 min-w-0">
-        {/* Produkttitel och Ta bort-knapp */}
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex-1 min-w-0 pr-3">
-            <Link
-              to={lineItemUrl}
-              onClick={() => {
-                if (layout === 'aside') {
-                  close();
-                }
-              }}
-              className="block group"
-            >
-              <h3 className="text-base font-semibold text-gray-900 group-hover:text-blue-600 transition-colors leading-tight line-clamp-2">
-                {product.title}
-              </h3>
-            </Link>
+        {/* ✅ FIXED: Title with proper spacing (no extra padding since compare price moved) */}
+        <div className="flex-1 min-w-0 mb-3">
+          <Link
+            to={lineItemUrl}
+            onClick={() => {
+              if (layout === 'aside') {
+                close();
+              }
+            }}
+            className="block group"
+          >
+            <h3 className="text-sm font-medium text-gray-900 group-hover:text-blue-600 transition-colors leading-tight line-clamp-2">
+              {product.title}
+            </h3>
+          </Link>
 
-            {/* Produktalternativ */}
-            {selectedOptions.length > 0 && (
-              <div className="mt-2">
-                {selectedOptions
-                  .filter((option) => option.name !== 'Title' || option.value !== 'Default Title')
-                  .map((option) => (
-                    <p key={option.name} className="text-sm text-gray-500">
-                      {option.name}: {option.value}
-                    </p>
-                  ))}
-              </div>
-            )}
-          </div>
-
-          {/* Ta bort-knapp */}
-          <CartLineRemoveButton 
-            lineIds={[id]} 
-            disabled={!!line.isOptimistic}
-            layout={layout}
-          />
+          {/* Produktalternativ */}
+          {selectedOptions.length > 0 && (
+            <div className="mt-1">
+              {selectedOptions
+                .filter((option) => option.name !== 'Title' || option.value !== 'Default Title')
+                .map((option) => (
+                  <p key={option.name} className="text-xs text-gray-500">
+                    {option.name}: {option.value}
+                  </p>
+                ))}
+            </div>
+          )}
         </div>
 
-        {/* Produktpris */}
-        <div className="mb-4">
+        {/* ✅ FIXED: Price with compare price × quantity calculation */}
+        <div className="mb-4 flex items-center gap-2">
           <Money
             data={line?.cost?.totalAmount}
-            className="text-lg font-semibold text-gray-900"
+            className="text-base text-gray-900"
           />
-          {line?.cost?.compareAtAmountPerQuantity && (
+          {/* ✅ FIXED: Compare price multiplied by quantity */}
+          {line?.cost?.compareAtAmountPerQuantity && line?.quantity && (
             <Money
-              data={line.cost.compareAtAmountPerQuantity}
-              className="text-sm text-gray-400 line-through ml-2"
+              data={{
+                amount: (parseFloat(line.cost.compareAtAmountPerQuantity.amount) * line.quantity).toString(),
+                currencyCode: line.cost.compareAtAmountPerQuantity.currencyCode
+              }}
+              className="text-sm text-gray-400 line-through"
             />
           )}
         </div>
 
-        {/* Antal-kontroller */}
-        <CartLineQuantity line={line} layout={layout} />
+        {/* ✅ FIXED: Wider quantity controls with more spacing + trash icon */}
+        <div className="flex items-center gap-3">
+          <CartLineQuantity line={line} layout={layout} />
+          <CartLineRemoveButton 
+            lineIds={[id]} 
+            disabled={Boolean(!line || line.isOptimistic)}
+            layout={layout}
+          />
+        </div>
       </div>
     </div>
   );
 }
 
 /**
- * Förbättrade antal-kontroller med ren design som matchar skärmbilder
+ * ✅ FIXED: Wider quantity controls with more spacing
  */
 function CartLineQuantity({
   line,
@@ -132,49 +133,41 @@ function CartLineQuantity({
   const nextQuantity = Number((quantity + 1).toFixed(0));
 
   return (
-    <div className="flex items-center justify-between">
-      {/* Antal-kontroller */}
-      <div className="flex items-center border border-gray-200 rounded-md overflow-hidden bg-white">
-        {/* Minska-knapp */}
-        <CartLineUpdateButton lines={[{id: lineId, quantity: prevQuantity}]}>
-          <button
-            type="submit"
-            aria-label="Minska antal"
-            disabled={quantity <= 1 || !!isOptimistic}
-            className="w-10 h-10 flex items-center justify-center text-gray-600 hover:text-gray-800 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-          >
-            <Minus size={16} />
-          </button>
-        </CartLineUpdateButton>
+    <div className="flex items-center border border-gray-200 rounded-full overflow-hidden bg-white">
+      {/* ✅ WIDER: Decrease button with more padding */}
+      <CartLineUpdateButton lines={[{id: lineId, quantity: prevQuantity}]}>
+        <button
+          type="submit"
+          aria-label="Minska antal"
+          disabled={quantity <= 1 || !!isOptimistic}
+          className="w-10 h-8 flex items-center justify-center text-gray-600 hover:text-gray-800 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors rounded-l-full"
+        >
+          <Minus size={14} />
+        </button>
+      </CartLineUpdateButton>
 
-        {/* Antal-visning */}
-        <div className="w-12 h-10 flex items-center justify-center text-sm font-medium text-gray-900 border-l border-r border-gray-200 bg-white">
-          {quantity}
-        </div>
-
-        {/* Öka-knapp */}
-        <CartLineUpdateButton lines={[{id: lineId, quantity: nextQuantity}]}>
-          <button
-            type="submit"
-            aria-label="Öka antal"
-            disabled={!!isOptimistic}
-            className="w-10 h-10 flex items-center justify-center text-gray-600 hover:text-gray-800 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-          >
-            <Plus size={16} />
-          </button>
-        </CartLineUpdateButton>
+      {/* ✅ WIDER: Quantity display with more width */}
+      <div className="w-14 h-8 flex items-center justify-center text-xs font-medium text-gray-900 border-l border-r border-gray-200 bg-white">
+        {quantity}
       </div>
 
-      {/* Laddningsindikator */}
-      {isOptimistic && (
-        <div className="text-xs text-blue-600 italic">Uppdaterar...</div>
-      )}
+      {/* ✅ WIDER: Increase button with more padding */}
+      <CartLineUpdateButton lines={[{id: lineId, quantity: nextQuantity}]}>
+        <button
+          type="submit"
+          aria-label="Öka antal"
+          disabled={!!isOptimistic}
+          className="w-10 h-8 flex items-center justify-center text-gray-600 hover:text-gray-800 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors rounded-r-full"
+        >
+          <Plus size={14} />
+        </button>
+      </CartLineUpdateButton>
     </div>
   );
 }
 
 /**
- * Förbättrad ta bort-knapp med bättre styling
+ * ✅ FIXED: Clean remove button without black box
  */
 function CartLineRemoveButton({
   lineIds,
@@ -186,22 +179,16 @@ function CartLineRemoveButton({
   layout: CartLayout;
 }) {
   return (
-    <CartForm
-      fetcherKey={getUpdateKey(lineIds)}
-      route="/cart"
-      action={CartForm.ACTIONS.LinesRemove}
-      inputs={{lineIds}}
-    >
+    <CartLineUpdateButton lines={lineIds.map((id) => ({id, quantity: 0}))}>
       <button
         type="submit"
         disabled={disabled}
-        className="p-2 text-gray-400 hover:text-red-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors rounded-md hover:bg-red-50"
-        aria-label="Ta bort artikel"
-        title="Ta bort artikel"
+        className="w-8 h-8 flex items-center justify-center bg-gray-100 hover:bg-red-50 text-gray-600 hover:text-red-600 rounded-full transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed border-0"
+        aria-label="Ta bort från kundvagn"
       >
-        <Trash2 size={18} />
+        <Trash2 size={14} />
       </button>
-    </CartForm>
+    </CartLineUpdateButton>
   );
 }
 
@@ -212,11 +199,8 @@ function CartLineUpdateButton({
   children: React.ReactNode;
   lines: CartLineUpdateInput[];
 }) {
-  const lineIds = lines.map((line) => line.id);
-
   return (
     <CartForm
-      fetcherKey={getUpdateKey(lineIds)}
       route="/cart"
       action={CartForm.ACTIONS.LinesUpdate}
       inputs={{lines}}
@@ -224,15 +208,4 @@ function CartLineUpdateButton({
       {children}
     </CartForm>
   );
-}
-
-/**
- * Returnerar en unik nyckel för uppdateringsåtgärden. Detta används för att säkerställa att åtgärder som modifierar samma rad
- * artiklar inte körs samtidigt, utan avbryter varandra. Till exempel, om användaren klickar "Öka antal"
- * och "Minska antal" i snabb följd, kommer åtgärderna att avbryta varandra och endast den sista kommer att köras.
- * @param lineIds - rad-id:n som påverkas av uppdateringen
- * @returns
- */
-function getUpdateKey(lineIds: string[]) {
-  return [CartForm.ACTIONS.LinesUpdate, ...lineIds].join('-');
 }

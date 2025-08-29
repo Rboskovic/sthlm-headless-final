@@ -1,5 +1,5 @@
 // FILE: app/components/CartMain.tsx
-// ✅ FIXED: Cart summary always visible + proper scrolling for products
+// ✅ UPDATED: Unbold header + Fixed checkout area at bottom
 
 import {useOptimisticCart} from '@shopify/hydrogen';
 import {Link} from 'react-router';
@@ -38,19 +38,11 @@ export function CartMain({layout, cart: originalCart, popularCollections}: CartM
       ) : (
         <>
           {layout === 'aside' ? (
-            // ✅ FIXED: Aside-layout with forced height structure
+            // ✅ UPDATED: Fixed checkout area structure
             <>
-              {/* Header - Fixed */}
-              <div className="px-4 py-3 border-b border-gray-200">
-                <div className="flex justify-between items-center">
-                  <h3 className="text-sm font-medium text-gray-900">Produkter</h3>
-                  <span className="text-sm font-medium text-gray-900">Total</span>
-                </div>
-              </div>
-
-              {/* ✅ FIXED: Products with better height constraint */}
-              <div className="flex-1 overflow-y-auto" style={{maxHeight: 'calc(100vh - 320px)'}}>
-                <div className="px-4 py-2">
+              {/* ✅ FIXED: Products area with minimal bottom padding to prevent cutoff */}
+              <div className="flex-1 overflow-y-auto" style={{maxHeight: 'calc(100vh - 280px)'}}>
+                <div className="px-4 py-2 pb-20">
                   <div className="space-y-0">
                     {(cart?.lines?.nodes ?? []).map((line, index) => (
                       <CartLineItem
@@ -63,13 +55,13 @@ export function CartMain({layout, cart: originalCart, popularCollections}: CartM
                 </div>
               </div>
 
-              {/* ✅ FIXED: Modern styled summary with more space */}
-              <div className="border-t border-gray-100 bg-white px-4 py-5 shadow-lg">
+              {/* ✅ FIXED: Checkout area ALWAYS fixed at bottom - like ToysRUs */}
+              <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-4 shadow-lg z-50" style={{width: 'var(--aside-width)'}}>
                 <CartSummary cart={cart} layout={layout} />
               </div>
             </>
           ) : (
-            // Sidlayout - no changes needed
+            // Sidlayout - no changes needed (but you said you don't have this)
             <div className="lg:grid lg:grid-cols-12 lg:gap-x-12 lg:items-start">
               <section className="lg:col-span-7">
                 {/* Kundvagnshuvud */}
@@ -126,7 +118,7 @@ function CartEmpty({layout, popularCollections}: {layout: CartLayout; popularCol
           Det verkar som att du inte har lagt till några artiklar i din kundvagn än. Börja handla för att fylla den!
         </p>
 
-        {/* Continue Shopping Button - FIXED: Added mt-6 for top spacing */}
+        {/* Continue Shopping Button */}
         <Link
           to="/collections/toys"
           onClick={layout === 'aside' ? close : undefined}
@@ -137,13 +129,12 @@ function CartEmpty({layout, popularCollections}: {layout: CartLayout; popularCol
         </Link>
       </div>
 
-      {/* Popular Categories Section - Consistent spacing */}
+      {/* Popular Categories Section */}
       <div className="px-6 pb-6">
         <div className="mb-4">
           <h4 className="text-base font-medium text-gray-900 text-center">Populära</h4>
         </div>
         
-        {/* Popular Categories Grid - Exact mobile menu styling */}
         <PopularCategoriesGrid 
           collections={popularCollections} 
           onClose={layout === 'aside' ? close : undefined}
@@ -154,7 +145,7 @@ function CartEmpty({layout, popularCollections}: {layout: CartLayout; popularCol
 }
 
 /**
- * Popular Categories Grid Component - ONLY UPDATED: Added mobile_menu_image support
+ * Popular Categories Grid Component
  */
 function PopularCategoriesGrid({
   collections,
@@ -184,19 +175,19 @@ function PopularCategoriesGrid({
     );
   };
 
-  // Get featured collections from metafields (same logic as mobile menu)
+  // Get featured collections from metafields
   const featuredCollections =
     collections
       ?.filter((collection) => {
         const featuredValue = getMetafieldValue(
           collection.metafields,
-          'mobile_menu_featured',  // ✅ CORRECT: This matches your GraphQL query
+          'mobile_menu_featured',
         );
         return isTrueValue(featuredValue);
       })
       ?.slice(0, 9) || [];
 
-  // Fallback items with exact same data as mobile menu  
+  // Fallback items
   const fallbackItems = [
     {id: 'deals', title: 'Erbjudanden', image: null, handle: 'deals'},
     {id: 'new', title: 'Nytt & Populärt', image: null, handle: 'new'},
@@ -215,7 +206,6 @@ function PopularCategoriesGrid({
   return (
     <div className="mobile-menu-popular-grid">
       {displayItems.map((item) => {
-        // ✅ ONLY CHANGE: Added mobile_menu_image support
         const customImageUrl = 'metafields' in item ? getMetafieldValue(
           item.metafields,
           'mobile_menu_image'
