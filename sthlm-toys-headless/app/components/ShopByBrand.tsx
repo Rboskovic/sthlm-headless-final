@@ -214,7 +214,7 @@ export function ShopByBrand({brands}: ShopByBrandProps) {
                 textAlign: 'center',
               }}
             >
-              Handla efter ålder
+              Hitta rätt LEGO® för varje ålder
             </h2>
           </div>
 
@@ -342,7 +342,7 @@ export function ShopByBrand({brands}: ShopByBrandProps) {
               marginBottom: '24px',
             }}
           >
-            Handla efter ålder
+            Hitta rätt LEGO® för varje ålder
           </h2>
 
           {/* Mobile Horizontal Scroll Container */}

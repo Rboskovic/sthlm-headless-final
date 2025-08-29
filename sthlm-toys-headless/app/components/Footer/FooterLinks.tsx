@@ -15,7 +15,7 @@ const FALLBACK_FOOTER_SECTIONS = [
   },
   {
     id: 'account',
-    title: 'Account',
+    title: 'Mitt konto',
     links: [
       {id: 'my-account', title: 'Mitt konto', url: '/account'},
       {id: 'track-order', title: 'Spåra min order', url: '/account/orders'},

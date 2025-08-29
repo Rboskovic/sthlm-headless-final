@@ -1,4 +1,4 @@
-// app/lib/fragments.ts - Fixed with mobile menu collections query + mobile images
+// FILE: app/lib/fragments.ts - Fixed with mobile menu collections query + mobile images + themes
 
 // Fragment for money fields
 const MONEY_FRAGMENT = `#graphql
@@ -191,7 +191,7 @@ export const FOOTER_QUERY = `#graphql
   ${MENU_FRAGMENT}
 ` as const;
 
-// ✅ FIXED: MOBILE MENU COLLECTIONS QUERY - Increased limit and better sorting
+// ✅ EXISTING: MOBILE MENU COLLECTIONS QUERY - Keep exactly as is
 const MOBILE_MENU_COLLECTION_FRAGMENT = `#graphql
   fragment MobileMenuCollection on Collection {
     id
@@ -225,6 +225,42 @@ export const MOBILE_MENU_COLLECTIONS_QUERY = `#graphql
     }
   }
   ${MOBILE_MENU_COLLECTION_FRAGMENT}
+` as const;
+
+// ✅ NEW: THEMES COLLECTIONS QUERY - Added for themes page
+const THEMES_COLLECTION_FRAGMENT = `#graphql
+  fragment ThemesCollection on Collection {
+    id
+    title
+    handle
+    image {
+      id
+      url
+      altText
+      width
+      height
+    }
+    metafields(identifiers: [
+      {namespace: "custom", key: "lego_theme"},
+      {namespace: "custom", key: "theme_image"}
+    ]) {
+      key
+      value
+      namespace
+    }
+  }
+` as const;
+
+export const THEMES_COLLECTIONS_QUERY = `#graphql
+  query ThemesCollections($country: CountryCode, $language: LanguageCode)
+    @inContext(country: $country, language: $language) {
+    collections(first: 100, sortKey: UPDATED_AT, reverse: true) {
+      nodes {
+        ...ThemesCollection
+      }
+    }
+  }
+  ${THEMES_COLLECTION_FRAGMENT}
 ` as const;
 
 // Export for compatibility with existing context.ts

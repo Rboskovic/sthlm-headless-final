@@ -121,8 +121,8 @@ export function HelpPage({helpPage, contactInfo}: HelpPageProps) {
           maxWidth: '100%',
           paddingLeft: '12px',
           paddingRight: '12px',
-          paddingTop: '48px', // FIX 4: Reduced from 64px
-          paddingBottom: '48px', // FIX 4: Reduced from 64px
+          paddingTop: '48px',
+          paddingBottom: '48px',
         }}
       >
         {/* Page Title */}
@@ -143,7 +143,7 @@ export function HelpPage({helpPage, contactInfo}: HelpPageProps) {
 
           {helpPage?.body && (
             <div
-              className="text-gray-600 max-w-2xl mx-auto text-center" // FIX 2: Changed to div with text-center
+              className="text-gray-600 max-w-2xl mx-auto text-center"
               style={{
                 fontSize: '18px',
                 fontWeight: 400,
@@ -151,7 +151,7 @@ export function HelpPage({helpPage, contactInfo}: HelpPageProps) {
                 fontFamily:
                   "UniformRnd, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
               }}
-              dangerouslySetInnerHTML={{__html: helpPage.body}} // FIX 2: Parse HTML properly
+              dangerouslySetInnerHTML={{__html: helpPage.body}}
             />
           )}
         </div>
@@ -189,7 +189,7 @@ export function HelpPage({helpPage, contactInfo}: HelpPageProps) {
                   onClick={() => toggleFAQ(faq.id)}
                   className="w-full px-6 py-4 text-left bg-white hover:bg-gray-50 transition-colors duration-200 flex items-center justify-between"
                   style={{
-                    padding: '18px', // FIX 4: Slightly reduced from 24px
+                    padding: '18px',
                     backgroundColor:
                       openFAQ === faq.id ? 'rgb(249, 250, 251)' : 'white',
                   }}
@@ -225,7 +225,7 @@ export function HelpPage({helpPage, contactInfo}: HelpPageProps) {
                   <div
                     className="px-6 pb-6 bg-gray-50"
                     style={{
-                      padding: '0 18px 18px 18px', // FIX 4: Slightly reduced from 24px
+                      padding: '0 18px 18px 18px',
                       backgroundColor: 'rgb(249, 250, 251)',
                     }}
                   >
@@ -274,7 +274,7 @@ export function HelpPage({helpPage, contactInfo}: HelpPageProps) {
               style={{
                 borderRadius: '12px',
                 border: '1px solid rgb(229, 231, 235)',
-                padding: '40px 28px', // FIX 4: Slightly reduced from 48px 32px
+                padding: '40px 28px',
               }}
             >
               <div
@@ -330,7 +330,7 @@ export function HelpPage({helpPage, contactInfo}: HelpPageProps) {
                   borderRadius: '9999px',
                   padding: '12px 32px',
                   textDecoration: 'none',
-                  color: 'white', // FIX 3: Ensure white text
+                  color: 'white',
                 }}
               >
                 {supportEmail}
@@ -343,7 +343,7 @@ export function HelpPage({helpPage, contactInfo}: HelpPageProps) {
               style={{
                 borderRadius: '12px',
                 border: '1px solid rgb(229, 231, 235)',
-                padding: '40px 28px', // FIX 4: Slightly reduced from 48px 32px
+                padding: '40px 28px',
               }}
             >
               <div
@@ -399,7 +399,7 @@ export function HelpPage({helpPage, contactInfo}: HelpPageProps) {
                   borderRadius: '9999px',
                   padding: '12px 32px',
                   textDecoration: 'none',
-                  color: 'white', // FIX 3: Ensure white text
+                  color: 'white',
                 }}
               >
                 {supportPhone}

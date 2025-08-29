@@ -1,6 +1,7 @@
 import {type LoaderFunctionArgs} from '@shopify/remix-oxygen';
 import {useLoaderData, type MetaFunction} from 'react-router';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
+import {HelpPage} from '~/components/HelpPage';
 
 export const meta: MetaFunction<typeof loader> = ({data}) => {
   return [{title: `Klosslabbet | ${data?.page.title ?? ''}`}];
@@ -29,24 +30,49 @@ async function loadCriticalData({
     throw new Error('Missing page handle');
   }
 
-  const [{page}] = await Promise.all([
-    context.storefront.query(PAGE_QUERY, {
-      variables: {
-        handle: params.handle,
-      },
-    }),
-    // Add other queries here, so that they are loaded in parallel
-  ]);
+  const isHelpPage = params.handle === 'hjalp';
 
-  if (!page) {
-    throw new Response('Not Found', {status: 404});
+  if (isHelpPage) {
+    // Special handling for help page - fetch extra data
+    const [{page}, {shop}] = await Promise.all([
+      context.storefront.query(HELP_PAGE_QUERY, {
+        variables: {
+          handle: params.handle,
+        },
+      }),
+      context.storefront.query(SHOP_CONTACT_QUERY),
+    ]);
+
+    if (!page) {
+      throw new Response('Not Found', {status: 404});
+    }
+
+    redirectIfHandleIsLocalized(request, {handle: params.handle, data: page});
+
+    return {
+      page,
+      contactInfo: shop,
+    };
+  } else {
+    // Regular page handling
+    const [{page}] = await Promise.all([
+      context.storefront.query(PAGE_QUERY, {
+        variables: {
+          handle: params.handle,
+        },
+      }),
+    ]);
+
+    if (!page) {
+      throw new Response('Not Found', {status: 404});
+    }
+
+    redirectIfHandleIsLocalized(request, {handle: params.handle, data: page});
+
+    return {
+      page,
+    };
   }
-
-  redirectIfHandleIsLocalized(request, {handle: params.handle, data: page});
-
-  return {
-    page,
-  };
 }
 
 /**
@@ -59,8 +85,20 @@ function loadDeferredData({context}: LoaderFunctionArgs) {
 }
 
 export default function Page() {
-  const {page} = useLoaderData<typeof loader>();
+  const data = useLoaderData<typeof loader>();
+  const {page} = data;
 
+  // Special rendering for help page
+  if (page.handle === 'hjalp') {
+    return (
+      <HelpPage 
+        helpPage={page} 
+        contactInfo={data.contactInfo}
+      />
+    );
+  }
+
+  // Default page rendering
   return (
     <div className="page">
       <main dangerouslySetInnerHTML={{__html: page.body}} />
@@ -68,6 +106,7 @@ export default function Page() {
   );
 }
 
+// Regular page query
 const PAGE_QUERY = `#graphql
   query Page(
     $language: LanguageCode,
@@ -83,6 +122,52 @@ const PAGE_QUERY = `#graphql
       seo {
         description
         title
+      }
+    }
+  }
+` as const;
+
+// Help page query with metafields
+const HELP_PAGE_QUERY = `#graphql
+  query HelpPage(
+    $language: LanguageCode,
+    $country: CountryCode,
+    $handle: String!
+  )
+  @inContext(language: $language, country: $country) {
+    page(handle: $handle) {
+      handle
+      id
+      title
+      body
+      seo {
+        description
+        title
+      }
+      metafields(identifiers: [
+        {namespace: "custom", key: "faq_items"}
+      ]) {
+        key
+        value
+        type
+      }
+    }
+  }
+` as const;
+
+// Shop contact query for help page
+const SHOP_CONTACT_QUERY = `#graphql
+  query ShopContact($country: CountryCode, $language: LanguageCode)
+    @inContext(country: $country, language: $language) {
+    shop {
+      id
+      name
+      metafields(identifiers: [
+        {namespace: "custom", key: "support_email"},
+        {namespace: "custom", key: "support_phone"}
+      ]) {
+        key
+        value
       }
     }
   }

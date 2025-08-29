@@ -201,7 +201,7 @@ export function TopCategories({collections}: TopCategoriesProps) {
             </div>
             <div className="flex-1 flex justify-end">
               <Link
-                to="/collections/lego"
+                to="/themes"
                 className="text-blue-600 hover:text-blue-700 transition-colors duration-200"
                 style={{
                   fontSize: '18px',
@@ -392,7 +392,7 @@ export function TopCategories({collections}: TopCategoriesProps) {
           {/* Mobile Shop All Button */}
           <div className="flex justify-center mt-4">
             <Link
-              to="/collections/lego"
+              to="/themes"
               className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-10 rounded-full transition-colors duration-200"
               style={{
                 fontSize: '16px',
