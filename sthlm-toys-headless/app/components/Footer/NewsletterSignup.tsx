@@ -20,7 +20,7 @@ export function NewsletterSignup({isMobile = false}: NewsletterSignupProps) {
         Registrera dig för kul!
       </h3>
       <p className="text-white text-sm mb-4 leading-relaxed">
-        Få exklusiva uppdateringar om nya leksaker, lekidéer och recensioner!
+        Få exklusiva uppdateringar om nya LEGO®-set, byggidéer och recensioner.
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-3">
@@ -59,7 +59,7 @@ export function NewsletterSignup({isMobile = false}: NewsletterSignupProps) {
         >
           villkor
         </Link>{' '}
-        &{' '}
+        och vår{' '}
         <Link
           to="/pages/privacy-policy"
           className="text-white underline hover:text-yellow-300"

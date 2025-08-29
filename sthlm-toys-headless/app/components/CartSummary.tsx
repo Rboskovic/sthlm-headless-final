@@ -1,5 +1,5 @@
 // FILE: app/components/CartSummary.tsx
-// ✅ FINAL: Swedish translation without subtotal section
+// ✅ UPDATED: Compact Swedish translation with VAT breakdown
 
 import type {CartApiQueryFragment} from 'storefrontapi.generated';
 import type {CartLayout} from '~/components/CartMain';
@@ -15,16 +15,52 @@ type CartSummaryProps = {
 };
 
 export function CartSummary({cart, layout}: CartSummaryProps) {
+  // Calculate VAT breakdown (25% Swedish VAT)
+  const totalAmount = parseFloat(cart.cost?.totalAmount?.amount || '0');
+  const subtotalExclVAT = totalAmount / 1.25; // Price without VAT
+  const vatAmount = totalAmount - subtotalExclVAT; // VAT amount
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Rabatter */}
       <CartDiscounts discountCodes={cart.discountCodes} />
 
-      {/* Uppskattad totalsumma */}
-      <div className="border-t border-gray-200 pt-4">
-        <div className="flex justify-between items-center mb-2">
-          <span className="text-lg font-semibold text-gray-900">Uppskattad totalsumma</span>
-          <span className="text-lg font-semibold text-gray-900">
+      {/* Sammanställning (Price Breakdown) - Compact Design */}
+      <div className="border-t border-gray-200 pt-3 space-y-2">
+        <h3 className="text-base font-semibold text-gray-900 mb-2">Sammanställning</h3>
+        
+        {/* Compact breakdown items */}
+        <div className="space-y-1 text-sm">
+          {/* Delsumma (Subtotal without VAT) */}
+          <div className="flex justify-between items-center">
+            <span className="text-gray-600">Delsumma:</span>
+            <span className="text-gray-900 font-medium">
+              {Math.round(subtotalExclVAT)} kr
+            </span>
+          </div>
+
+          {/* Moms (VAT 25%) */}
+          <div className="flex justify-between items-center">
+            <span className="text-gray-600">Moms (25%):</span>
+            <span className="text-gray-900 font-medium">
+              {Math.round(vatAmount)} kr
+            </span>
+          </div>
+
+          {/* Frakt */}
+          <div className="flex justify-between items-center">
+            <span className="text-gray-600">Frakt:</span>
+            <span className="text-gray-600 text-xs">beräknas i kassan</span>
+          </div>
+        </div>
+
+        {/* Divider */}
+        <hr className="border-gray-200 my-2" />
+
+        {/* Totalt att betala - Compact */}
+        <div className="flex justify-between items-center py-1">
+          <span className="text-base font-semibold text-gray-900">Totalt att betala:</span>
+          <span className="text-base font-semibold text-gray-900">
             {cart.cost?.totalAmount?.amount ? (
               <Money data={cart.cost.totalAmount} />
             ) : (
@@ -33,8 +69,9 @@ export function CartSummary({cart, layout}: CartSummaryProps) {
           </span>
         </div>
         
-        <p className="text-sm text-gray-500">
-          Skatter, rabatter och <button className="underline">frakt</button> beräknas vid kassan.
+        {/* Disclaimer - Compact */}
+        <p className="text-xs text-gray-500 leading-tight mt-1">
+          (Alla priser visas inkl. moms. Rabatter och frakt beräknas i kassan.)
         </p>
       </div>
 
@@ -69,7 +106,7 @@ function CartCheckoutActions({
         className="h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold"
       >
         <a href={checkoutUrl} target="_self">
-          <span className="text-white">Checkout • | {formattedTotal} $</span>
+          <span className="text-white">Checkout • | {formattedTotal} kr</span>
         </a>
       </ShopButton>
 
@@ -82,7 +119,7 @@ function CartCheckoutActions({
           </div>
           <div className="flex items-center gap-1">
             <Truck size={12} />
-            <span>Fri frakt över €20</span>
+            <span>Fri frakt på beställningar över 989 kr</span>
           </div>
         </div>
       )}

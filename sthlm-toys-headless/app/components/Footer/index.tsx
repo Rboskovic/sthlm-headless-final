@@ -92,7 +92,7 @@ export function Footer({
               <FooterLogo shop={header.shop} />
             </div>
             <div className="text-white text-sm">
-              © 2025 STHLM Toys & Games. Alla rättigheter förbehållna.
+              © 2025 STHLM Toys &amp; Games AB. Alla rättigheter förbehållna.
             </div>
           </div>
         </div>

@@ -135,6 +135,17 @@ function parseWhyTheyLoveIt(metafieldValue: string | null | undefined): string[]
     .filter(item => item.length > 0);
 }
 
+// ✅ NEW: Helper function to parse shipping text into bullet points
+function parseShippingText(shippingText: string | null): string[] {
+  if (!shippingText) return [];
+  
+  // Split by sentence endings and clean up
+  return shippingText
+    .split(/[.!]+/)
+    .map(item => item.trim())
+    .filter(item => item.length > 0);
+}
+
 export default function Product() {
   const {product, shop, ...deferredData} = useLoaderData<typeof loader>();
   
@@ -181,6 +192,9 @@ export default function Product() {
   
   const freeShippingNote = getMetafieldValue(shop?.metafields, 'free_shipping_note') || 
     '*Offer applies to standard shipping to one location in the contiguous U.S. A $20 shipping surcharge per item applies to customers living outside the contiguous United States: Hawaii, Alaska typically ships in 3 to 4 business days. Eligible for return on ToysRUs.com only.';
+
+  // ✅ NEW: Parse shipping text into bullet points
+  const shippingBulletPoints = parseShippingText(freeShippingText);
 
   console.log('🐛 Product Detail Page - selectedVariant:', selectedVariant);
   console.log('🐛 Product Detail Page - quantity:', quantity);
@@ -252,17 +266,22 @@ export default function Product() {
               )}
             </div>
 
-            {/* ✅ IMPROVED: Product Price Display with proper styling */}
+            {/* ✅ UPDATED: Product Price Display with (inkl. moms) */}
             <div className="py-2">
               {selectedVariant?.price && (
-                <div className="flex items-baseline gap-3">
-                  {/* Current Price */}
-                  <div className="flex items-baseline">
-                    <span className="text-3xl font-semibold text-gray-900">
-                      {Math.round(parseFloat(selectedVariant.price.amount))}
-                    </span>
-                    <span className="text-lg font-medium text-gray-700 ml-1">
-                      kr
+                <div className="flex items-baseline gap-3 flex-wrap">
+                  {/* Current Price with VAT text */}
+                  <div className="flex items-baseline gap-2">
+                    <div className="flex items-baseline">
+                      <span className="text-3xl font-semibold text-gray-900">
+                        {Math.round(parseFloat(selectedVariant.price.amount))}
+                      </span>
+                      <span className="text-lg font-medium text-gray-700 ml-1">
+                        kr
+                      </span>
+                    </div>
+                    <span className="text-sm text-gray-600">
+                      (inkl. moms)
                     </span>
                   </div>
                   
@@ -300,7 +319,7 @@ export default function Product() {
                   type="button"
                 >
                   <h3 className="text-lg font-semibold text-gray-900">
-                    Varför de kommer älska det
+                    Varför du kommer älska det
                   </h3>
                   <span className="text-gray-400">-</span>
                 </button>
@@ -341,16 +360,24 @@ export default function Product() {
               </div>
             </div>
 
-            {/* Free Shipping Information - FIX 5,6: Reorder and style */}
-            <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-              {/* FIX 5: Free shipping note first and bold */}
+            {/* ✅ UPDATED: Free Shipping Information with bullet points */}
+            <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+              {/* Bold shipping note first */}
               <p className="text-sm font-bold text-gray-900 leading-relaxed">
                 {freeShippingNote}
               </p>
-              {/* FIX 6: Remove truck icon, shipping text not bold */}
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-700">{freeShippingText}</span>
-              </div>
+              
+              {/* Shipping details as bullet points */}
+              {shippingBulletPoints.length > 0 && (
+                <ul className="space-y-1">
+                  {shippingBulletPoints.map((point, index) => (
+                    <li key={index} className="flex items-start gap-2">
+                      <span className="w-1.5 h-1.5 bg-gray-400 rounded-full mt-2 flex-shrink-0"></span>
+                      <span className="text-sm text-gray-700 leading-relaxed">{point}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
 
             {/* Add to Cart & Buy Now Buttons - Both visible with cart modal */}
@@ -662,4 +689,4 @@ function RecommendedProductsSkeleton() {
       </div>
     </div>
   );
-} 
+}

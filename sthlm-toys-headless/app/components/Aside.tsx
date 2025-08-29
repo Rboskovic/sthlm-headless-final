@@ -1,5 +1,5 @@
 // FILE: app/components/Aside.tsx
-// ✅ FIXED: Cart title color changed to white on blue background
+// ✅ UPDATED: Cart title color changed to white on blue background + Click outside to close
 
 import {
   createContext,
@@ -64,9 +64,9 @@ export function Aside({
       aria-modal
       className={`overlay ${expanded ? "expanded" : ""}`}
       role="dialog"
+      onClick={close} // ✅ NEW: Click outside to close
     >
-      <button className="close-outside" onClick={close} />
-      <aside>
+      <aside onClick={(e) => e.stopPropagation()}> {/* ✅ NEW: Prevent closing when clicking inside */}
         {/* ✅ FIXED: Cart header with blue background and white text */}
         <header 
           className={`flex items-center justify-between px-6 py-4 border-b ${
