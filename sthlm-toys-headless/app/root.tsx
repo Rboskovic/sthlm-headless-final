@@ -1,4 +1,4 @@
-// app/root.tsx - Fixed with mobile menu collections query, design system import, and customer data
+// app/root.tsx - Fixed with handleAuthStatus for customer session persistence
 import { Analytics, getShopAnalytics, useNonce } from "@shopify/hydrogen";
 import { type LoaderFunctionArgs } from "@shopify/remix-oxygen";
 import {
@@ -46,11 +46,10 @@ export function links() {
     { rel: "preconnect", href: "https://shop.app" },
     { rel: "icon", type: "image/svg+xml", href: favicon },
     { rel: "stylesheet", href: designSystemStyles },
-    // Add other route-level styles here if needed
   ];
 }
 
-// ✅ Updated loader with isLoggedIn + customer
+// ✅ Updated loader with handleAuthStatus fix
 export async function loader({ context }: LoaderFunctionArgs) {
   const { storefront, env, customerAccount, cart } = context;
 
@@ -76,12 +75,15 @@ export async function loader({ context }: LoaderFunctionArgs) {
       return null;
     });
 
-  // --- Customer data ---
+  // --- Customer data with handleAuthStatus fix ---
   const isLoggedIn = await customerAccount.isLoggedIn();
   let customer = null;
 
   if (isLoggedIn) {
     try {
+      // ✅ CRITICAL FIX: Call handleAuthStatus to maintain session
+      await customerAccount.handleAuthStatus();
+      
       const { data } = await customerAccount.query(CUSTOMER_DETAILS_QUERY);
       customer = data?.customer;
     } catch (error) {
@@ -106,7 +108,7 @@ export async function loader({ context }: LoaderFunctionArgs) {
       language: storefront.i18n.language,
     },
     publicStoreDomain: env.PUBLIC_STORE_DOMAIN,
-    // ✅ New customer fields
+    // ✅ Customer fields
     isLoggedIn,
     customer,
   };
