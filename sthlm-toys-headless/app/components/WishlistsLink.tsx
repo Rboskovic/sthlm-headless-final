@@ -1,60 +1,75 @@
 // FILE: app/components/WishlistsLink.tsx
-// ✅ ENHANCED: Added wishlist count badge (Issue #5)
+// ✅ SHOPIFY HYDROGEN: SSR-safe wishlist link with server-side count
 
 import {Link} from 'react-router';
 import {Heart} from 'lucide-react';
 import {useState, useEffect} from 'react';
+import {useRootLoaderData} from '~/lib/root-data';
+import {useWishlist} from '~/hooks/useWishlist';
 
 export interface WishlistsLinkProps {
   className?: string;
   style?: React.CSSProperties;
   children?: React.ReactNode;
+  initialCount?: number; // Server-provided count for logged-in users
 }
 
 export function WishlistsLink({
   className = '',
   style = {},
   children,
+  initialCount = 0,
 }: WishlistsLinkProps) {
-  const [wishlistCount, setWishlistCount] = useState(0);
+  const {isLoggedIn} = useRootLoaderData();
+  const {wishlistCount: sessionCount} = useWishlist();
+  const [wishlistCount, setWishlistCount] = useState(initialCount);
 
-  // ✅ ENHANCED: Check wishlist count from localStorage
+  // For logged-in users, use server-provided count; for anonymous, use session count
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const updateWishlistCount = () => {
-        // Check for any wishlist data - we'll look for keys starting with 'wishlist_'
-        let totalCount = 0;
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (key && key.startsWith('wishlist_')) {
-            try {
-              const items = JSON.parse(localStorage.getItem(key) || '[]');
-              if (Array.isArray(items)) {
-                totalCount += items.length;
-              }
-            } catch (error) {
-              // Ignore parsing errors
-            }
-          }
-        }
-        setWishlistCount(totalCount);
-      };
-
-      // Update count on mount
-      updateWishlistCount();
-
-      // Listen for storage changes (when items are added/removed)
-      window.addEventListener('storage', updateWishlistCount);
-
-      // Also listen for custom events when wishlist is updated
-      window.addEventListener('wishlist-updated', updateWishlistCount);
-
-      return () => {
-        window.removeEventListener('storage', updateWishlistCount);
-        window.removeEventListener('wishlist-updated', updateWishlistCount);
-      };
+    if (isLoggedIn) {
+      setWishlistCount(initialCount);
+    } else {
+      setWishlistCount(sessionCount);
     }
-  }, []);
+  }, [isLoggedIn, initialCount, sessionCount]);
+
+  // Listen for wishlist updates
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleWishlistUpdate = (event: CustomEvent) => {
+      if (!isLoggedIn) {
+        setWishlistCount(event.detail?.count || 0);
+      }
+    };
+
+    // Listen for custom events when wishlist is updated
+    window.addEventListener('wishlist-updated', handleWishlistUpdate as EventListener);
+
+    // Also listen for storage changes (when items are added/removed in other tabs)
+    const handleStorageChange = () => {
+      if (!isLoggedIn) {
+        try {
+          const stored = sessionStorage.getItem('sthlm_wishlist_session');
+          if (stored) {
+            const items = JSON.parse(stored);
+            setWishlistCount(Array.isArray(items) ? items.length : 0);
+          } else {
+            setWishlistCount(0);
+          }
+        } catch (error) {
+          // Ignore errors
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('wishlist-updated', handleWishlistUpdate as EventListener);
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [isLoggedIn]);
 
   return (
     <Link 
@@ -71,7 +86,7 @@ export function WishlistsLink({
       {children ? (
         <>
           {children}
-          {/* ✅ ENHANCED: Count badge for custom children */}
+          {/* Count badge for custom children */}
           {wishlistCount > 0 && (
             <span style={{
               position: 'absolute',
@@ -88,7 +103,8 @@ export function WishlistsLink({
               fontSize: '11px',
               fontWeight: 'bold',
               border: '2px solid white',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.2)'
+              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.2)',
+              zIndex: 1,
             }}>
               {wishlistCount > 99 ? '99+' : wishlistCount}
             </span>
@@ -98,7 +114,7 @@ export function WishlistsLink({
         <>
           <div style={{ position: 'relative' }}>
             <Heart size={20} />
-            {/* ✅ ENHANCED: Count badge for default heart icon */}
+            {/* Count badge for default heart icon */}
             {wishlistCount > 0 && (
               <span style={{
                 position: 'absolute',
@@ -114,7 +130,8 @@ export function WishlistsLink({
                 justifyContent: 'center',
                 fontSize: '10px',
                 fontWeight: 'bold',
-                border: '2px solid currentColor'
+                border: '2px solid currentColor',
+                zIndex: 1,
               }}>
                 {wishlistCount > 99 ? '99+' : wishlistCount}
               </span>
@@ -127,7 +144,7 @@ export function WishlistsLink({
   );
 }
 
-// ✅ Helper function to update wishlist count from other components
+// Helper function to update wishlist count from other components
 export function updateWishlistCount() {
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent('wishlist-updated'));

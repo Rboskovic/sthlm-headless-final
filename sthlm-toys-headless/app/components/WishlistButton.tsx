@@ -1,10 +1,11 @@
 // FILE: app/components/WishlistButton.tsx
-// ✅ FIXED: Wishlist button that doesn't inappropriately trigger mobile login modal
+// ✅ SHOPIFY HYDROGEN: SSR-safe wishlist button using server-side storage
 
 import {useState, useEffect} from 'react';
 import {Heart} from 'lucide-react';
-import {Link} from 'react-router';
+import {Link, useFetcher} from 'react-router';
 import {useRootLoaderData} from '~/lib/root-data';
+import {useWishlist} from '~/hooks/useWishlist';
 
 export interface WishlistButtonProps {
   productId: string;
@@ -21,6 +22,7 @@ export interface WishlistButtonProps {
   className?: string;
   variant?: 'icon' | 'button' | 'text';
   size?: 'sm' | 'md' | 'lg';
+  isInWishlist?: boolean; // Optional prop for server-side initial state
 }
 
 export function WishlistButton({
@@ -31,28 +33,24 @@ export function WishlistButton({
   productPrice,
   className = '',
   variant = 'icon',
-  size = 'md'
+  size = 'md',
+  isInWishlist: initialIsInWishlist = false
 }: WishlistButtonProps) {
   const {isLoggedIn, customer} = useRootLoaderData();
-  const [isInWishlist, setIsInWishlist] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const {isInWishlist: hookIsInWishlist, addToWishlist, removeFromWishlist} = useWishlist();
+  const [isInWishlist, setIsInWishlist] = useState(initialIsInWishlist);
+  const fetcher = useFetcher();
 
-  // Load wishlist status from localStorage
+  // Use server-provided state for logged-in users, hook state for anonymous
   useEffect(() => {
-    if (typeof window !== 'undefined' && customer?.id) {
-      try {
-        const stored = localStorage.getItem(`wishlist_${customer.id}`);
-        if (stored) {
-          const items = JSON.parse(stored);
-          if (Array.isArray(items)) {
-            setIsInWishlist(items.some(item => item.id === productId));
-          }
-        }
-      } catch (error) {
-        console.error('Error loading wishlist status:', error);
-      }
+    if (isLoggedIn) {
+      setIsInWishlist(initialIsInWishlist);
+    } else {
+      setIsInWishlist(hookIsInWishlist(productId));
     }
-  }, [productId, customer?.id]);
+  }, [isLoggedIn, initialIsInWishlist, hookIsInWishlist, productId]);
+
+  const isLoading = fetcher.state === 'submitting';
 
   const handleWishlistToggle = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -67,32 +65,37 @@ export function WishlistButton({
 
     if (!customer?.id) return;
 
-    setIsLoading(true);
+    // Optimistic UI update
+    setIsInWishlist(!isInWishlist);
 
-    try {
-      const wishlistKey = `wishlist_${customer.id}`;
-      const stored = localStorage.getItem(wishlistKey);
-      let wishlistItems: any[] = [];
-
-      if (stored) {
-        try {
-          wishlistItems = JSON.parse(stored);
-          if (!Array.isArray(wishlistItems)) {
-            wishlistItems = [];
-          }
-        } catch {
-          wishlistItems = [];
+    if (isLoggedIn) {
+      // For logged-in users: use server action via fetcher
+      const formData = new FormData();
+      formData.append('action', isInWishlist ? 'remove' : 'add');
+      formData.append('productId', productId);
+      
+      if (!isInWishlist) {
+        // Adding to wishlist - include product data
+        formData.append('productTitle', productTitle);
+        formData.append('productHandle', productHandle);
+        if (productImage) {
+          formData.append('productImage', JSON.stringify(productImage));
+        }
+        if (productPrice) {
+          formData.append('productPrice', JSON.stringify(productPrice));
         }
       }
 
+      fetcher.submit(formData, {
+        method: 'post',
+        action: '/account/wishlist',
+      });
+    } else {
+      // For anonymous users: use hook's session storage
       if (isInWishlist) {
-        // Remove from wishlist
-        const updatedItems = wishlistItems.filter(item => item.id !== productId);
-        localStorage.setItem(wishlistKey, JSON.stringify(updatedItems));
-        setIsInWishlist(false);
+        await removeFromWishlist(productId);
       } else {
-        // Add to wishlist
-        const newItem = {
+        await addToWishlist({
           id: productId,
           title: productTitle,
           handle: productHandle,
@@ -100,19 +103,17 @@ export function WishlistButton({
           priceRange: productPrice ? {
             minVariantPrice: productPrice
           } : undefined,
-          addedAt: new Date().toISOString()
-        };
-        
-        const updatedItems = [...wishlistItems, newItem];
-        localStorage.setItem(wishlistKey, JSON.stringify(updatedItems));
-        setIsInWishlist(true);
+        });
       }
-    } catch (error) {
-      console.error('Error updating wishlist:', error);
-    } finally {
-      setIsLoading(false);
     }
   };
+
+  // Revert optimistic update if server action failed
+  useEffect(() => {
+    if (fetcher.data?.error) {
+      setIsInWishlist(!isInWishlist);
+    }
+  }, [fetcher.data]);
 
   // Size configurations
   const sizeConfig = {
@@ -181,7 +182,7 @@ export function WishlistButton({
   if (!isLoggedIn) {
     return (
       <Link
-        to={`/account/login?redirect=${encodeURIComponent(window.location.pathname)}`}
+        to={`/account/login?redirect=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : '')}`}
         className={buttonClassName}
         title="Logga in för att spara till önskelista"
       >
@@ -211,16 +212,19 @@ export function WishlistButton({
       <Heart 
         size={config.icon} 
         fill={isInWishlist ? 'currentColor' : 'none'}
-        className={`flex-shrink-0 transition-transform ${isLoading ? 'animate-pulse' : ''}`}
+        className={`flex-shrink-0 transition-transform ${isLoading ? 'scale-90' : 'scale-100'}`}
       />
       {variant === 'button' && (
         <span className={config.text}>
-          {isInWishlist ? 'Sparad' : 'Spara'}
+          {isLoading ? 'Sparar...' : (isInWishlist ? 'Sparad' : 'Spara')}
         </span>
       )}
       {variant === 'text' && (
         <span className={config.text}>
-          {isInWishlist ? 'Ta bort från önskelista' : 'Spara till önskelista'}
+          {isLoading 
+            ? 'Uppdaterar...' 
+            : (isInWishlist ? 'Ta bort från önskelista' : 'Spara till önskelista')
+          }
         </span>
       )}
     </button>
