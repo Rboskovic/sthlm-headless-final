@@ -1,4 +1,5 @@
-// FILE: app/lib/fragments.ts - Fixed with mobile menu collections query + mobile images + themes
+// FILE: app/lib/fragments.ts
+// ✅ FIXED: Added CUSTOMER_DETAILS_QUERY to resolve deployment error
 
 // Fragment for money fields
 const MONEY_FRAGMENT = `#graphql
@@ -159,6 +160,41 @@ const SHOP_FRAGMENT = `#graphql
   }
 ` as const;
 
+// ✅ ADDED: Customer fragments for account functionality
+const CUSTOMER_ADDRESS_FRAGMENT = `#graphql
+  fragment Address on CustomerAddress {
+    id
+    formatted
+    firstName
+    lastName
+    company
+    address1
+    address2
+    territoryCode
+    zoneCode
+    city
+    zip
+    phoneNumber
+  }
+` as const;
+
+const CUSTOMER_FRAGMENT = `#graphql
+  fragment Customer on Customer {
+    id
+    firstName
+    lastName
+    defaultAddress {
+      ...Address
+    }
+    addresses(first: 6) {
+      nodes {
+        ...Address
+      }
+    }
+  }
+  ${CUSTOMER_ADDRESS_FRAGMENT}
+` as const;
+
 // Header query - STRING format for Hydrogen
 export const HEADER_QUERY = `#graphql
   query Header(
@@ -191,7 +227,17 @@ export const FOOTER_QUERY = `#graphql
   ${MENU_FRAGMENT}
 ` as const;
 
-// ✅ EXISTING: MOBILE MENU COLLECTIONS QUERY - Keep exactly as is
+// ✅ ADDED: Customer Details Query - This is what root.tsx was looking for!
+export const CUSTOMER_DETAILS_QUERY = `#graphql
+  query CustomerDetails {
+    customer {
+      ...Customer
+    }
+  }
+  ${CUSTOMER_FRAGMENT}
+` as const;
+
+// EXISTING: Mobile menu collections query
 const MOBILE_MENU_COLLECTION_FRAGMENT = `#graphql
   fragment MobileMenuCollection on Collection {
     id
@@ -227,7 +273,7 @@ export const MOBILE_MENU_COLLECTIONS_QUERY = `#graphql
   ${MOBILE_MENU_COLLECTION_FRAGMENT}
 ` as const;
 
-// ✅ NEW: THEMES COLLECTIONS QUERY - Added for themes page
+// EXISTING: Themes collections query
 const THEMES_COLLECTION_FRAGMENT = `#graphql
   fragment ThemesCollection on Collection {
     id
@@ -273,4 +319,7 @@ export {
   MENU_FRAGMENT,
   SHOP_FRAGMENT,
   MOBILE_MENU_COLLECTION_FRAGMENT,
+  THEMES_COLLECTION_FRAGMENT,
+  CUSTOMER_FRAGMENT,
+  CUSTOMER_ADDRESS_FRAGMENT,
 };
