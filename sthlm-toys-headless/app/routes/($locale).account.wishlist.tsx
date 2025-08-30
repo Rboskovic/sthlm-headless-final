@@ -1,30 +1,30 @@
 // FILE: app/routes/($locale).account.wishlist.tsx
-// ✅ SHOPIFY HYDROGEN: Complete wishlist route with server-side storage
+// ✅ QUICK FIX: Session storage only - works for all users
 
 import {redirect, type LoaderFunctionArgs, type ActionFunctionArgs} from '@shopify/remix-oxygen';
-import {Form, useActionData, useOutletContext, Link, useLoaderData, type MetaFunction} from 'react-router';
-import {data} from '@shopify/remix-oxygen';
+import {useOutletContext, Link, type MetaFunction} from 'react-router';
+import {useState, useEffect} from 'react';
 import {Heart, Trash2, ShoppingBag, ArrowLeft} from 'lucide-react';
 import type {CustomerFragment} from 'customer-accountapi.generated';
-import {
-  getCustomerWishlist,
-  addToCustomerWishlist,
-  removeFromCustomerWishlist,
-  type WishlistItem,
-} from '~/lib/wishlist.server';
 
-export type ActionResponse = {
-  success?: boolean;
-  action?: string;
-  productId?: string;
-  message?: string;
-  error?: string;
-};
+interface WishlistItem {
+  id: string;
+  title: string;
+  handle: string;
+  featuredImage?: {
+    url: string;
+    altText?: string;
+  };
+  priceRange?: {
+    minVariantPrice: {
+      amount: string;
+      currencyCode: string;
+    };
+  };
+  addedAt: string;
+}
 
-export type LoaderData = {
-  wishlistItems: WishlistItem[];
-  wishlistCount: number;
-};
+const SESSION_STORAGE_KEY = 'sthlm_wishlist_session';
 
 export const meta: MetaFunction = () => {
   return [{title: 'Min önskelista - STHLM Toys & Games'}];
@@ -36,87 +36,50 @@ export async function loader({context}: LoaderFunctionArgs) {
     if (!isLoggedIn) {
       return redirect('/account/login?redirect=/account/wishlist');
     }
-    
     await context.customerAccount.handleAuthStatus();
-    
-    // Load customer wishlist from metafields
-    const wishlistItems = await getCustomerWishlist(context.customerAccount);
-    
-    return data({
-      wishlistItems,
-      wishlistCount: wishlistItems.length,
-    } satisfies LoaderData);
+    return {};
   } catch (error) {
-    console.error('Wishlist loader error:', error);
     return redirect('/account/login?redirect=/account/wishlist');
-  }
-}
-
-export async function action({request, context}: ActionFunctionArgs) {
-  try {
-    const isLoggedIn = await context.customerAccount.isLoggedIn();
-    if (!isLoggedIn) {
-      return redirect('/account/login?redirect=/account/wishlist');
-    }
-
-    const formData = await request.formData();
-    const action = formData.get('action') as string;
-    const productId = formData.get('productId') as string;
-
-    if (!productId || !action) {
-      return data({error: 'Missing required parameters'}, {status: 400});
-    }
-
-    let result: {success: boolean; error?: string};
-
-    if (action === 'add') {
-      const productTitle = formData.get('productTitle') as string;
-      const productHandle = formData.get('productHandle') as string;
-      const productImageStr = formData.get('productImage') as string;
-      const productPriceStr = formData.get('productPrice') as string;
-
-      if (!productTitle || !productHandle) {
-        return data({error: 'Missing product information'}, {status: 400});
-      }
-
-      const item: Omit<WishlistItem, 'addedAt'> = {
-        id: productId,
-        title: productTitle,
-        handle: productHandle,
-        featuredImage: productImageStr ? JSON.parse(productImageStr) : undefined,
-        priceRange: productPriceStr ? {
-          minVariantPrice: JSON.parse(productPriceStr)
-        } : undefined,
-      };
-
-      result = await addToCustomerWishlist(context.customerAccount, item);
-    } else if (action === 'remove') {
-      result = await removeFromCustomerWishlist(context.customerAccount, productId);
-    } else {
-      return data({error: 'Invalid action'}, {status: 400});
-    }
-
-    if (!result.success) {
-      return data({error: result.error || 'An error occurred'}, {status: 500});
-    }
-
-    return data({
-      success: true,
-      action,
-      productId,
-      message: `Product ${action === 'add' ? 'added to' : 'removed from'} wishlist`,
-    } satisfies ActionResponse);
-    
-  } catch (error) {
-    console.error('Wishlist action error:', error);
-    return data({error: 'An error occurred'}, {status: 500});
   }
 }
 
 export default function WishlistPage() {
   const {customer} = useOutletContext<{customer: CustomerFragment}>();
-  const {wishlistItems, wishlistCount} = useLoaderData<LoaderData>();
-  const actionData = useActionData<ActionResponse>();
+  const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Load wishlist from session storage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = sessionStorage.getItem(SESSION_STORAGE_KEY);
+        if (stored) {
+          const items = JSON.parse(stored);
+          setWishlistItems(Array.isArray(items) ? items : []);
+        }
+      } catch (error) {
+        console.warn('Error loading wishlist:', error);
+        setWishlistItems([]);
+      }
+      setIsLoading(false);
+    }
+  }, []);
+
+  const removeFromWishlist = (productId: string) => {
+    const updatedItems = wishlistItems.filter(item => item.id !== productId);
+    setWishlistItems(updatedItems);
+    
+    if (typeof window !== 'undefined') {
+      try {
+        sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(updatedItems));
+        window.dispatchEvent(new CustomEvent('wishlist-updated', {
+          detail: {count: updatedItems.length}
+        }));
+      } catch (error) {
+        console.warn('Failed to save to session storage:', error);
+      }
+    }
+  };
 
   const formatPrice = (amount: string, currencyCode: string) => {
     try {
@@ -128,6 +91,17 @@ export default function WishlistPage() {
       return `${amount} ${currencyCode}`;
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Heart size={48} className="mx-auto mb-4 text-gray-300 animate-pulse" />
+          <p className="text-gray-500">Laddar din önskelista...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -147,8 +121,8 @@ export default function WishlistPage() {
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">Min önskelista</h1>
                 <p className="mt-2 text-gray-600">
-                  {wishlistCount > 0 
-                    ? `${wishlistCount} ${wishlistCount === 1 ? 'produkt' : 'produkter'} i din önskelista`
+                  {wishlistItems.length > 0 
+                    ? `${wishlistItems.length} ${wishlistItems.length === 1 ? 'produkt' : 'produkter'} i din önskelista`
                     : 'Din önskelista är tom'
                   }
                 </p>
@@ -158,28 +132,9 @@ export default function WishlistPage() {
         </div>
       </div>
 
-      {/* Success/Error Messages */}
-      {actionData?.message && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className={`p-4 rounded-md ${
-            actionData.success ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
-          }`}>
-            {actionData.message}
-          </div>
-        </div>
-      )}
-
-      {actionData?.error && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="p-4 rounded-md bg-red-50 text-red-800">
-            {actionData.error}
-          </div>
-        </div>
-      )}
-
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {wishlistCount === 0 ? (
+        {wishlistItems.length === 0 ? (
           /* Empty State */
           <div className="text-center py-12">
             <Heart size={64} className="mx-auto text-gray-300 mb-6" />
@@ -217,17 +172,13 @@ export default function WishlistPage() {
                   )}
                   
                   {/* Remove Button */}
-                  <Form method="post" className="absolute top-2 right-2">
-                    <input type="hidden" name="action" value="remove" />
-                    <input type="hidden" name="productId" value={item.id} />
-                    <button
-                      type="submit"
-                      className="p-2 bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full shadow-sm hover:shadow-md transition-all"
-                      title="Ta bort från önskelista"
-                    >
-                      <Trash2 size={16} className="text-red-600" />
-                    </button>
-                  </Form>
+                  <button
+                    onClick={() => removeFromWishlist(item.id)}
+                    className="absolute top-2 right-2 p-2 bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full shadow-sm hover:shadow-md transition-all"
+                    title="Ta bort från önskelista"
+                  >
+                    <Trash2 size={16} className="text-red-600" />
+                  </button>
                 </div>
 
                 {/* Product Info */}
@@ -258,17 +209,13 @@ export default function WishlistPage() {
                       Se produkt
                     </Link>
                     
-                    <Form method="post" className="flex-shrink-0">
-                      <input type="hidden" name="action" value="remove" />
-                      <input type="hidden" name="productId" value={item.id} />
-                      <button
-                        type="submit"
-                        className="p-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-                        title="Ta bort"
-                      >
-                        <Trash2 size={16} className="text-gray-600" />
-                      </button>
-                    </Form>
+                    <button
+                      onClick={() => removeFromWishlist(item.id)}
+                      className="p-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                      title="Ta bort"
+                    >
+                      <Trash2 size={16} className="text-gray-600" />
+                    </button>
                   </div>
                 </div>
 
