@@ -169,15 +169,25 @@ export default function WishlistPage() {
         )}
 
         {wishlistItems.length === 0 ? (
-          // Issue #9 & #10: Centered empty state with proper styling
+           {orders.length === 0 ? (
+          // Issue #6 & #10: Centered empty state with Swedish text and blue CTA button
           <div className="bg-white rounded-lg shadow-sm p-8 text-center">
-            <Heart size={64} className="mx-auto text-gray-400 mb-6" />
+            <Package size={64} className="mx-auto text-gray-400 mb-6" />
             <h3 className="text-xl font-medium text-gray-900 mb-3">
               Din önskelista är tom
             </h3>
-            <p className="text-gray-600 mb-8 max-w-md mx-auto" style={{ textAlign: 'center' }}>
-              Utforska vårt sortiment och lägg till produkter du vill spara för senare!
-            </p>
+            <div style={{ textAlign: 'center' }}>
+              <p style={{ 
+                color: '#6b7280', 
+                marginBottom: '2rem', 
+                maxWidth: '28rem', 
+                marginLeft: 'auto', 
+                marginRight: 'auto',
+                textAlign: 'center'
+              }}>
+                Utforska vårt sortiment och lägg till produkter du vill spara för senare!
+              </p>
+            </div>
             {/* Issue #11: Blue button with white text */}
             <Link
               to="/collections/all"

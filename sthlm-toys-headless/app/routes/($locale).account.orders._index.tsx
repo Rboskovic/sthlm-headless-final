@@ -109,7 +109,7 @@ export default function OrdersPage() {
             </div>
             {/* Issue #11: Blue button with white text */}
             <Link
-              to="/collections/all"
+              to="/themes"
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
