@@ -169,10 +169,8 @@ export default function WishlistPage() {
         )}
 
         {wishlistItems.length === 0 ? (
-           {orders.length === 0 ? (
-          // Issue #6 & #10: Centered empty state with Swedish text and blue CTA button
           <div className="bg-white rounded-lg shadow-sm p-8 text-center">
-            <Package size={64} className="mx-auto text-gray-400 mb-6" />
+            <Heart size={64} className="mx-auto text-gray-400 mb-6" />
             <h3 className="text-xl font-medium text-gray-900 mb-3">
               Din önskelista är tom
             </h3>
@@ -188,9 +186,8 @@ export default function WishlistPage() {
                 Utforska vårt sortiment och lägg till produkter du vill spara för senare!
               </p>
             </div>
-            {/* Issue #11: Blue button with white text */}
             <Link
-              to="/collections/all"
+              to="/themes"
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
