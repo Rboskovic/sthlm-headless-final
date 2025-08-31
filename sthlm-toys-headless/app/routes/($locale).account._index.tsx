@@ -83,7 +83,7 @@ export default function AccountIndex() {
                 </p>
               </div>
               
-              {/* Logout button with WHITE TEXT */}
+              {/* Logout button - FIXED sizing */}
               <Link
                 to="/account/logout"
                 style={{
@@ -96,10 +96,8 @@ export default function AccountIndex() {
                   borderRadius: '6px',
                   color: '#ffffff',
                   backgroundColor: '#dc2626',
-                  textDecoration: 'none',
-                  width: '100%'
+                  textDecoration: 'none'
                 }}
-                className="sm:w-auto"
               >
                 <LogOut size={16} style={{ marginRight: '8px' }} />
                 Logga ut
