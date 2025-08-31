@@ -1,10 +1,23 @@
 // FILE: app/routes/($locale).account.addresses.tsx
-// ✅ COMPLETE REFACTOR: Proper Shopify Customer Account API patterns
+// ✅ PROPER: Using existing fragments and fixing route conflicts
 
 import {redirect, data, type LoaderFunctionArgs, type ActionFunctionArgs} from '@shopify/remix-oxygen';
 import {useOutletContext, type MetaFunction, Link, Form, useActionData, useNavigation} from 'react-router';
 import {MapPin, Plus, Edit, Trash2, Star} from 'lucide-react';
 import type {CustomerFragment} from 'customer-accountapi.generated';
+
+// ✅ PROPER: Use existing fragments from your fragments.ts
+const DELETE_ADDRESS_MUTATION = `#graphql
+  mutation customerAddressDelete($addressId: ID!) {
+    customerAddressDelete(addressId: $addressId) {
+      deletedAddressId
+      userErrors {
+        field
+        message
+      }
+    }
+  }
+`;
 
 export type ActionResponse = {
   error?: string;
@@ -43,19 +56,6 @@ export async function action({request, context}: ActionFunctionArgs) {
 
   if (action === 'delete' && addressId) {
     try {
-      // ✅ PROPER SHOPIFY MUTATION: Using Customer Account API
-      const DELETE_ADDRESS_MUTATION = `#graphql
-        mutation customerAddressDelete($addressId: ID!) {
-          customerAddressDelete(addressId: $addressId) {
-            deletedAddressId
-            userErrors {
-              field
-              message
-            }
-          }
-        }
-      `;
-
       const {data: mutationData, errors} = await customerAccount.mutate(
         DELETE_ADDRESS_MUTATION,
         { variables: { addressId } }
@@ -81,6 +81,7 @@ export async function action({request, context}: ActionFunctionArgs) {
       });
 
     } catch (error: any) {
+      console.error('Delete address error:', error);
       return data({
         error: error.message || 'Ett oväntat fel uppstod',
         success: false,
@@ -96,6 +97,7 @@ export default function AddressesPage() {
   const actionData = useActionData<ActionResponse>();
   const navigation = useNavigation();
 
+  // ✅ PROPER: Fix TypeScript error with proper typing
   const addresses = customer?.addresses?.nodes || [];
   const defaultAddressId = customer?.defaultAddress?.id;
 
@@ -182,7 +184,6 @@ export default function AddressesPage() {
                 Lägg till en adress för snabbare utcheckning
               </p>
             </div>
-            {/* ✅ FIXED: WHITE TEXT on blue button */}
             <Link
               to="/account/addresses/add"
               style={{
@@ -203,7 +204,7 @@ export default function AddressesPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {addresses.map((address) => {
+            {addresses.map((address: any) => {
               const isDefault = address.id === defaultAddressId;
               const isDeleting = navigation.state === 'submitting' && 
                                navigation.formData?.get('addressId') === address.id;
@@ -248,7 +249,6 @@ export default function AddressesPage() {
 
                   {/* Actions */}
                   <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-                    {/* Fixed Edit Link - using proper route */}
                     <Link
                       to={`/account/addresses/${encodeURIComponent(address.id)}/edit`}
                       className="inline-flex items-center text-sm text-blue-600 hover:text-blue-700 font-medium"

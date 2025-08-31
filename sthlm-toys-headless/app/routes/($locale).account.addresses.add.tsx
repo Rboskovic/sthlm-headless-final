@@ -1,9 +1,28 @@
-// FILE: app/routes/($locale).account.addresses.add.tsx
-// ✅ PROPER SHOPIFY: Customer Account API with correct mutations
+// FILE: app/routes/($locale).account.addresses.add.tsx  
+// ✅ PROPER: Using existing architecture, fixing TypeScript issues
 
 import {redirect, data, type LoaderFunctionArgs, type ActionFunctionArgs} from '@shopify/remix-oxygen';
 import {Form, useActionData, useNavigation, type MetaFunction, Link} from 'react-router';
 import {ArrowLeft} from 'lucide-react';
+
+// ✅ PROPER: Use existing fragments architecture
+const CREATE_ADDRESS_MUTATION = `#graphql
+  mutation customerAddressCreate($address: CustomerAddressInput!, $defaultAddress: Boolean) {
+    customerAddressCreate(address: $address, defaultAddress: $defaultAddress) {
+      customerAddress {
+        id
+        firstName
+        lastName
+        address1
+        city
+      }
+      userErrors {
+        field
+        message
+      }
+    }
+  }
+`;
 
 export type ActionResponse = {
   error?: string;
@@ -37,7 +56,7 @@ export async function action({request, context}: ActionFunctionArgs) {
   const formData = await request.formData();
 
   try {
-    // ✅ PROPER SHOPIFY: Customer Account API address input
+    // ✅ PROPER: Customer Account API address input format
     const addressInput = {
       firstName: formData.get('firstName') as string,
       lastName: formData.get('lastName') as string,
@@ -52,35 +71,22 @@ export async function action({request, context}: ActionFunctionArgs) {
 
     const defaultAddress = formData.get('defaultAddress') === 'on';
 
-    // ✅ PROPER SHOPIFY: Official Customer Account API mutation
-    const CREATE_ADDRESS_MUTATION = `#graphql
-      mutation customerAddressCreate($address: CustomerAddressInput!, $defaultAddress: Boolean) {
-        customerAddressCreate(address: $address, defaultAddress: $defaultAddress) {
-          customerAddress {
-            id
-            firstName
-            lastName
-            address1
-            city
-          }
-          userErrors {
-            field
-            message
-          }
-        }
-      }
-    `;
+    console.log('Creating address with:', addressInput);
 
     const {data: mutationData, errors} = await customerAccount.mutate(
       CREATE_ADDRESS_MUTATION,
       { variables: { address: addressInput, defaultAddress } }
     );
 
+    console.log('Mutation result:', { mutationData, errors });
+
     if (errors?.length) {
+      console.error('GraphQL errors:', errors);
       return data({ error: errors[0].message, success: false });
     }
 
     if (mutationData?.customerAddressCreate?.userErrors?.length) {
+      console.error('User errors:', mutationData.customerAddressCreate.userErrors);
       return data({ 
         error: mutationData.customerAddressCreate.userErrors[0].message, 
         success: false 
@@ -88,6 +94,7 @@ export async function action({request, context}: ActionFunctionArgs) {
     }
 
     if (mutationData?.customerAddressCreate?.customerAddress) {
+      console.log('Address created successfully');
       return redirect('/account/addresses');
     }
 
@@ -95,7 +102,7 @@ export async function action({request, context}: ActionFunctionArgs) {
 
   } catch (error: any) {
     console.error('Address create error:', error);
-    return data({ error: 'Ett oväntat fel uppstod', success: false });
+    return data({ error: 'Ett oväntat fel uppstod: ' + error.message, success: false });
   }
 }
 

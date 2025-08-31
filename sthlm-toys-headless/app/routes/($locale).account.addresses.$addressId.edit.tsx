@@ -1,9 +1,52 @@
 // FILE: app/routes/($locale).account.addresses.$addressId.edit.tsx
-// ✅ PROPER SHOPIFY: Customer Account API with correct edit patterns
+// ✅ PROPER: Using existing architecture, fixing TypeScript issues
 
 import {redirect, data, type LoaderFunctionArgs, type ActionFunctionArgs} from '@shopify/remix-oxygen';
 import {Form, useActionData, useNavigation, useLoaderData, type MetaFunction, Link} from 'react-router';
 import {ArrowLeft} from 'lucide-react';
+
+// ✅ PROPER: Use existing patterns - inline GraphQL to avoid import issues
+const CUSTOMER_ADDRESSES_QUERY = `#graphql
+  query CustomerAddresses {
+    customer {
+      id
+      defaultAddress {
+        id
+      }
+      addresses(first: 20) {
+        nodes {
+          id
+          firstName
+          lastName
+          company
+          address1
+          address2
+          city
+          zip
+          phoneNumber
+        }
+      }
+    }
+  }
+`;
+
+const UPDATE_ADDRESS_MUTATION = `#graphql
+  mutation customerAddressUpdate($addressId: ID!, $address: CustomerAddressInput!, $defaultAddress: Boolean) {
+    customerAddressUpdate(addressId: $addressId, address: $address, defaultAddress: $defaultAddress) {
+      customerAddress {
+        id
+        firstName
+        lastName
+        address1
+        city
+      }
+      userErrors {
+        field
+        message
+      }
+    }
+  }
+`;
 
 export type ActionResponse = {
   error?: string;
@@ -11,18 +54,21 @@ export type ActionResponse = {
   message?: string;
 };
 
+// ✅ FIXED: Proper TypeScript interfaces
+export type AddressNode = {
+  id: string;
+  firstName?: string;
+  lastName?: string;
+  company?: string;
+  address1?: string;
+  address2?: string;
+  city?: string;
+  zip?: string;
+  phoneNumber?: string;
+};
+
 export type LoaderData = {
-  address: {
-    id: string;
-    firstName?: string;
-    lastName?: string;
-    company?: string;
-    address1?: string;
-    address2?: string;
-    city?: string;
-    zip?: string;
-    phoneNumber?: string;
-  } | null;
+  address: AddressNode | null;
   isDefault: boolean;
 };
 
@@ -42,41 +88,20 @@ export async function loader({context, params}: LoaderFunctionArgs) {
       return redirect('/account/addresses');
     }
 
-    // ✅ PROPER SHOPIFY: Using Customer Account API query
-    const CUSTOMER_ADDRESSES_QUERY = `#graphql
-      query CustomerAddresses {
-        customer {
-          id
-          defaultAddress {
-            id
-          }
-          addresses(first: 20) {
-            nodes {
-              id
-              firstName
-              lastName
-              company
-              address1
-              address2
-              city
-              zip
-              phoneNumber
-            }
-          }
-        }
-      }
-    `;
-
     const {data: customerData, errors} = await context.customerAccount.query(CUSTOMER_ADDRESSES_QUERY);
 
     if (errors?.length || !customerData?.customer) {
+      console.error('Customer query errors:', errors);
       return redirect('/account/addresses');
     }
 
     const addresses = customerData.customer.addresses?.nodes || [];
-    const address = addresses.find((addr) => addr.id === addressId);
+    
+    // ✅ FIXED: Proper TypeScript typing to fix the 'addr' error
+    const address = addresses.find((addr: AddressNode) => addr.id === addressId);
 
     if (!address) {
+      console.error('Address not found:', addressId);
       return redirect('/account/addresses');
     }
 
@@ -104,7 +129,6 @@ export async function action({request, context, params}: ActionFunctionArgs) {
   }
 
   try {
-    // ✅ PROPER SHOPIFY: Customer Account API address input
     const addressInput = {
       firstName: formData.get('firstName') as string,
       lastName: formData.get('lastName') as string,
@@ -119,35 +143,22 @@ export async function action({request, context, params}: ActionFunctionArgs) {
 
     const defaultAddress = formData.get('defaultAddress') === 'on';
 
-    // ✅ PROPER SHOPIFY: Official Customer Account API mutation
-    const UPDATE_ADDRESS_MUTATION = `#graphql
-      mutation customerAddressUpdate($addressId: ID!, $address: CustomerAddressInput!, $defaultAddress: Boolean) {
-        customerAddressUpdate(addressId: $addressId, address: $address, defaultAddress: $defaultAddress) {
-          customerAddress {
-            id
-            firstName
-            lastName
-            address1
-            city
-          }
-          userErrors {
-            field
-            message
-          }
-        }
-      }
-    `;
+    console.log('Updating address:', { addressId, addressInput, defaultAddress });
 
     const {data: mutationData, errors} = await customerAccount.mutate(
       UPDATE_ADDRESS_MUTATION,
       { variables: { addressId, address: addressInput, defaultAddress } }
     );
 
+    console.log('Update result:', { mutationData, errors });
+
     if (errors?.length) {
+      console.error('GraphQL errors:', errors);
       return data({ error: errors[0].message, success: false });
     }
 
     if (mutationData?.customerAddressUpdate?.userErrors?.length) {
+      console.error('User errors:', mutationData.customerAddressUpdate.userErrors);
       return data({ 
         error: mutationData.customerAddressUpdate.userErrors[0].message, 
         success: false 
@@ -155,6 +166,7 @@ export async function action({request, context, params}: ActionFunctionArgs) {
     }
 
     if (mutationData?.customerAddressUpdate?.customerAddress) {
+      console.log('Address updated successfully');
       return redirect('/account/addresses');
     }
 
@@ -162,7 +174,7 @@ export async function action({request, context, params}: ActionFunctionArgs) {
 
   } catch (error: any) {
     console.error('Address update error:', error);
-    return data({ error: 'Ett oväntat fel uppstod', success: false });
+    return data({ error: 'Ett oväntat fel uppstod: ' + error.message, success: false });
   }
 }
 
