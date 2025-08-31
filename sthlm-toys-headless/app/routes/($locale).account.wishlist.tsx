@@ -175,7 +175,7 @@ export default function WishlistPage() {
             <h3 className="text-xl font-medium text-gray-900 mb-3">
               Din önskelista är tom
             </h3>
-            <p className="text-gray-600 mb-8 max-w-md mx-auto">
+            <p className="text-gray-600 mb-8 max-w-md mx-auto" style={{ textAlign: 'center' }}>
               Utforska vårt sortiment och lägg till produkter du vill spara för senare!
             </p>
             {/* Issue #11: Blue button with white text */}

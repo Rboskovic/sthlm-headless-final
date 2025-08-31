@@ -149,7 +149,7 @@ export default function AddressesPage() {
             <h3 className="text-lg font-medium text-gray-900 mb-2">
               Inga adresser sparade ännu
             </h3>
-            <p className="text-gray-600 mb-6">
+            <p className="text-gray-600 mb-6" style={{ textAlign: 'center' }}>
               Lägg till en adress för snabbare utcheckning
             </p>
             <Link
