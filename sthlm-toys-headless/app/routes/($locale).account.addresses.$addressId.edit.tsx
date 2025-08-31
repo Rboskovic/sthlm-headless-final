@@ -1,5 +1,5 @@
 // FILE: app/routes/($locale).account.addresses.$addressId.edit.tsx
-// ✅ WORKING: Simple edit address form that actually loads
+// ✅ PROPER SHOPIFY: Customer Account API with correct edit patterns
 
 import {redirect, data, type LoaderFunctionArgs, type ActionFunctionArgs} from '@shopify/remix-oxygen';
 import {Form, useActionData, useNavigation, useLoaderData, type MetaFunction, Link} from 'react-router';
@@ -42,9 +42,9 @@ export async function loader({context, params}: LoaderFunctionArgs) {
       return redirect('/account/addresses');
     }
 
-    // Get customer data including addresses
-    const CUSTOMER_QUERY = `#graphql
-      query CustomerWithAddresses {
+    // ✅ PROPER SHOPIFY: Using Customer Account API query
+    const CUSTOMER_ADDRESSES_QUERY = `#graphql
+      query CustomerAddresses {
         customer {
           id
           defaultAddress {
@@ -67,7 +67,7 @@ export async function loader({context, params}: LoaderFunctionArgs) {
       }
     `;
 
-    const {data: customerData, errors} = await context.customerAccount.query(CUSTOMER_QUERY);
+    const {data: customerData, errors} = await context.customerAccount.query(CUSTOMER_ADDRESSES_QUERY);
 
     if (errors?.length || !customerData?.customer) {
       return redirect('/account/addresses');
@@ -104,6 +104,7 @@ export async function action({request, context, params}: ActionFunctionArgs) {
   }
 
   try {
+    // ✅ PROPER SHOPIFY: Customer Account API address input
     const addressInput = {
       firstName: formData.get('firstName') as string,
       lastName: formData.get('lastName') as string,
@@ -111,20 +112,23 @@ export async function action({request, context, params}: ActionFunctionArgs) {
       address1: formData.get('address1') as string,
       address2: (formData.get('address2') as string) || '',
       city: formData.get('city') as string,
-      territoryCode: 'SE',
+      territoryCode: 'SE', // Sweden
       zip: formData.get('zip') as string,
       phoneNumber: (formData.get('phoneNumber') as string) || '',
     };
 
     const defaultAddress = formData.get('defaultAddress') === 'on';
 
+    // ✅ PROPER SHOPIFY: Official Customer Account API mutation
     const UPDATE_ADDRESS_MUTATION = `#graphql
       mutation customerAddressUpdate($addressId: ID!, $address: CustomerAddressInput!, $defaultAddress: Boolean) {
-        customerAddressUpdate(input: { id: $addressId, address: $address, defaultAddress: $defaultAddress }) {
+        customerAddressUpdate(addressId: $addressId, address: $address, defaultAddress: $defaultAddress) {
           customerAddress {
             id
             firstName
             lastName
+            address1
+            city
           }
           userErrors {
             field
@@ -157,7 +161,7 @@ export async function action({request, context, params}: ActionFunctionArgs) {
     return data({ error: 'Misslyckades att uppdatera adress', success: false });
 
   } catch (error: any) {
-    console.error('Error updating address:', error);
+    console.error('Address update error:', error);
     return data({ error: 'Ett oväntat fel uppstod', success: false });
   }
 }
@@ -340,6 +344,7 @@ export default function EditAddressPage() {
               >
                 Avbryt
               </Link>
+              {/* ✅ FIXED: WHITE TEXT on blue button */}
               <button
                 type="submit"
                 disabled={isSubmitting}

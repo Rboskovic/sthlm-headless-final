@@ -1,5 +1,5 @@
 // FILE: app/routes/($locale).account.addresses.add.tsx
-// ✅ WORKING: Simple add address form that actually loads
+// ✅ PROPER SHOPIFY: Customer Account API with correct mutations
 
 import {redirect, data, type LoaderFunctionArgs, type ActionFunctionArgs} from '@shopify/remix-oxygen';
 import {Form, useActionData, useNavigation, type MetaFunction, Link} from 'react-router';
@@ -37,7 +37,7 @@ export async function action({request, context}: ActionFunctionArgs) {
   const formData = await request.formData();
 
   try {
-    // Simple address creation using Customer Account API
+    // ✅ PROPER SHOPIFY: Customer Account API address input
     const addressInput = {
       firstName: formData.get('firstName') as string,
       lastName: formData.get('lastName') as string,
@@ -45,20 +45,23 @@ export async function action({request, context}: ActionFunctionArgs) {
       address1: formData.get('address1') as string,
       address2: (formData.get('address2') as string) || '',
       city: formData.get('city') as string,
-      territoryCode: 'SE',
+      territoryCode: 'SE', // Sweden
       zip: formData.get('zip') as string,
       phoneNumber: (formData.get('phoneNumber') as string) || '',
     };
 
     const defaultAddress = formData.get('defaultAddress') === 'on';
 
+    // ✅ PROPER SHOPIFY: Official Customer Account API mutation
     const CREATE_ADDRESS_MUTATION = `#graphql
       mutation customerAddressCreate($address: CustomerAddressInput!, $defaultAddress: Boolean) {
-        customerAddressCreate(input: { address: $address, defaultAddress: $defaultAddress }) {
+        customerAddressCreate(address: $address, defaultAddress: $defaultAddress) {
           customerAddress {
             id
             firstName
             lastName
+            address1
+            city
           }
           userErrors {
             field
@@ -91,6 +94,7 @@ export async function action({request, context}: ActionFunctionArgs) {
     return data({ error: 'Misslyckades att skapa adress', success: false });
 
   } catch (error: any) {
+    console.error('Address create error:', error);
     return data({ error: 'Ett oväntat fel uppstod', success: false });
   }
 }
@@ -246,6 +250,7 @@ export default function AddAddressPage() {
               >
                 Avbryt
               </Link>
+              {/* ✅ FIXED: WHITE TEXT on blue button */}
               <button
                 type="submit"
                 disabled={isSubmitting}

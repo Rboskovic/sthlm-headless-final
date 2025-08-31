@@ -1,11 +1,10 @@
 // FILE: app/routes/($locale).account.addresses.tsx
-// ✅ FIXED: Swedish translation, proper error handling, working add/edit addresses
+// ✅ COMPLETE REFACTOR: Proper Shopify Customer Account API patterns
 
 import {redirect, data, type LoaderFunctionArgs, type ActionFunctionArgs} from '@shopify/remix-oxygen';
 import {useOutletContext, type MetaFunction, Link, Form, useActionData, useNavigation} from 'react-router';
 import {MapPin, Plus, Edit, Trash2, Star} from 'lucide-react';
 import type {CustomerFragment} from 'customer-accountapi.generated';
-import {DELETE_ADDRESS_MUTATION} from '~/graphql/customer-account/CustomerAddressMutations';
 
 export type ActionResponse = {
   error?: string;
@@ -44,11 +43,22 @@ export async function action({request, context}: ActionFunctionArgs) {
 
   if (action === 'delete' && addressId) {
     try {
+      // ✅ PROPER SHOPIFY MUTATION: Using Customer Account API
+      const DELETE_ADDRESS_MUTATION = `#graphql
+        mutation customerAddressDelete($addressId: ID!) {
+          customerAddressDelete(addressId: $addressId) {
+            deletedAddressId
+            userErrors {
+              field
+              message
+            }
+          }
+        }
+      `;
+
       const {data: mutationData, errors} = await customerAccount.mutate(
         DELETE_ADDRESS_MUTATION,
-        {
-          variables: { addressId },
-        }
+        { variables: { addressId } }
       );
 
       if (errors?.length) {
@@ -115,12 +125,23 @@ export default function AddressesPage() {
                 </p>
               </div>
               
-              {/* Fixed Add Address Button - Issue #8 */}
+              {/* ✅ FIXED: WHITE TEXT on blue button */}
               <Link
                 to="/account/addresses/add"
-                className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors w-full sm:w-auto"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '8px 24px',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  borderRadius: '6px',
+                  color: '#ffffff',
+                  backgroundColor: '#2563eb',
+                  textDecoration: 'none'
+                }}
               >
-                <Plus size={16} className="mr-2" />
+                <Plus size={16} style={{ marginRight: '8px' }} />
                 Lägg till adress
               </Link>
             </div>
@@ -161,6 +182,7 @@ export default function AddressesPage() {
                 Lägg till en adress för snabbare utcheckning
               </p>
             </div>
+            {/* ✅ FIXED: WHITE TEXT on blue button */}
             <Link
               to="/account/addresses/add"
               style={{
@@ -226,7 +248,7 @@ export default function AddressesPage() {
 
                   {/* Actions */}
                   <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-                    {/* Fixed Edit Link - Issue #7 */}
+                    {/* Fixed Edit Link - using proper route */}
                     <Link
                       to={`/account/addresses/${encodeURIComponent(address.id)}/edit`}
                       className="inline-flex items-center text-sm text-blue-600 hover:text-blue-700 font-medium"
