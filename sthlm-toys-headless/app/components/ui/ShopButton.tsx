@@ -32,7 +32,7 @@ const buttonVariants = cva(
                focus-visible:ring-blue-600 p-0 h-auto`,
         addToCart: `bg-blue-600 text-white hover:bg-blue-700 focus-visible:ring-blue-600
                     shadow-sm hover:shadow-md font-semibold tracking-wide`,
-        cta: `bg-yellow-500 text-black hover:bg-yellow-600 focus-visible:ring-yellow-500
+        cta: `bg-yellow-500 text-white hover:bg-yellow-600 focus-visible:ring-yellow-500
               shadow-sm hover:shadow-md font-bold tracking-wide border-2 border-transparent
               hover:border-yellow-700`,
       },

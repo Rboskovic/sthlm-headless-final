@@ -1,17 +1,8 @@
 // FILE: app/routes/($locale).account.addresses.$addressId.edit.tsx
-// ✅ FIXED: Working edit address form with proper error handling and Swedish translation
+// ✅ WORKING: Simple edit address form that actually loads
 
 import {redirect, data, type LoaderFunctionArgs, type ActionFunctionArgs} from '@shopify/remix-oxygen';
-import {
-  Form,
-  useActionData,
-  useNavigation,
-  useLoaderData,
-  type MetaFunction,
-  Link,
-} from 'react-router';
-import {UPDATE_ADDRESS_MUTATION} from '~/graphql/customer-account/CustomerAddressMutations';
-import {CUSTOMER_DETAILS_QUERY} from '~/graphql/customer-account/CustomerDetailsQuery';
+import {Form, useActionData, useNavigation, useLoaderData, type MetaFunction, Link} from 'react-router';
 import {ArrowLeft} from 'lucide-react';
 
 export type ActionResponse = {
@@ -29,7 +20,6 @@ export type LoaderData = {
     address1?: string;
     address2?: string;
     city?: string;
-    zoneCode?: string;
     zip?: string;
     phoneNumber?: string;
   } | null;
@@ -44,19 +34,42 @@ export async function loader({context, params}: LoaderFunctionArgs) {
   try {
     const isLoggedIn = await context.customerAccount.isLoggedIn();
     if (!isLoggedIn) {
-      return redirect('/account/login?redirect=/account/addresses');
-    }
-
-    const {data: customerData, errors} = await context.customerAccount.query(
-      CUSTOMER_DETAILS_QUERY,
-    );
-
-    if (errors?.length || !customerData?.customer) {
-      return redirect('/account/addresses');
+      return redirect('/account/login');
     }
 
     const addressId = params.addressId;
     if (!addressId) {
+      return redirect('/account/addresses');
+    }
+
+    // Get customer data including addresses
+    const CUSTOMER_QUERY = `#graphql
+      query CustomerWithAddresses {
+        customer {
+          id
+          defaultAddress {
+            id
+          }
+          addresses(first: 20) {
+            nodes {
+              id
+              firstName
+              lastName
+              company
+              address1
+              address2
+              city
+              zip
+              phoneNumber
+            }
+          }
+        }
+      }
+    `;
+
+    const {data: customerData, errors} = await context.customerAccount.query(CUSTOMER_QUERY);
+
+    if (errors?.length || !customerData?.customer) {
       return redirect('/account/addresses');
     }
 
@@ -71,7 +84,7 @@ export async function loader({context, params}: LoaderFunctionArgs) {
 
     return data({ address, isDefault });
   } catch (error) {
-    console.error('Error loading address for edit:', error);
+    console.error('Error loading address:', error);
     return redirect('/account/addresses');
   }
 }
@@ -91,61 +104,61 @@ export async function action({request, context, params}: ActionFunctionArgs) {
   }
 
   try {
-    const address = {
+    const addressInput = {
       firstName: formData.get('firstName') as string,
       lastName: formData.get('lastName') as string,
-      company: formData.get('company') as string || '',
+      company: (formData.get('company') as string) || '',
       address1: formData.get('address1') as string,
-      address2: formData.get('address2') as string || '',
+      address2: (formData.get('address2') as string) || '',
       city: formData.get('city') as string,
-      zoneCode: formData.get('zoneCode') as string || '',
+      territoryCode: 'SE',
       zip: formData.get('zip') as string,
-      phoneNumber: formData.get('phoneNumber') as string || '',
-      territoryCode: 'SE', // Default to Sweden
+      phoneNumber: (formData.get('phoneNumber') as string) || '',
     };
 
     const defaultAddress = formData.get('defaultAddress') === 'on';
 
+    const UPDATE_ADDRESS_MUTATION = `#graphql
+      mutation customerAddressUpdate($addressId: ID!, $address: CustomerAddressInput!, $defaultAddress: Boolean) {
+        customerAddressUpdate(input: { id: $addressId, address: $address, defaultAddress: $defaultAddress }) {
+          customerAddress {
+            id
+            firstName
+            lastName
+          }
+          userErrors {
+            field
+            message
+          }
+        }
+      }
+    `;
+
     const {data: mutationData, errors} = await customerAccount.mutate(
       UPDATE_ADDRESS_MUTATION,
-      {
-        variables: {
-          address,
-          addressId,
-          defaultAddress,
-        },
-      }
+      { variables: { addressId, address: addressInput, defaultAddress } }
     );
 
     if (errors?.length) {
-      return data({
-        error: errors[0].message,
-        success: false,
-      });
+      return data({ error: errors[0].message, success: false });
     }
 
     if (mutationData?.customerAddressUpdate?.userErrors?.length) {
-      return data({
-        error: mutationData.customerAddressUpdate.userErrors[0].message,
-        success: false,
+      return data({ 
+        error: mutationData.customerAddressUpdate.userErrors[0].message, 
+        success: false 
       });
     }
 
     if (mutationData?.customerAddressUpdate?.customerAddress) {
-      return redirect('/account/addresses?updated=true');
+      return redirect('/account/addresses');
     }
 
-    return data({
-      error: 'Misslyckades att uppdatera adress',
-      success: false,
-    });
+    return data({ error: 'Misslyckades att uppdatera adress', success: false });
 
   } catch (error: any) {
     console.error('Error updating address:', error);
-    return data({
-      error: error.message || 'Ett oväntat fel uppstod',
-      success: false,
-    });
+    return data({ error: 'Ett oväntat fel uppstod', success: false });
   }
 }
 
@@ -208,7 +221,7 @@ export default function EditAddressPage() {
                   name="firstName"
                   defaultValue={address.firstName || ''}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
@@ -220,7 +233,7 @@ export default function EditAddressPage() {
                   name="lastName"
                   defaultValue={address.lastName || ''}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
@@ -234,11 +247,11 @@ export default function EditAddressPage() {
                 type="text"
                 name="company"
                 defaultValue={address.company || ''}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
-            {/* Address fields */}
+            {/* Address */}
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -250,7 +263,7 @@ export default function EditAddressPage() {
                   defaultValue={address.address1 || ''}
                   placeholder="Gatuadress"
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
@@ -259,7 +272,7 @@ export default function EditAddressPage() {
                   name="address2"
                   defaultValue={address.address2 || ''}
                   placeholder="Lägenhet, svit, etc. (valfritt)"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
@@ -275,7 +288,7 @@ export default function EditAddressPage() {
                   name="city"
                   defaultValue={address.city || ''}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
@@ -287,13 +300,10 @@ export default function EditAddressPage() {
                   name="zip"
                   defaultValue={address.zip || ''}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
-
-            {/* Province/State - Hidden for Sweden */}
-            <input type="hidden" name="zoneCode" value={address.zoneCode || ''} />
 
             {/* Phone */}
             <div>
@@ -304,7 +314,7 @@ export default function EditAddressPage() {
                 type="tel"
                 name="phoneNumber"
                 defaultValue={address.phoneNumber || ''}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
@@ -334,7 +344,7 @@ export default function EditAddressPage() {
                 type="submit"
                 disabled={isSubmitting}
                 style={{
-                  padding: '12px 24px',
+                  padding: '8px 24px',
                   backgroundColor: isSubmitting ? '#9ca3af' : '#2563eb',
                   color: '#ffffff',
                   fontWeight: '500',

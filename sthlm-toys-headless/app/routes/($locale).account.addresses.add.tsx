@@ -1,15 +1,8 @@
 // FILE: app/routes/($locale).account.addresses.add.tsx
-// ✅ FIXED: Working add address form with Swedish translation and proper error handling
+// ✅ WORKING: Simple add address form that actually loads
 
 import {redirect, data, type LoaderFunctionArgs, type ActionFunctionArgs} from '@shopify/remix-oxygen';
-import {
-  Form,
-  useActionData,
-  useNavigation,
-  type MetaFunction,
-  Link,
-} from 'react-router';
-import {CREATE_ADDRESS_MUTATION} from '~/graphql/customer-account/CustomerAddressMutations';
+import {Form, useActionData, useNavigation, type MetaFunction, Link} from 'react-router';
 import {ArrowLeft} from 'lucide-react';
 
 export type ActionResponse = {
@@ -26,12 +19,11 @@ export async function loader({context}: LoaderFunctionArgs) {
   try {
     const isLoggedIn = await context.customerAccount.isLoggedIn();
     if (!isLoggedIn) {
-      return redirect('/account/login?redirect=/account/addresses/add');
+      return redirect('/account/login');
     }
-    await context.customerAccount.handleAuthStatus();
     return {};
   } catch (error) {
-    return redirect('/account/login?redirect=/account/addresses/add');
+    return redirect('/account/login');
   }
 }
 
@@ -45,59 +37,61 @@ export async function action({request, context}: ActionFunctionArgs) {
   const formData = await request.formData();
 
   try {
-    const address = {
+    // Simple address creation using Customer Account API
+    const addressInput = {
       firstName: formData.get('firstName') as string,
       lastName: formData.get('lastName') as string,
-      company: formData.get('company') as string || '',
+      company: (formData.get('company') as string) || '',
       address1: formData.get('address1') as string,
-      address2: formData.get('address2') as string || '',
+      address2: (formData.get('address2') as string) || '',
       city: formData.get('city') as string,
-      zoneCode: formData.get('zoneCode') as string,
+      territoryCode: 'SE',
       zip: formData.get('zip') as string,
-      phoneNumber: formData.get('phoneNumber') as string || '',
-      territoryCode: formData.get('territoryCode') as string || 'SE', // Default to Sweden
+      phoneNumber: (formData.get('phoneNumber') as string) || '',
     };
 
     const defaultAddress = formData.get('defaultAddress') === 'on';
 
+    const CREATE_ADDRESS_MUTATION = `#graphql
+      mutation customerAddressCreate($address: CustomerAddressInput!, $defaultAddress: Boolean) {
+        customerAddressCreate(input: { address: $address, defaultAddress: $defaultAddress }) {
+          customerAddress {
+            id
+            firstName
+            lastName
+          }
+          userErrors {
+            field
+            message
+          }
+        }
+      }
+    `;
+
     const {data: mutationData, errors} = await customerAccount.mutate(
       CREATE_ADDRESS_MUTATION,
-      {
-        variables: {
-          address,
-          defaultAddress,
-        },
-      }
+      { variables: { address: addressInput, defaultAddress } }
     );
 
     if (errors?.length) {
-      return data({
-        error: errors[0].message,
-        success: false,
-      });
+      return data({ error: errors[0].message, success: false });
     }
 
     if (mutationData?.customerAddressCreate?.userErrors?.length) {
-      return data({
-        error: mutationData.customerAddressCreate.userErrors[0].message,
-        success: false,
+      return data({ 
+        error: mutationData.customerAddressCreate.userErrors[0].message, 
+        success: false 
       });
     }
 
     if (mutationData?.customerAddressCreate?.customerAddress) {
-      return redirect('/account/addresses?added=true');
+      return redirect('/account/addresses');
     }
 
-    return data({
-      error: 'Misslyckades att skapa adress',
-      success: false,
-    });
+    return data({ error: 'Misslyckades att skapa adress', success: false });
 
   } catch (error: any) {
-    return data({
-      error: error.message || 'Ett oväntat fel uppstod',
-      success: false,
-    });
+    return data({ error: 'Ett oväntat fel uppstod', success: false });
   }
 }
 
@@ -141,7 +135,7 @@ export default function AddAddressPage() {
                   type="text"
                   name="firstName"
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
@@ -152,7 +146,7 @@ export default function AddAddressPage() {
                   type="text"
                   name="lastName"
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
@@ -165,11 +159,11 @@ export default function AddAddressPage() {
               <input
                 type="text"
                 name="company"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
-            {/* Address fields */}
+            {/* Address */}
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -180,7 +174,7 @@ export default function AddAddressPage() {
                   name="address1"
                   placeholder="Gatuadress"
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
@@ -188,7 +182,7 @@ export default function AddAddressPage() {
                   type="text"
                   name="address2"
                   placeholder="Lägenhet, svit, etc. (valfritt)"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
@@ -203,7 +197,7 @@ export default function AddAddressPage() {
                   type="text"
                   name="city"
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
@@ -214,14 +208,10 @@ export default function AddAddressPage() {
                   type="text"
                   name="zip"
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
-
-            {/* Province/State - Hidden for Sweden */}
-            <input type="hidden" name="zoneCode" value="" />
-            <input type="hidden" name="territoryCode" value="SE" />
 
             {/* Phone */}
             <div>
@@ -231,7 +221,7 @@ export default function AddAddressPage() {
               <input
                 type="tel"
                 name="phoneNumber"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
@@ -260,7 +250,7 @@ export default function AddAddressPage() {
                 type="submit"
                 disabled={isSubmitting}
                 style={{
-                  padding: '12px 24px',
+                  padding: '8px 24px',
                   backgroundColor: isSubmitting ? '#9ca3af' : '#2563eb',
                   color: '#ffffff',
                   fontWeight: '500',
