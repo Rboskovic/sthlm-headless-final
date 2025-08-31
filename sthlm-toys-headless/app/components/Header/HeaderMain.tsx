@@ -157,7 +157,7 @@ export function HeaderMain({
             </Link>
 
             <Link
-              to="/hjalp"
+              to="/pages/hjalp"
               className="flex items-center text-white hover:bg-white/10 transition-colors"
               style={{
                 fontSize: '14px',

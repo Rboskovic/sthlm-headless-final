@@ -1,7 +1,7 @@
 // FILE: app/routes/($locale).account.addresses.add.tsx
-// ✅ NEW: Add address route
+// ✅ FIXED: Working add address form with Swedish translation and proper error handling
 
-import {redirect, type LoaderFunctionArgs, type ActionFunctionArgs} from '@shopify/remix-oxygen';
+import {redirect, data, type LoaderFunctionArgs, type ActionFunctionArgs} from '@shopify/remix-oxygen';
 import {
   Form,
   useActionData,
@@ -9,7 +9,6 @@ import {
   type MetaFunction,
   Link,
 } from 'react-router';
-import {data} from '@shopify/remix-oxygen';
 import {CREATE_ADDRESS_MUTATION} from '~/graphql/customer-account/CustomerAddressMutations';
 import {ArrowLeft} from 'lucide-react';
 
@@ -20,19 +19,19 @@ export type ActionResponse = {
 };
 
 export const meta: MetaFunction = () => {
-  return [{title: 'Add Address'}];
+  return [{title: 'Lägg till adress - STHLM Toys & Games'}];
 };
 
 export async function loader({context}: LoaderFunctionArgs) {
   try {
     const isLoggedIn = await context.customerAccount.isLoggedIn();
     if (!isLoggedIn) {
-      return redirect('/account/login');
+      return redirect('/account/login?redirect=/account/addresses/add');
     }
     await context.customerAccount.handleAuthStatus();
     return {};
   } catch (error) {
-    return redirect('/account/login');
+    return redirect('/account/login?redirect=/account/addresses/add');
   }
 }
 
@@ -40,7 +39,7 @@ export async function action({request, context}: ActionFunctionArgs) {
   const {customerAccount} = context;
 
   if (request.method !== 'POST') {
-    return data({error: 'Method not allowed'}, {status: 405});
+    return data({error: 'Metod inte tillåten'}, {status: 405});
   }
 
   const formData = await request.formData();
@@ -86,17 +85,17 @@ export async function action({request, context}: ActionFunctionArgs) {
     }
 
     if (mutationData?.customerAddressCreate?.customerAddress) {
-      return redirect('/account/addresses');
+      return redirect('/account/addresses?added=true');
     }
 
     return data({
-      error: 'Failed to create address',
+      error: 'Misslyckades att skapa adress',
       success: false,
     });
 
   } catch (error: any) {
     return data({
-      error: error.message || 'An unexpected error occurred',
+      error: error.message || 'Ett oväntat fel uppstod',
       success: false,
     });
   }
@@ -108,260 +107,166 @@ export default function AddAddressPage() {
   const isSubmitting = navigation.state === 'submitting';
 
   return (
-    <div style={{ padding: '20px', maxWidth: '600px', margin: '0 auto' }}>
-      {/* Back button */}
-      <Link
-        to="/account/addresses"
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '8px',
-          color: '#007bff',
-          textDecoration: 'none',
-          marginBottom: '20px',
-          fontSize: '14px'
-        }}
-      >
-        <ArrowLeft size={16} />
-        Back to Addresses
-      </Link>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Back button */}
+        <Link
+          to="/account/addresses"
+          className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm font-medium mb-6"
+        >
+          <ArrowLeft size={16} />
+          Tillbaka till adresser
+        </Link>
 
-      <h2 style={{ margin: '0 0 20px 0', fontSize: '24px', fontWeight: 'bold' }}>
-        Add New Address
-      </h2>
+        <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+          <h1 className="text-2xl font-bold text-gray-900 mb-6">
+            Lägg till ny adress
+          </h1>
 
-      {/* Error message */}
-      {actionData?.error && (
-        <div style={{
-          backgroundColor: '#fef2f2',
-          color: '#dc2626',
-          padding: '12px 16px',
-          borderRadius: '6px',
-          marginBottom: '20px',
-          border: '1px solid #fecaca'
-        }}>
-          {actionData.error}
-        </div>
-      )}
+          {/* Error message */}
+          {actionData?.error && (
+            <div className="mb-6 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-md">
+              {actionData.error}
+            </div>
+          )}
 
-      <Form method="post">
-        <div style={{
-          backgroundColor: 'white',
-          padding: '24px',
-          border: '1px solid #e5e7eb',
-          borderRadius: '12px'
-        }}>
-          {/* Name fields */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+          <Form method="post" className="space-y-6">
+            {/* Name fields */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Förnamn *
+                </label>
+                <input
+                  type="text"
+                  name="firstName"
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Efternamn *
+                </label>
+                <input
+                  type="text"
+                  name="lastName"
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+
+            {/* Company */}
             <div>
-              <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500', fontSize: '14px' }}>
-                First Name *
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Företag (valfritt)
               </label>
               <input
                 type="text"
-                name="firstName"
-                required
-                style={{
-                  width: '100%',
-                  padding: '10px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '6px',
-                  fontSize: '14px'
-                }}
+                name="company"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
+
+            {/* Address fields */}
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Adress *
+                </label>
+                <input
+                  type="text"
+                  name="address1"
+                  placeholder="Gatuadress"
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <input
+                  type="text"
+                  name="address2"
+                  placeholder="Lägenhet, svit, etc. (valfritt)"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+
+            {/* City and Postal Code */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="sm:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Stad *
+                </label>
+                <input
+                  type="text"
+                  name="city"
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Postnummer *
+                </label>
+                <input
+                  type="text"
+                  name="zip"
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+
+            {/* Province/State - Hidden for Sweden */}
+            <input type="hidden" name="zoneCode" value="" />
+            <input type="hidden" name="territoryCode" value="SE" />
+
+            {/* Phone */}
             <div>
-              <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500', fontSize: '14px' }}>
-                Last Name *
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Telefonnummer (valfritt)
               </label>
               <input
-                type="text"
-                name="lastName"
-                required
-                style={{
-                  width: '100%',
-                  padding: '10px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '6px',
-                  fontSize: '14px'
-                }}
+                type="tel"
+                name="phoneNumber"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
-          </div>
 
-          {/* Company */}
-          <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500', fontSize: '14px' }}>
-              Company (Optional)
-            </label>
-            <input
-              type="text"
-              name="company"
-              style={{
-                width: '100%',
-                padding: '10px',
-                border: '1px solid #d1d5db',
-                borderRadius: '6px',
-                fontSize: '14px'
-              }}
-            />
-          </div>
-
-          {/* Address fields */}
-          <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500', fontSize: '14px' }}>
-              Address *
-            </label>
-            <input
-              type="text"
-              name="address1"
-              placeholder="Street address"
-              required
-              style={{
-                width: '100%',
-                padding: '10px',
-                border: '1px solid #d1d5db',
-                borderRadius: '6px',
-                fontSize: '14px',
-                marginBottom: '8px'
-              }}
-            />
-            <input
-              type="text"
-              name="address2"
-              placeholder="Apartment, suite, etc. (optional)"
-              style={{
-                width: '100%',
-                padding: '10px',
-                border: '1px solid #d1d5db',
-                borderRadius: '6px',
-                fontSize: '14px'
-              }}
-            />
-          </div>
-
-          {/* City, Province, Postal */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginBottom: '16px' }}>
-            <div>
-              <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500', fontSize: '14px' }}>
-                City *
-              </label>
-              <input
-                type="text"
-                name="city"
-                required
-                style={{
-                  width: '100%',
-                  padding: '10px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '6px',
-                  fontSize: '14px'
-                }}
-              />
-            </div>
-            <div>
-              <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500', fontSize: '14px' }}>
-                Province/State
-              </label>
-              <input
-                type="text"
-                name="zoneCode"
-                placeholder="e.g., Stockholm"
-                style={{
-                  width: '100%',
-                  padding: '10px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '6px',
-                  fontSize: '14px'
-                }}
-              />
-            </div>
-            <div>
-              <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500', fontSize: '14px' }}>
-                Postal Code *
-              </label>
-              <input
-                type="text"
-                name="zip"
-                required
-                style={{
-                  width: '100%',
-                  padding: '10px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '6px',
-                  fontSize: '14px'
-                }}
-              />
-            </div>
-          </div>
-
-          {/* Phone */}
-          <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500', fontSize: '14px' }}>
-              Phone Number (Optional)
-            </label>
-            <input
-              type="tel"
-              name="phoneNumber"
-              style={{
-                width: '100%',
-                padding: '10px',
-                border: '1px solid #d1d5db',
-                borderRadius: '6px',
-                fontSize: '14px'
-              }}
-            />
-          </div>
-
-          {/* Default address checkbox */}
-          <div style={{ marginBottom: '24px' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+            {/* Default address checkbox */}
+            <div className="flex items-center">
               <input
                 type="checkbox"
                 name="defaultAddress"
-                style={{ width: '16px', height: '16px' }}
+                id="defaultAddress"
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
               />
-              <span style={{ fontSize: '14px', color: '#374151' }}>
-                Set as default address
-              </span>
-            </label>
-          </div>
+              <label htmlFor="defaultAddress" className="ml-2 block text-sm text-gray-700">
+                Ange som standardadress
+              </label>
+            </div>
 
-          {/* Submit button */}
-          <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-            <Link
-              to="/account/addresses"
-              style={{
-                padding: '10px 20px',
-                border: '1px solid #d1d5db',
-                borderRadius: '6px',
-                color: '#374151',
-                textDecoration: 'none',
-                fontSize: '14px',
-                fontWeight: '500'
-              }}
-            >
-              Cancel
-            </Link>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              style={{
-                padding: '10px 20px',
-                backgroundColor: isSubmitting ? '#9ca3af' : '#007bff',
-                color: 'white',
-                border: 'none',
-                borderRadius: '6px',
-                fontSize: '14px',
-                fontWeight: '500',
-                cursor: isSubmitting ? 'not-allowed' : 'pointer'
-              }}
-            >
-              {isSubmitting ? 'Saving...' : 'Save Address'}
-            </button>
-          </div>
+            {/* Submit buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-200">
+              <Link
+                to="/account/addresses"
+                className="px-6 py-2 border border-gray-300 text-gray-700 font-medium rounded-md hover:bg-gray-50 transition-colors text-center"
+              >
+                Avbryt
+              </Link>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="px-6 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex-1 sm:flex-none"
+              >
+                {isSubmitting ? 'Sparar...' : 'Spara adress'}
+              </button>
+            </div>
+          </Form>
         </div>
-      </Form>
+      </div>
     </div>
   );
 }
