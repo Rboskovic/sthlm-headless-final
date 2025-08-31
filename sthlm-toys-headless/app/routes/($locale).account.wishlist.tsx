@@ -114,16 +114,26 @@ export default function WishlistPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header - Issues #3: Centered on desktop, no padding between title/subtitle */}
+      {/* Header - NO PADDING, CENTERED */}
       <div className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="py-8">
             <div className="flex items-center justify-between">
-              <div className="text-center lg:text-center flex-1">
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+              <div style={{ textAlign: 'center', flex: '1' }}>
+                <h1 style={{ 
+                  fontSize: '1.875rem', 
+                  fontWeight: 'bold', 
+                  color: '#111827',
+                  margin: '0',
+                  padding: '0'
+                }}>
                   Min önskelista
                 </h1>
-                <p className="text-gray-600">
+                <p style={{ 
+                  color: '#6b7280',
+                  margin: '0',
+                  padding: '0'
+                }}>
                   {wishlistCount > 0 
                     ? `Du har ${wishlistCount} produkt${wishlistCount !== 1 ? 'er' : ''} i din önskelista`
                     : 'Din önskelista är tom'
@@ -171,9 +181,19 @@ export default function WishlistPage() {
             {/* Issue #11: Blue button with white text */}
             <Link
               to="/collections/all"
-              className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                padding: '12px 24px',
+                backgroundColor: '#2563eb',
+                color: '#ffffff',
+                fontWeight: '500',
+                borderRadius: '6px',
+                textDecoration: 'none',
+                fontSize: '16px'
+              }}
             >
-              <ShoppingBag size={20} className="mr-2" />
+              <ShoppingBag size={20} style={{ marginRight: '8px' }} />
               Börja shoppa →
             </Link>
           </div>
@@ -238,7 +258,17 @@ export default function WishlistPage() {
                   <div className="mt-4 flex gap-2">
                     <Link
                       to={`/products/${item.handle}`}
-                      className="flex-1 px-6 py-3 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors text-center text-sm"
+                      style={{
+                        flex: '1',
+                        padding: '8px 16px',
+                        backgroundColor: '#2563eb',
+                        color: '#ffffff',
+                        fontWeight: '500',
+                        borderRadius: '6px',
+                        textDecoration: 'none',
+                        textAlign: 'center',
+                        fontSize: '14px'
+                      }}
                     >
                       Visa produkt
                     </Link>

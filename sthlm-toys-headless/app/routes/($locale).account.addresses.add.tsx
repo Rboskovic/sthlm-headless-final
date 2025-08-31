@@ -259,7 +259,17 @@ export default function AddAddressPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="px-6 py-3 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex-1 sm:flex-none"
+                style={{
+                  padding: '12px 24px',
+                  backgroundColor: isSubmitting ? '#9ca3af' : '#2563eb',
+                  color: '#ffffff',
+                  fontWeight: '500',
+                  borderRadius: '6px',
+                  border: 'none',
+                  cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                  flex: '1'
+                }}
+                className="sm:flex-none"
               >
                 {isSubmitting ? 'Sparar...' : 'Spara adress'}
               </button>

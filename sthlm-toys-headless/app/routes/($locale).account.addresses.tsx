@@ -91,16 +91,26 @@ export default function AddressesPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header - Issues #3: Centered on desktop, no padding between title/subtitle */}
+      {/* Header - NO PADDING, CENTERED */}
       <div className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="py-8">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="text-center lg:text-center flex-1">
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+              <div style={{ textAlign: 'center', flex: '1' }}>
+                <h1 style={{ 
+                  fontSize: '1.875rem', 
+                  fontWeight: 'bold', 
+                  color: '#111827',
+                  margin: '0',
+                  padding: '0'
+                }}>
                   Mina adresser
                 </h1>
-                <p className="text-gray-600">
+                <p style={{ 
+                  color: '#6b7280',
+                  margin: '0',
+                  padding: '0'
+                }}>
                   Hantera dina leverans- och faktureringsadresser för snabbare utcheckning
                 </p>
               </div>
@@ -144,9 +154,19 @@ export default function AddressesPage() {
             </p>
             <Link
               to="/account/addresses/add"
-              className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                padding: '12px 24px',
+                backgroundColor: '#2563eb',
+                color: '#ffffff',
+                fontWeight: '500',
+                borderRadius: '6px',
+                textDecoration: 'none',
+                fontSize: '16px'
+              }}
             >
-              <Plus size={16} className="mr-2" />
+              <Plus size={16} style={{ marginRight: '8px' }} />
               Lägg till din första adress
             </Link>
           </div>

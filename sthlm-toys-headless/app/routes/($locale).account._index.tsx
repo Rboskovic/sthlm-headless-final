@@ -59,27 +59,49 @@ export default function AccountIndex() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header - Issues #1 & #3: Centered on desktop, no padding between title/subtitle */}
+      {/* Header - NO PADDING, CENTERED */}
       <div className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="py-8">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="text-center lg:text-center flex-1">
-                {/* Issues #1 & #3: No padding between title & subtitle, centered on desktop */}
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+              <div style={{ textAlign: 'center', flex: '1' }}>
+                <h1 style={{ 
+                  fontSize: '1.875rem', 
+                  fontWeight: 'bold', 
+                  color: '#111827',
+                  margin: '0',
+                  padding: '0'
+                }}>
                   Välkommen tillbaka{customer?.firstName && `, ${customer.firstName}`}!
                 </h1>
-                <p className="text-gray-600">
+                <p style={{ 
+                  color: '#6b7280',
+                  margin: '0',
+                  padding: '0'
+                }}>
                   Hantera ditt konto och se dina beställningar
                 </p>
               </div>
               
-              {/* Issue #4: Mobile logout button fits one row */}
+              {/* Logout button with WHITE TEXT */}
               <Link
                 to="/account/logout"
-                className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 transition-colors w-full sm:w-auto"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '8px 16px',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  borderRadius: '6px',
+                  color: '#ffffff',
+                  backgroundColor: '#dc2626',
+                  textDecoration: 'none',
+                  width: '100%'
+                }}
+                className="sm:w-auto"
               >
-                <LogOut size={16} className="mr-2" />
+                <LogOut size={16} style={{ marginRight: '8px' }} />
                 Logga ut
               </Link>
             </div>
@@ -158,13 +180,25 @@ export default function AccountIndex() {
                 </div>
               </div>
               
-              {/* Issue #3: White button with proper height matching */}
               <div className="p-6 pt-0">
                 <Link
                   to="/account/profile"
-                  className="w-full inline-flex items-center justify-center px-4 py-3 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+                  style={{
+                    width: '100%',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '12px 16px',
+                    border: '1px solid #d1d5db',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    borderRadius: '6px',
+                    color: '#374151',
+                    backgroundColor: '#ffffff',
+                    textDecoration: 'none'
+                  }}
                 >
-                  <User size={16} className="mr-2" />
+                  <User size={16} style={{ marginRight: '8px' }} />
                   Redigera profil
                 </Link>
               </div>

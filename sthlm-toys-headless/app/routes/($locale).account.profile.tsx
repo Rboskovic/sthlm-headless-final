@@ -126,16 +126,26 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header - Issues #3: Centered on desktop, no padding between title/subtitle */}
+      {/* Header - NO PADDING, CENTERED */}
       <div className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="py-8">
             <div className="flex items-center justify-between">
-              <div className="text-center lg:text-center flex-1">
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+              <div style={{ textAlign: 'center', flex: '1' }}>
+                <h1 style={{ 
+                  fontSize: '1.875rem', 
+                  fontWeight: 'bold', 
+                  color: '#111827',
+                  margin: '0',
+                  padding: '0'
+                }}>
                   Profilinställningar
                 </h1>
-                <p className="text-gray-600">
+                <p style={{ 
+                  color: '#6b7280',
+                  margin: '0',
+                  padding: '0'
+                }}>
                   Uppdatera din personliga information
                 </p>
               </div>
@@ -207,7 +217,15 @@ export default function ProfilePage() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-6 py-3 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                  style={{
+                    padding: '12px 24px',
+                    backgroundColor: isSubmitting ? '#9ca3af' : '#2563eb',
+                    color: '#ffffff',
+                    fontWeight: '500',
+                    borderRadius: '6px',
+                    border: 'none',
+                    cursor: isSubmitting ? 'not-allowed' : 'pointer'
+                  }}
                 >
                   {isSubmitting ? 'Uppdaterar...' : 'Uppdatera profil'}
                 </button>
@@ -257,13 +275,29 @@ export default function ProfilePage() {
                 <div className="flex gap-3">
                   <Link
                     to="/pages/kontakt"
-                    className="px-6 py-3 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors text-sm"
+                    style={{
+                      padding: '12px 24px',
+                      backgroundColor: '#2563eb',
+                      color: '#ffffff',
+                      fontWeight: '500',
+                      borderRadius: '6px',
+                      textDecoration: 'none',
+                      fontSize: '14px'
+                    }}
                   >
                     Kontakta kundtjänst
                   </Link>
                   <Link
                     to="/pages/privacy-policy"
-                    className="px-6 py-3 border border-blue-300 text-blue-700 font-medium rounded-md hover:bg-blue-100 transition-colors text-sm"
+                    style={{
+                      padding: '12px 24px',
+                      border: '1px solid #93c5fd',
+                      color: '#1d4ed8',
+                      fontWeight: '500',
+                      borderRadius: '6px',
+                      textDecoration: 'none',
+                      fontSize: '14px'
+                    }}
                   >
                     Integritetspolicy
                   </Link>
