@@ -59,14 +59,14 @@ export default function AccountIndex() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header - Issue #1 & #5: Centered on desktop, no extra padding */}
+      {/* Header - Issues #1 & #3: Centered on desktop, no padding between title/subtitle */}
       <div className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="py-8">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="text-center sm:text-left">
-                {/* Issue #1: Remove padding between title & subtitle, centered on desktop */}
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">
+              <div className="text-center lg:text-center flex-1">
+                {/* Issues #1 & #3: No padding between title & subtitle, centered on desktop */}
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
                   Välkommen tillbaka{customer?.firstName && `, ${customer.firstName}`}!
                 </h1>
                 <p className="text-gray-600">
@@ -168,41 +168,6 @@ export default function AccountIndex() {
                   Redigera profil
                 </Link>
               </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Newsletter Section with blue button */}
-        <div className="mt-12 bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-          <div className="text-center">
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              Registrera dig för kul!
-            </h3>
-            <p className="text-gray-600 mb-6">
-              Få exklusiva uppdateringar om nya LEGO®-set, byggidéer och recensioner.
-            </p>
-            <div className="max-w-md mx-auto">
-              <div className="flex flex-col sm:flex-row gap-4">
-                <input
-                  type="email"
-                  placeholder="Ange e-postadress"
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-                {/* Issue #6 & #11: Blue button with white text, Swedish translation */}
-                <button
-                  type="button"
-                  className="px-6 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors whitespace-nowrap"
-                >
-                  Registrera dig
-                </button>
-              </div>
-              <p className="mt-2 text-xs text-gray-500">
-                Genom att registrera dig för vårt nyhetsbrev godkänner du våra{' '}
-                <Link to="/pages/privacy-policy" className="underline text-blue-600">
-                  villkor och integritetspolicy
-                </Link>
-                .
-              </p>
             </div>
           </div>
         </div>

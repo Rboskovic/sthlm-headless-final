@@ -1,43 +1,46 @@
 // FILE: app/graphql/customer-account/CustomerDetailsQuery.ts
-// ✅ RESTORED: Original working version for authentication
+// ✅ SHOPIFY HYDROGEN: Customer details query including addresses
 
-// NOTE: https://shopify.dev/docs/api/customer/latest/objects/Customer
-export const CUSTOMER_FRAGMENT = `#graphql
-  fragment Customer on Customer {
-    id
-    firstName
-    lastName
-    defaultAddress {
-      ...Address
-    }
-    addresses(first: 6) {
-      nodes {
-        ...Address
-      }
-    }
-  }
-  fragment Address on CustomerAddress {
-    id
-    formatted
-    firstName
-    lastName
-    company
-    address1
-    address2
-    territoryCode
-    zoneCode
-    city
-    zip
-    phoneNumber
-  }
-` as const;
-
-// NOTE: https://shopify.dev/docs/api/customer/latest/queries/customer
 export const CUSTOMER_DETAILS_QUERY = `#graphql
   query CustomerDetails {
     customer {
-      ...Customer
+      id
+      firstName
+      lastName
+      emailAddress {
+        emailAddress
+      }
+      phoneNumber {
+        phoneNumber
+      }
+      defaultAddress {
+        id
+        firstName
+        lastName
+        company
+        address1
+        address2
+        city
+        territoryCode
+        zoneCode
+        zip
+        phoneNumber
+      }
+      addresses(first: 20) {
+        nodes {
+          id
+          firstName
+          lastName
+          company
+          address1
+          address2
+          city
+          territoryCode
+          zoneCode
+          zip
+          phoneNumber
+        }
+      }
     }
   }
-  ${CUSTOMER_FRAGMENT}
 ` as const;

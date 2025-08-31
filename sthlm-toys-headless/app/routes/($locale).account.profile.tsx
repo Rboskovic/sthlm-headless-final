@@ -126,14 +126,13 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+      {/* Header - Issues #3: Centered on desktop, no padding between title/subtitle */}
       <div className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="py-8">
             <div className="flex items-center justify-between">
-              <div className="text-center sm:text-left flex-1">
-                {/* Issue #12: Swedish translation */}
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">
+              <div className="text-center lg:text-center flex-1">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
                   Profilinställningar
                 </h1>
                 <p className="text-gray-600">
@@ -208,7 +207,7 @@ export default function ProfilePage() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-6 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                  className="px-6 py-3 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
                 >
                   {isSubmitting ? 'Uppdaterar...' : 'Uppdatera profil'}
                 </button>
@@ -258,13 +257,13 @@ export default function ProfilePage() {
                 <div className="flex gap-3">
                   <Link
                     to="/pages/kontakt"
-                    className="px-4 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors text-sm"
+                    className="px-6 py-3 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors text-sm"
                   >
                     Kontakta kundtjänst
                   </Link>
                   <Link
                     to="/pages/privacy-policy"
-                    className="px-4 py-2 border border-blue-300 text-blue-700 font-medium rounded-md hover:bg-blue-100 transition-colors text-sm"
+                    className="px-6 py-3 border border-blue-300 text-blue-700 font-medium rounded-md hover:bg-blue-100 transition-colors text-sm"
                   >
                     Integritetspolicy
                   </Link>

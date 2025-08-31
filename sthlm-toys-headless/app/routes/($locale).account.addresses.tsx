@@ -91,13 +91,13 @@ export default function AddressesPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+      {/* Header - Issues #3: Centered on desktop, no padding between title/subtitle */}
       <div className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="py-8">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="text-center sm:text-left">
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">
+              <div className="text-center lg:text-center flex-1">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
                   Mina adresser
                 </h1>
                 <p className="text-gray-600">
@@ -144,7 +144,7 @@ export default function AddressesPage() {
             </p>
             <Link
               to="/account/addresses/add"
-              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors"
+              className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors"
             >
               <Plus size={16} className="mr-2" />
               Lägg till din första adress

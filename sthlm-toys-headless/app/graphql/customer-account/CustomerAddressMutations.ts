@@ -1,18 +1,21 @@
 // FILE: app/graphql/customer-account/CustomerAddressMutations.ts
-// ✅ SHOPIFY HYDROGEN: Customer address mutations
+// ✅ SHOPIFY HYDROGEN: Customer address mutations for Customer Account API
 
-// NOTE: https://shopify.dev/docs/api/customer/latest/mutations/customerAddressCreate
 export const CREATE_ADDRESS_MUTATION = `#graphql
-  mutation customerAddressCreate(
-    $address: CustomerAddressInput!
-    $defaultAddress: Boolean
-  ) {
-    customerAddressCreate(
-      address: $address
-      defaultAddress: $defaultAddress
-    ) {
+  mutation customerAddressCreate($address: CustomerAddressInput!, $defaultAddress: Boolean) {
+    customerAddressCreate(input: { address: $address, defaultAddress: $defaultAddress }) {
       customerAddress {
         id
+        firstName
+        lastName
+        company
+        address1
+        address2
+        city
+        territoryCode
+        zoneCode
+        zip
+        phoneNumber
       }
       userErrors {
         code
@@ -23,20 +26,21 @@ export const CREATE_ADDRESS_MUTATION = `#graphql
   }
 ` as const;
 
-// NOTE: https://shopify.dev/docs/api/customer/latest/mutations/customerAddressUpdate
 export const UPDATE_ADDRESS_MUTATION = `#graphql
-  mutation customerAddressUpdate(
-    $address: CustomerAddressInput!
-    $addressId: ID!
-    $defaultAddress: Boolean
- ) {
-    customerAddressUpdate(
-      address: $address
-      addressId: $addressId
-      defaultAddress: $defaultAddress
-    ) {
+  mutation customerAddressUpdate($addressId: ID!, $address: CustomerAddressInput!, $defaultAddress: Boolean) {
+    customerAddressUpdate(input: { id: $addressId, address: $address, defaultAddress: $defaultAddress }) {
       customerAddress {
         id
+        firstName
+        lastName
+        company
+        address1
+        address2
+        city
+        territoryCode
+        zoneCode
+        zip
+        phoneNumber
       }
       userErrors {
         code
@@ -47,12 +51,9 @@ export const UPDATE_ADDRESS_MUTATION = `#graphql
   }
 ` as const;
 
-// NOTE: https://shopify.dev/docs/api/customer/latest/mutations/customerAddressDelete
 export const DELETE_ADDRESS_MUTATION = `#graphql
-  mutation customerAddressDelete(
-    $addressId: ID!,
-  ) {
-    customerAddressDelete(addressId: $addressId) {
+  mutation customerAddressDelete($addressId: ID!) {
+    customerAddressDelete(input: { id: $addressId }) {
       deletedAddressId
       userErrors {
         code

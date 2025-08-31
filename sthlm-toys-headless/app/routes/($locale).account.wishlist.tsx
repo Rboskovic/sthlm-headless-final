@@ -114,13 +114,13 @@ export default function WishlistPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+      {/* Header - Issues #3: Centered on desktop, no padding between title/subtitle */}
       <div className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="py-8">
             <div className="flex items-center justify-between">
-              <div className="text-center sm:text-left flex-1">
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">
+              <div className="text-center lg:text-center flex-1">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
                   Min önskelista
                 </h1>
                 <p className="text-gray-600">
@@ -238,7 +238,7 @@ export default function WishlistPage() {
                   <div className="mt-4 flex gap-2">
                     <Link
                       to={`/products/${item.handle}`}
-                      className="flex-1 px-4 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors text-center text-sm"
+                      className="flex-1 px-6 py-3 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors text-center text-sm"
                     >
                       Visa produkt
                     </Link>

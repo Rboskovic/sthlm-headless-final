@@ -59,12 +59,12 @@ export default function OrdersPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+      {/* Header - Issues #3: Centered on desktop, no padding between title/subtitle */}
       <div className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="py-8">
-            <div className="text-center sm:text-left">
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">
+            <div className="text-center lg:text-center">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
                 Orderhistorik
               </h1>
               <p className="text-gray-600">
@@ -148,7 +148,7 @@ export default function OrdersPage() {
                     {order.fulfillmentStatus === 'FULFILLED' && (
                       <button
                         type="button"
-                        className="px-4 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors text-sm"
+                        className="px-6 py-3 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors text-sm"
                         onClick={() => {
                           // This would need to be implemented to add items back to cart
                           alert('Beställ igen-funktionen kommer snart!');
