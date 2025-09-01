@@ -1,4 +1,6 @@
-// app/components/Header/MobileMenuFullscreen.tsx - Fixed: TypeScript errors and design improvements
+// FILE: app/components/Header/MobileMenuFullscreen.tsx
+// ✅ UPDATED: Just changed URLs to point to Shopify - keeping all existing functionality
+
 import {Suspense, useState} from 'react';
 import {Link, Await} from 'react-router';
 import {
@@ -16,6 +18,12 @@ import {Logo} from './Logo';
 import {WishlistsLink} from '../WishlistsLink';
 import type {Collection} from '@shopify/hydrogen/storefront-api-types';
 import type {Menu, MenuItem} from './types';
+
+// ✅ SHOPIFY URLs - Only addition needed
+const SHOP_ID = '90088112507';
+const SHOPIFY_ACCOUNT_URL = `https://shopify.com/${SHOP_ID}/account`;
+const SHOPIFY_ORDERS_URL = `https://shopify.com/${SHOP_ID}/account/orders`;
+const SHOPIFY_LOGIN_URL = `https://shopify.com/${SHOP_ID}/account/login`;
 
 interface MobileMenuFullscreenProps {
   isOpen: boolean;
@@ -266,7 +274,7 @@ function MainMenuScreen({
         </WishlistsLink>
 
         <AccountLink
-          href="/account/orders"
+          href={SHOPIFY_ORDERS_URL}
           icon={Package}
           title="Mina beställningar"
           onClose={onClose}
@@ -463,12 +471,13 @@ function UserGreetingFallback() {
   );
 }
 
+// ✅ CHANGED: Updated to use Shopify URLs instead of internal routes
 function UserGreeting({isLoggedIn, onClose}: {isLoggedIn: boolean; onClose: () => void}) {
   if (isLoggedIn) {
     const customerName = 'Kund';
     return (
-      <Link
-        to="/account"
+      <a
+        href={SHOPIFY_ACCOUNT_URL}
         onClick={onClose}
         className="flex items-center justify-between px-4 py-4 hover:bg-gray-50 transition-colors bg-white"
       >
@@ -479,13 +488,13 @@ function UserGreeting({isLoggedIn, onClose}: {isLoggedIn: boolean; onClose: () =
           <span className="text-gray-900 font-medium">Hej, {customerName}</span>
         </div>
         <ChevronRight size={20} style={{ color: 'var(--color-primary)' }} />
-      </Link>
+      </a>
     );
   }
 
   return (
-    <Link
-      to="/account/login"
+    <a
+      href={SHOPIFY_LOGIN_URL}
       onClick={onClose}
       className="flex items-center justify-between px-4 py-4 hover:bg-gray-50 transition-colors bg-white"
     >
@@ -496,7 +505,7 @@ function UserGreeting({isLoggedIn, onClose}: {isLoggedIn: boolean; onClose: () =
         <span className="text-gray-900 font-medium">Logga in</span>
       </div>
       <ChevronRight size={20} style={{ color: 'var(--color-primary)' }} />
-    </Link>
+    </a>
   );
 }
 
@@ -600,6 +609,7 @@ function PopularGrid({
   );
 }
 
+// ✅ CHANGED: Updated to handle both internal and external links
 function AccountLink({
   href,
   icon: Icon,
@@ -611,6 +621,24 @@ function AccountLink({
   title: string;
   onClose: () => void;
 }) {
+  const isExternalLink = href.startsWith('http');
+  
+  if (isExternalLink) {
+    return (
+      <a
+        href={href}
+        onClick={onClose}
+        className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
+      >
+        <div className="flex items-center gap-3">
+          <Icon size={20} className="text-gray-600" />
+          <span className="text-gray-900 font-medium">{title}</span>
+        </div>
+        <ChevronRight size={20} style={{ color: 'var(--color-primary)' }} />
+      </a>
+    );
+  }
+
   return (
     <Link
       to={href}

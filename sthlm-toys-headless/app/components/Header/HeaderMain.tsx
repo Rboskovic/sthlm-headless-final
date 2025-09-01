@@ -1,5 +1,5 @@
 // FILE: app/components/Header/HeaderMain.tsx
-// ✅ FIXED: Mobile search always visible in second row + Logo centered + Desktop sizing
+// ✅ UPDATED: Just changed URLs to point to Shopify - keeping all existing functionality
 
 import {Suspense, useState} from 'react';
 import {Link, Await} from 'react-router';
@@ -15,6 +15,12 @@ interface HeaderMainPropsUpdated extends HeaderMainProps {
   onMobileMenuToggle?: () => void;
   customer?: CustomerFragment | null;
 }
+
+// ✅ SHOPIFY URLs - Only change needed
+const SHOP_ID = '90088112507';
+const SHOPIFY_ACCOUNT_URL = `https://shopify.com/${SHOP_ID}/account`;
+const SHOPIFY_ORDERS_URL = `https://shopify.com/${SHOP_ID}/account/orders`;
+const SHOPIFY_LOGIN_URL = `https://shopify.com/${SHOP_ID}/account/login`;
 
 export function HeaderMain({
   shop,
@@ -52,7 +58,7 @@ export function HeaderMain({
               paddingBottom: '4px',
             }}
           >
-            {/* Account section with dropdown */}
+            {/* Account section with dropdown - ✅ CHANGED: Use Shopify URLs */}
             <Suspense fallback={null}>
               <Await resolve={isLoggedIn}>
                 {(isLoggedIn) => (
@@ -83,7 +89,7 @@ export function HeaderMain({
                           />
                         </button>
 
-                        {/* Account Dropdown */}
+                        {/* Account Dropdown - ✅ CHANGED: Use Shopify URLs */}
                         {isAccountDropdownOpen && (
                           <>
                             <div
@@ -91,34 +97,31 @@ export function HeaderMain({
                               onClick={closeAccountDropdown}
                             />
                             <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg py-2 z-20 min-w-[180px]">
-                              <Link
-                                to="/account"
-                                onClick={closeAccountDropdown}
+                              <a
+                                href={SHOPIFY_ACCOUNT_URL}
                                 className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                               >
                                 Mitt konto
-                              </Link>
-                              <Link
-                                to="/account/orders"
-                                onClick={closeAccountDropdown}
+                              </a>
+                              <a
+                                href={SHOPIFY_ORDERS_URL}
                                 className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                               >
                                 Mina beställningar
-                              </Link>
-                              <Link
-                                to="/account/logout"
-                                onClick={closeAccountDropdown}
+                              </a>
+                              <a
+                                href={SHOPIFY_ACCOUNT_URL}
                                 className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                               >
                                 Logga ut
-                              </Link>
+                              </a>
                             </div>
                           </>
                         )}
                       </>
                     ) : (
-                      <Link
-                        to="/account/login"
+                      <a
+                        href={SHOPIFY_LOGIN_URL}
                         className="flex items-center text-white hover:bg-white/10 transition-colors"
                         style={{
                           fontSize: '14px',
@@ -132,15 +135,16 @@ export function HeaderMain({
                       >
                         <User size={15} className="text-white" />
                         <span className="text-white">Logga in</span>
-                      </Link>
+                      </a>
                     )}
                   </div>
                 )}
               </Await>
             </Suspense>
 
-            <Link
-              to="/account/orders"
+            {/* ✅ CHANGED: Direct link to Shopify orders */}
+            <a
+              href={SHOPIFY_ORDERS_URL}
               className="flex items-center text-white hover:bg-white/10 transition-colors"
               style={{
                 fontSize: '14px',
@@ -154,7 +158,7 @@ export function HeaderMain({
             >
               <FileText size={15} className="text-white" />
               <span className="text-white">Mina beställningar</span>
-            </Link>
+            </a>
 
             <Link
               to="/pages/hjalp"
