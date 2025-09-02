@@ -21,7 +21,7 @@ export function Footer({
       <div className="hidden lg:block">
         <div className="max-w-[1272px] mx-auto px-3 py-12">
           <div className="grid grid-cols-12 gap-8">
-            {/* Left side - Footer Links (7 columns) - adjusted for 2 column layout */}
+            {/* Left side - Footer Links (7 columns) */}
             <div className="col-span-7">
               <Suspense fallback={<FooterLinksFallback />}>
                 <Await resolve={footerPromise}>
@@ -34,6 +34,11 @@ export function Footer({
                   )}
                 </Await>
               </Suspense>
+
+              {/* ✅ NEW: Payment Icons positioned under Support/Mitt Konto */}
+              <div className="mt-2">
+                <PaymentIcons />
+              </div>
             </div>
 
             {/* Right side - Newsletter (5 columns) */}
@@ -42,23 +47,8 @@ export function Footer({
             </div>
           </div>
 
-          {/* ✅ NEW: Payment Methods Section */}
-          <Suspense fallback={<PaymentIconsFallback />}>
-            <Await resolve={footerPromise}>
-              {(footer) => (
-                <div className="border-t border-blue-400 mt-8 pt-6 mb-6">
-                  {footer?.shop?.paymentSettings?.acceptedCardBrands && (
-                    <PaymentIcons 
-                      acceptedCardBrands={footer.shop.paymentSettings.acceptedCardBrands}
-                    />
-                  )}
-                </div>
-              )}
-            </Await>
-          </Suspense>
-
           {/* Bottom section */}
-          <div className="border-t border-blue-400 pt-6">
+          <div className="border-t border-blue-400 mt-8 pt-6">
             <div className="flex justify-between items-center">
               {/* Logo and Social Media */}
               <div className="flex items-center gap-8">
@@ -83,7 +73,7 @@ export function Footer({
             <NewsletterSignup isMobile />
           </div>
 
-          {/* Footer links with custom mobile layout - both columns side by side */}
+          {/* Footer links with custom mobile layout */}
           <Suspense fallback={<FooterLinksFallback />}>
             <Await resolve={footerPromise}>
               {(footer) => (
@@ -97,21 +87,10 @@ export function Footer({
             </Await>
           </Suspense>
 
-          {/* ✅ NEW: Payment Methods Section - Mobile */}
-          <Suspense fallback={<PaymentIconsFallback />}>
-            <Await resolve={footerPromise}>
-              {(footer) => (
-                <div className="border-t border-blue-400 mt-8 pt-6 mb-6">
-                  {footer?.shop?.paymentSettings?.acceptedCardBrands && (
-                    <PaymentIcons 
-                      acceptedCardBrands={footer.shop.paymentSettings.acceptedCardBrands}
-                      isMobile
-                    />
-                  )}
-                </div>
-              )}
-            </Await>
-          </Suspense>
+          {/* ✅ NEW: Payment Icons - Mobile */}
+          <div className="mt-8">
+            <PaymentIcons />
+          </div>
 
           {/* Social media */}
           <div className="mt-8 mb-6">
@@ -158,23 +137,6 @@ function FooterLinksFallback() {
           </div>
         </div>
       ))}
-    </div>
-  );
-}
-
-// ✅ NEW: Payment icons loading fallback
-function PaymentIconsFallback() {
-  return (
-    <div className="text-center">
-      <h3 className="text-white text-lg font-semibold mb-4">Our payment methods</h3>
-      <div className="flex items-center justify-center gap-3">
-        {[...Array(4)].map((_, i) => (
-          <div 
-            key={i} 
-            className="bg-white/20 rounded-lg h-12 w-16 animate-pulse"
-          />
-        ))}
-      </div>
     </div>
   );
 }

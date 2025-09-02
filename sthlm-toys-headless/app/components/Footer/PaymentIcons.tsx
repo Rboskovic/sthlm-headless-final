@@ -1,45 +1,54 @@
-// ✅ OFFICIAL: Component using Shopify's accepted card brands
+// FILE: app/components/Footer/PaymentIcons.tsx
+// ✅ HARDCODED: All 5 payment methods, Swedish text, no white backgrounds
 
-interface PaymentIconsProps {
-  acceptedCardBrands: string[];
-}
-
-export function PaymentIcons({ acceptedCardBrands }: PaymentIconsProps) {
-  if (!acceptedCardBrands?.length) return null;
+export function PaymentIcons() {
+  // Hardcoded - your 5 accepted payment methods with working Shopify URLs
+  const paymentMethods = [
+    {
+      name: 'Visa',
+      url: 'https://cdn.shopify.com/shopifycloud/checkout-web/assets/c1/assets/visa.sxIq5Dot.svg'
+    },
+    {
+      name: 'Mastercard', 
+      url: 'https://cdn.shopify.com/shopifycloud/checkout-web/assets/c1/assets/mastercard.1c4_lyMp.svg'
+    },
+    {
+      name: 'American Express',
+      url: 'https://cdn.shopify.com/shopifycloud/checkout-web/assets/c1/assets/amex.Csr7hRoy.svg'
+    },
+    {
+      name: 'Maestro',
+      url: 'https://cdn.shopify.com/shopifycloud/checkout-web/assets/c1/assets/maestro.ByfUQi1c.svg'
+    },
+    {
+      name: 'Klarna',
+      url: 'https://cdn.shopify.com/shopifycloud/checkout-web/assets/c1/assets/klarna-pay-later.BYbG9Au4.svg'
+    }
+  ];
 
   return (
-    <div className="payment-icons">
-      <h3 className="text-white text-lg font-semibold mb-4 text-center">
-        Our payment methods
+    <div className="payment-methods-section">
+      <h3 className="text-white text-lg font-semibold mb-4">
+        Våra betalningsmetoder
       </h3>
       
-      <div className="flex items-center justify-center gap-3 flex-wrap">
-        {acceptedCardBrands.map((brand) => (
-          <PaymentIcon key={brand} brand={brand} />
+      <div className="flex items-center gap-3 flex-wrap">
+        {paymentMethods.map((method) => (
+          <div key={method.name} className="h-8 min-w-12 flex items-center justify-center">
+            <img
+              src={method.url}
+              alt={`${method.name} betalning accepteras`}
+              title={`Betala med ${method.name}`}
+              className="h-6 w-auto object-contain max-w-12"
+              loading="lazy"
+            />
+          </div>
         ))}
       </div>
-    </div>
-  );
-}
 
-function PaymentIcon({ brand }: { brand: string }) {
-  // Convert brand names to match Shopify's icon naming
-  const iconName = brand.toLowerCase().replace(' ', '_');
-  
-  // Official Shopify CDN for payment icons
-  const iconUrl = `https://cdn.shopify.com/shopifycloud/checkout-web/assets/c1.en/assets/${iconName}-4c372e8d.svg`;
-
-  return (
-    <div className="bg-white rounded-lg p-2 h-12 min-w-16 flex items-center justify-center shadow-sm">
-      <img
-        src={iconUrl}
-        alt={`${brand} payment accepted`}
-        className="h-6 w-auto object-contain"
-        onError={(e) => {
-          // Hide broken images
-          e.currentTarget.style.display = 'none';
-        }}
-      />
+      <span className="sr-only">
+        Vi accepterar betalning med: Visa, Mastercard, American Express, Maestro, Klarna
+      </span>
     </div>
   );
 }
