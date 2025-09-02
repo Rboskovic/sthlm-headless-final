@@ -23,7 +23,7 @@ import type {Menu, MenuItem} from './types';
 const SHOP_ID = '90088112507';
 const SHOPIFY_ACCOUNT_URL = `https://shopify.com/${SHOP_ID}/account`;
 const SHOPIFY_ORDERS_URL = `https://shopify.com/${SHOP_ID}/account/orders`;
-const SHOPIFY_LOGIN_URL = `https://shopify.com/${SHOP_ID}/account/login`;
+const SHOPIFY_LOGIN_URL = `https://shopify.com/${SHOP_ID}/account/orders`;
 
 interface MobileMenuFullscreenProps {
   isOpen: boolean;

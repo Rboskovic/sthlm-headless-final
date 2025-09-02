@@ -1,5 +1,6 @@
 // FILE: app/lib/fragments.ts
 // ✅ FIXED: Added CUSTOMER_DETAILS_QUERY to resolve deployment error
+// ✅ UPDATED: Added paymentSettings to FOOTER_QUERY for official payment icons
 
 // Fragment for money fields
 const MONEY_FRAGMENT = `#graphql
@@ -213,13 +214,18 @@ export const HEADER_QUERY = `#graphql
   ${MENU_FRAGMENT}
 ` as const;
 
-// Footer query - STRING format for Hydrogen
+// ✅ UPDATED: Footer query with payment settings - OFFICIAL SHOPIFY METHOD
 export const FOOTER_QUERY = `#graphql
   query Footer(
     $country: CountryCode
     $footerMenuHandle: String!
     $language: LanguageCode
   ) @inContext(language: $language, country: $country) {
+    shop {
+      paymentSettings {
+        acceptedCardBrands
+      }
+    }
     menu(handle: $footerMenuHandle) {
       ...Menu
     }

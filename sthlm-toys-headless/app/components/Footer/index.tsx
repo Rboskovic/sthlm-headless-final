@@ -4,6 +4,7 @@ import {NewsletterSignup} from './NewsletterSignup';
 import {FooterLinks} from './FooterLinks';
 import {SocialMedia} from './SocialMedia';
 import {FooterLogo} from './FooterLogo';
+import {PaymentIcons} from './PaymentIcons';
 import type {FooterProps} from './types';
 
 export function Footer({
@@ -41,8 +42,23 @@ export function Footer({
             </div>
           </div>
 
+          {/* ✅ NEW: Payment Methods Section */}
+          <Suspense fallback={<PaymentIconsFallback />}>
+            <Await resolve={footerPromise}>
+              {(footer) => (
+                <div className="border-t border-blue-400 mt-8 pt-6 mb-6">
+                  {footer?.shop?.paymentSettings?.acceptedCardBrands && (
+                    <PaymentIcons 
+                      acceptedCardBrands={footer.shop.paymentSettings.acceptedCardBrands}
+                    />
+                  )}
+                </div>
+              )}
+            </Await>
+          </Suspense>
+
           {/* Bottom section */}
-          <div className="border-t border-blue-400 mt-8 pt-6">
+          <div className="border-t border-blue-400 pt-6">
             <div className="flex justify-between items-center">
               {/* Logo and Social Media */}
               <div className="flex items-center gap-8">
@@ -77,6 +93,22 @@ export function Footer({
                   publicStoreDomain={publicStoreDomain}
                   isMobile
                 />
+              )}
+            </Await>
+          </Suspense>
+
+          {/* ✅ NEW: Payment Methods Section - Mobile */}
+          <Suspense fallback={<PaymentIconsFallback />}>
+            <Await resolve={footerPromise}>
+              {(footer) => (
+                <div className="border-t border-blue-400 mt-8 pt-6 mb-6">
+                  {footer?.shop?.paymentSettings?.acceptedCardBrands && (
+                    <PaymentIcons 
+                      acceptedCardBrands={footer.shop.paymentSettings.acceptedCardBrands}
+                      isMobile
+                    />
+                  )}
+                </div>
               )}
             </Await>
           </Suspense>
@@ -126,6 +158,23 @@ function FooterLinksFallback() {
           </div>
         </div>
       ))}
+    </div>
+  );
+}
+
+// ✅ NEW: Payment icons loading fallback
+function PaymentIconsFallback() {
+  return (
+    <div className="text-center">
+      <h3 className="text-white text-lg font-semibold mb-4">Our payment methods</h3>
+      <div className="flex items-center justify-center gap-3">
+        {[...Array(4)].map((_, i) => (
+          <div 
+            key={i} 
+            className="bg-white/20 rounded-lg h-12 w-16 animate-pulse"
+          />
+        ))}
+      </div>
     </div>
   );
 }
