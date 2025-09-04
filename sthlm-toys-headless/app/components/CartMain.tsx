@@ -38,10 +38,10 @@ export function CartMain({layout, cart: originalCart, popularCollections}: CartM
       ) : (
         <>
           {layout === 'aside' ? (
-            // ✅ FIXED: Proper flex layout that fits screen perfectly
+            // ✅ FIXED: Sticky footer checkout with proper scrollable products area
             <>
-              {/* ✅ FIXED: Products area - grows to fill available space */}
-              <div className="flex-1 min-h-0 overflow-y-auto">
+              {/* ✅ FIXED: Products area - scrolls when many items, with bottom margin for fixed footer */}
+              <div className="flex-1 overflow-y-auto pb-32">
                 <div className="px-4 py-2">
                   <div className="space-y-0">
                     {(cart?.lines?.nodes ?? []).map((line, index) => (
@@ -55,8 +55,8 @@ export function CartMain({layout, cart: originalCart, popularCollections}: CartM
                 </div>
               </div>
 
-              {/* ✅ FIXED: Checkout area as flex item - always visible, no positioning issues */}
-              <div className="flex-shrink-0 bg-white border-t border-gray-200 px-4 py-4 shadow-lg">
+              {/* ✅ FIXED: Checkout area ALWAYS fixed at bottom like a footer */}
+              <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-4 shadow-lg z-50">
                 <CartSummary cart={cart} layout={layout} />
               </div>
             </>
