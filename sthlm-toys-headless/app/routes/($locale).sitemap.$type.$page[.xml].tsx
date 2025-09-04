@@ -10,10 +10,11 @@ export async function loader({
     storefront,
     request,
     params,
-    locales: ['EN-US', 'EN-CA', 'FR-CA'],
+    // Fix: Change locales to match your Swedish store
+    locales: ['SV-SE'], // Swedish locale
     getLink: ({type, baseUrl, handle, locale}) => {
-      if (!locale) return `${baseUrl}/${type}/${handle}`;
-      return `${baseUrl}/${locale}/${type}/${handle}`;
+      // Simplified - no locale in URL since you're single-language
+      return `${baseUrl}/${type}/${handle}`;
     },
   });
 
