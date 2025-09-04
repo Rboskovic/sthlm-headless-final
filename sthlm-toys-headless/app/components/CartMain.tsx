@@ -55,8 +55,8 @@ export function CartMain({layout, cart: originalCart, popularCollections}: CartM
                 </div>
               </div>
 
-              {/* ✅ FIXED: Checkout area ALWAYS fixed at bottom - like ToysRUs */}
-              <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-4 shadow-lg z-50" style={{width: 'var(--aside-width)'}}>
+              {/* ✅ FIXED: Checkout area positioning - fixed within aside container */}
+              <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-4 shadow-lg z-50">
                 <CartSummary cart={cart} layout={layout} />
               </div>
             </>
