@@ -1,5 +1,5 @@
 // FILE: app/components/CartMain.tsx
-// ✅ UPDATED: Unbold header + Fixed checkout area at bottom
+// ✅ FIXED: Proper scrolling with height constraints
 
 import {useOptimisticCart} from '@shopify/hydrogen';
 import {Link} from 'react-router';
@@ -38,11 +38,18 @@ export function CartMain({layout, cart: originalCart, popularCollections}: CartM
       ) : (
         <>
           {layout === 'aside' ? (
-            // ✅ FIXED: Sticky footer checkout with proper scrollable products area
+            // ✅ FIXED: Proper scrollable layout with height constraints
             <>
-              {/* ✅ FIXED: Products area - scrolls when many items, with bottom margin for fixed footer */}
-              <div className="flex-1 overflow-y-auto pb-32">
-                <div className="px-4 py-2">
+              {/* ✅ FIXED: Products area with maximum height to force scrolling */}
+              <div 
+                className="overflow-y-auto"
+                style={{
+                  maxHeight: 'calc(100vh - 180px)', // Force height limit
+                  scrollbarWidth: 'thin',
+                  scrollbarColor: '#9CA3AF #F3F4F6'
+                }}
+              >
+                <div className="px-4 py-2 pb-20"> {/* ✅ FIXED: Added pb-20 for checkout area clearance */}
                   <div className="space-y-0">
                     {(cart?.lines?.nodes ?? []).map((line, index) => (
                       <CartLineItem
@@ -55,13 +62,13 @@ export function CartMain({layout, cart: originalCart, popularCollections}: CartM
                 </div>
               </div>
 
-              {/* ✅ FIXED: Checkout area ALWAYS fixed at bottom like a footer */}
+              {/* ✅ FIXED: Checkout area ALWAYS fixed at bottom */}
               <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-4 shadow-lg z-50">
                 <CartSummary cart={cart} layout={layout} />
               </div>
             </>
           ) : (
-            // Sidlayout - no changes needed (but you said you don't have this)
+            // Page layout - no changes needed
             <div className="lg:grid lg:grid-cols-12 lg:gap-x-12 lg:items-start">
               <section className="lg:col-span-7">
                 {/* Kundvagnshuvud */}
