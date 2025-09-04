@@ -1,7 +1,8 @@
 // app/routes/($locale).wishlist.tsx
-// ✅ UPDATED: Use ProductItem + Swedish translations + Better UX
+// ✅ FIXED: Load collections data for WishlistEmpty like cart and mobile menu do
 
-import { type MetaFunction } from '@shopify/remix-oxygen';
+import { type MetaFunction, type LoaderFunctionArgs } from '@shopify/remix-oxygen';
+import { useLoaderData } from 'react-router';
 import { useSessionWishlist } from '~/hooks/useSessionWishlist';
 import { ProductItem } from '~/components/ProductItem';
 import { WishlistHeader } from '~/components/WishlistHeader';
@@ -12,7 +13,24 @@ export const meta: MetaFunction = () => [
   { name: 'description', content: 'Dina sparade favoritprodukter' }
 ];
 
+export async function loader({ context }: LoaderFunctionArgs) {
+  const { storefront } = context;
+
+  // ✅ ADDED: Load collections data like cart and mobile menu do
+  const { collections } = await storefront.query(MOBILE_MENU_COLLECTIONS_QUERY, {
+    variables: {
+      country: context.storefront.i18n.country,
+      language: context.storefront.i18n.language,
+    },
+  });
+
+  return {
+    popularCollections: collections.nodes,
+  };
+}
+
 export default function WishlistPage() {
+  const { popularCollections } = useLoaderData<typeof loader>();
   const {
     wishlistItems,
     isLoading,
@@ -39,7 +57,8 @@ export default function WishlistPage() {
   }
 
   if (wishlistCount === 0) {
-    return <WishlistEmpty />;
+    // ✅ FIXED: Pass collections data to WishlistEmpty
+    return <WishlistEmpty popularCollections={popularCollections} />;
   }
 
   return (
@@ -65,3 +84,32 @@ export default function WishlistPage() {
     </div>
   );
 }
+
+// ✅ ADDED: Same collections query used by cart and mobile menu
+const MOBILE_MENU_COLLECTIONS_QUERY = `#graphql
+  query MobileMenuCollections($country: CountryCode, $language: LanguageCode)
+    @inContext(country: $country, language: $language) {
+    collections(first: 75, sortKey: UPDATED_AT, reverse: true) {
+      nodes {
+        id
+        title
+        handle
+        image {
+          id
+          url
+          altText
+          width
+          height
+        }
+        metafields(identifiers: [
+          {namespace: "custom", key: "mobile_menu_featured"},
+          {namespace: "custom", key: "mobile_menu_image"}
+        ]) {
+          key
+          value
+          namespace
+        }
+      }
+    }
+  }
+` as const;
