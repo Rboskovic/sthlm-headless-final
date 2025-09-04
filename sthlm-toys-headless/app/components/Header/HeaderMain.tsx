@@ -1,13 +1,13 @@
 // FILE: app/components/Header/HeaderMain.tsx
-// ✅ UPDATED: Just changed URLs to point to Shopify - keeping all existing functionality
+// ✅ UPDATED: Integrated with session-based wishlist system
 
 import {Suspense, useState} from 'react';
 import {Link, Await} from 'react-router';
-import {Heart, Menu, User, FileText, HelpCircle, ChevronDown, Search} from 'lucide-react';
+import {Menu, User, FileText, HelpCircle, ChevronDown} from 'lucide-react';
 import {SearchBar} from './SearchBar';
 import {CartToggle} from './CartToggle';
 import {Logo} from './Logo';
-import {WishlistsLink} from '../WishlistsLink';
+import {WishlistIcon} from '~/components/WishlistIcon'; // ✅ Session wishlist integration
 import type {HeaderMainProps} from './types';
 import type {CustomerFragment} from 'customer-accountapi.generated';
 
@@ -16,7 +16,7 @@ interface HeaderMainPropsUpdated extends HeaderMainProps {
   customer?: CustomerFragment | null;
 }
 
-// ✅ SHOPIFY URLs - Only change needed
+// ✅ SHOPIFY URLs 
 const SHOP_ID = '90088112507';
 const SHOPIFY_ACCOUNT_URL = `https://shopify.com/${SHOP_ID}/account`;
 const SHOPIFY_ORDERS_URL = `https://shopify.com/${SHOP_ID}/account/orders`;
@@ -58,7 +58,7 @@ export function HeaderMain({
               paddingBottom: '4px',
             }}
           >
-            {/* Account section with dropdown - ✅ CHANGED: Use Shopify URLs */}
+            {/* Account section with dropdown */}
             <Suspense fallback={null}>
               <Await resolve={isLoggedIn}>
                 {(isLoggedIn) => (
@@ -89,7 +89,7 @@ export function HeaderMain({
                           />
                         </button>
 
-                        {/* Account Dropdown - ✅ CHANGED: Use Shopify URLs */}
+                        {/* Account Dropdown */}
                         {isAccountDropdownOpen && (
                           <>
                             <div
@@ -142,7 +142,7 @@ export function HeaderMain({
               </Await>
             </Suspense>
 
-            {/* ✅ CHANGED: Direct link to Shopify orders */}
+            {/* Orders Link */}
             <a
               href={SHOPIFY_ORDERS_URL}
               className="flex items-center text-white hover:bg-white/10 transition-colors"
@@ -160,6 +160,7 @@ export function HeaderMain({
               <span className="text-white">Mina beställningar</span>
             </a>
 
+            {/* Help Link */}
             <Link
               to="/pages/hjalp"
               className="flex items-center text-white hover:bg-white/10 transition-colors"
@@ -180,7 +181,7 @@ export function HeaderMain({
         </div>
       </div>
 
-      {/* Desktop Main Header - Logo as overlay, compact layout */}
+      {/* Desktop Main Header */}
       <div className="hidden lg:block relative">
         <div
           className="flex items-center mx-auto"
@@ -188,17 +189,17 @@ export function HeaderMain({
             maxWidth: '1272px',
             paddingLeft: '12px',
             paddingRight: '12px',
-            paddingTop: '20px', // Increased from 16px
-            paddingBottom: '20px', // Increased from 16px  
+            paddingTop: '20px',
+            paddingBottom: '20px',
             gap: '20px',
             alignItems: 'center',
-            height: '70px', // Increased from 60px for better spacing
+            height: '70px',
           }}
         >
-          {/* Left Spacer - More space for logo breathing room */}
-          <div style={{flex: '0 0 auto', width: '240px'}}></div> {/* Increased from 200px */}
+          {/* Left Spacer */}
+          <div style={{flex: '0 0 auto', width: '240px'}}></div>
 
-          {/* Search Bar - Full width */}
+          {/* Search Bar */}
           <div style={{
             flex: '1 1 auto',
             minWidth: 0,
@@ -207,7 +208,7 @@ export function HeaderMain({
             <SearchBar />
           </div>
 
-          {/* Right Actions - Compact */}
+          {/* Right Actions - ✅ UPDATED: Session wishlist with text */}
           <div
             className="flex items-center"
             style={{
@@ -216,51 +217,49 @@ export function HeaderMain({
               justifyContent: 'flex-end',
             }}
           >
-            <WishlistsLink
-              className="flex items-center text-white hover:bg-white/10 transition-colors"
-              style={{
-                padding: '6px 10px',
-                borderRadius: '6px',
-                gap: '6px',
-                textDecoration: 'none',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              <Heart size={18} className="text-white" />
-              <span
-                className="text-white"
+            {/* ✅ Session Wishlist with Swedish text */}
+            <div className="flex items-center text-white hover:bg-white/10 transition-colors" style={{
+              padding: '6px 10px',
+              borderRadius: '6px',
+              gap: '6px',
+              whiteSpace: 'nowrap',
+            }}>
+              <WishlistIcon />
+              <Link 
+                to="/wishlist"
                 style={{
                   fontSize: '15px',
                   fontWeight: 500,
+                  textDecoration: 'none',
+                  color: 'white',
                 }}
               >
                 Önskelista
-              </span>
-            </WishlistsLink>
+              </Link>
+            </div>
 
             <CartToggle cart={cart} />
           </div>
         </div>
 
-        {/* Logo Overlay - Fixed: Proper responsive padding like content */}
+        {/* Logo Overlay */}
         <div 
           style={{
             position: 'absolute',
-            left: '50%', // Center the container
+            left: '50%',
             top: '50%',
-            transform: 'translate(-50%, -50%)', // Center the container
+            transform: 'translate(-50%, -50%)',
             zIndex: 20,
-            pointerEvents: 'none', // Container doesn't block clicks
+            pointerEvents: 'none',
             width: '100%',
-            maxWidth: '1272px', // Match container max-width
+            maxWidth: '1272px',
           }}
         >
           <div style={{
-            paddingLeft: '12px', // Match container padding
+            paddingLeft: '12px',
             paddingRight: '12px',
           }}>
-            {/* Logo with click events enabled */}
-            <div style={{ pointerEvents: 'auto', width: 'fit-content' }}> {/* Only logo area clickable */}
+            <div style={{ pointerEvents: 'auto', width: 'fit-content' }}>
               <Logo 
                 shop={shop}
                 style={{
@@ -274,14 +273,13 @@ export function HeaderMain({
         </div>
       </div>
 
-      {/* Mobile Header - Smaller logo overlay */}
+      {/* Mobile Header - ✅ UPDATED: Session wishlist */}
       <div className="lg:hidden">
-        {/* First Row: Menu, Actions */}
         <div
           className="relative flex items-center"
           style={{
-            padding: '16px 16px', // Increased from 12px
-            minHeight: '64px', // Increased from 56px
+            padding: '16px 16px',
+            minHeight: '64px',
             position: 'relative',
           }}
         >
@@ -300,25 +298,24 @@ export function HeaderMain({
             </button>
           </div>
 
-          {/* Right: Wishlist, Cart */}
+          {/* Right: Wishlist, Cart - ✅ UPDATED: Session wishlist icon only */}
           <div className="absolute right-4 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
-            <WishlistsLink
+            <div 
               className="text-white hover:bg-white/10 transition-colors"
               style={{
                 padding: '8px',
                 borderRadius: '4px',
                 display: 'flex',
                 alignItems: 'center',
-                textDecoration: 'none',
               }}
             >
-              <Heart size={20} className="text-white" />
-            </WishlistsLink>
+              <WishlistIcon />
+            </div>
 
             <CartToggle cart={cart} />
           </div>
 
-          {/* Mobile Logo Overlay - Fixed: Only logo area, not full width */}
+          {/* Mobile Logo Overlay */}
           <div 
             style={{ 
               position: 'absolute',
@@ -326,17 +323,16 @@ export function HeaderMain({
               top: '50%',
               transform: 'translate(-50%, -50%)',
               zIndex: 10,
-              pointerEvents: 'none', // Container doesn't block clicks
-              width: 'fit-content', // Only as wide as logo
+              pointerEvents: 'none',
+              width: 'fit-content',
             }}
           >
-            {/* Logo with click events enabled */}
-            <div style={{ pointerEvents: 'auto' }}> {/* Only logo can be clicked */}
+            <div style={{ pointerEvents: 'auto' }}>
               <Logo 
                 shop={shop}
                 style={{
-                  height: '34px', // Increased by 5% from 32px
-                  maxWidth: '126px', // Increased by 5% from 120px
+                  height: '34px',
+                  maxWidth: '126px',
                   filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.1))',
                 }}
               />
@@ -344,10 +340,10 @@ export function HeaderMain({
           </div>
         </div>
 
-        {/* Second Row: Always Visible Search Bar */}
+        {/* Second Row: Search Bar */}
         <div
           style={{
-            padding: '0 16px 16px 16px', // Increased bottom padding
+            padding: '0 16px 16px 16px',
           }}
         >
           <SearchBar isMobile={true} />

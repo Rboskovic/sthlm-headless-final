@@ -5,7 +5,7 @@ import {Link} from 'react-router';
 import {Image} from '@shopify/hydrogen';
 import {AddToCartButton} from './AddToCartButton';
 import {useAside} from './Aside';
-import {WishlistButton} from './WishlistButton';
+import { SessionWishlistButton } from '~/components/SessionWishlistButton';
 import type {ProductFragment} from 'storefrontapi.generated';
 
 interface CompatibleProduct {
@@ -100,9 +100,8 @@ export function ProductItem({
 
         {/* Wishlist */}
         <div className="absolute top-2 right-2 z-10">
-          <WishlistButton
-            productId={product.id}
-            productTitle={product.title}
+          <SessionWishlistButton
+            product={product}
             size="sm"
             className="w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full shadow-sm"
           />
