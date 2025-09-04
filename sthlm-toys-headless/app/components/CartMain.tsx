@@ -38,11 +38,11 @@ export function CartMain({layout, cart: originalCart, popularCollections}: CartM
       ) : (
         <>
           {layout === 'aside' ? (
-            // ✅ UPDATED: Fixed checkout area structure
+            // ✅ FIXED: Proper flex layout that fits screen perfectly
             <>
-              {/* ✅ FIXED: Products area with minimal bottom padding to prevent cutoff */}
-              <div className="flex-1 overflow-y-auto" style={{maxHeight: 'calc(100vh - 280px)'}}>
-                <div className="px-4 py-2 pb-20">
+              {/* ✅ FIXED: Products area - grows to fill available space */}
+              <div className="flex-1 min-h-0 overflow-y-auto">
+                <div className="px-4 py-2">
                   <div className="space-y-0">
                     {(cart?.lines?.nodes ?? []).map((line, index) => (
                       <CartLineItem
@@ -55,8 +55,8 @@ export function CartMain({layout, cart: originalCart, popularCollections}: CartM
                 </div>
               </div>
 
-              {/* ✅ FIXED: Checkout area positioning - fixed within aside container */}
-              <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-4 shadow-lg z-50">
+              {/* ✅ FIXED: Checkout area as flex item - always visible, no positioning issues */}
+              <div className="flex-shrink-0 bg-white border-t border-gray-200 px-4 py-4 shadow-lg">
                 <CartSummary cart={cart} layout={layout} />
               </div>
             </>
