@@ -10,12 +10,18 @@ export async function loader({
     storefront,
     request,
     params,
-    // Fix: Change locales to match your Swedish store
     locales: ['SV-SE'], // Swedish locale
     getLink: ({type, baseUrl, handle, locale}) => {
       // Simplified - no locale in URL since you're single-language
       return `${baseUrl}/${type}/${handle}`;
     },
+    // Add publication filtering for products
+    ...(params.type === 'products' && {
+      query: {
+        // Filter products by your STHLM-TOYS-HEADLESS publication
+        publishedOnPublication: 'gid://shopify/Publication/290034581883'
+      }
+    })
   });
 
   response.headers.set('Cache-Control', `max-age=${60 * 60 * 24}`);
