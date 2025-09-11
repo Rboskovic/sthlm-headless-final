@@ -21,8 +21,8 @@ export function Footer({
       <div className="hidden lg:block">
         <div className="max-w-[1272px] mx-auto px-3 py-12">
           <div className="grid grid-cols-12 gap-8">
-            {/* Left side - Footer Links (7 columns) */}
-            <div className="col-span-7">
+            {/* Left side - Footer Links (5 columns) */}
+            <div className="col-span-5">
               <Suspense fallback={<FooterLinksFallback />}>
                 <Await resolve={footerPromise}>
                   {(footer) => (
@@ -35,14 +35,31 @@ export function Footer({
                 </Await>
               </Suspense>
 
-              {/* ✅ NEW: Payment Icons positioned under Support/Mitt Konto */}
-              <div className="mt-2">
+              {/* Payment Icons */}
+              <div className="mt-4">
                 <PaymentIcons />
               </div>
             </div>
 
-            {/* Right side - Newsletter (5 columns) */}
-            <div className="col-span-5">
+            {/* Middle - Contact Us (4 columns) */}
+            <div className="col-span-4 text-white text-sm space-y-2">
+              <h3 className="font-semibold text-base">Kontakta</h3>
+              <p>
+                Mejla oss:{' '}
+                <a href="mailto:info@klosslabbet.se" className="underline">
+                  info@klosslabbet.se
+                </a>
+              </p>
+              <p>
+                Ring oss:{' '}
+                <a href="tel:0768686263" className="underline">
+                  076-868-62-63
+                </a>
+              </p>
+            </div>
+
+            {/* Right side - Newsletter (3 columns) */}
+            <div className="col-span-3">
               <NewsletterSignup />
             </div>
           </div>
@@ -87,9 +104,26 @@ export function Footer({
             </Await>
           </Suspense>
 
-          {/* ✅ NEW: Payment Icons - Mobile */}
+          {/* Payment Icons - Mobile */}
           <div className="mt-8">
             <PaymentIcons />
+          </div>
+
+          {/* Contact Us - Mobile */}
+          <div className="mt-8 text-white text-sm space-y-2">
+            <h3 className="font-semibold text-base">Kontakta</h3>
+            <p>
+              Mejla oss:{' '}
+              <a href="mailto:info@klosslabbet.se" className="underline">
+                info@klosslabbet.se
+              </a>
+            </p>
+            <p>
+              Ring oss:{' '}
+              <a href="tel:0768686263" className="underline">
+                076-868-62-63
+              </a>
+            </p>
           </div>
 
           {/* Social media */}
