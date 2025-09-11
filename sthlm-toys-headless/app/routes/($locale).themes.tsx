@@ -10,7 +10,7 @@ import {getCanonicalUrlForPath} from '~/lib/canonical';
 
 export const meta: MetaFunction = () => {
   return [
-    {title: 'LEGO® Teman - STHLM Toys & Games'},
+    {title: 'LEGO® Teman | Klosslabbet'},
     {
       name: 'description',
       content: 'Upptäck LEGO® set efter tema - från Star Wars™ och Harry Potter™ till Technic, City, Marvel och mycket mer. Hitta det perfekta LEGO® setet för alla åldrar.',
@@ -57,7 +57,7 @@ export default function ThemesPage() {
       {/* Page Header */}
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 text-center mb-6">
-          Shop LEGO® sets by theme
+          Upptäck LEGO® set efter tema
         </h1>
         
         {/* SEO Intro */}

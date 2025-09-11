@@ -7,14 +7,19 @@ import { getPaginationVariables } from '@shopify/hydrogen';
 import { CollectionPage } from '~/components/CollectionPage';
 import {getCanonicalUrlForPath} from '~/lib/canonical';
 
-export const meta: MetaFunction<typeof loader> = ({ data }) => [
-  { title: `${data?.collection?.title || 'Kollektion'} | Klosslabbet` },
-  {
-    name: 'description',
-    content: data?.collection?.description 
-      ? `${data?.collection?.description} - Handla LEGO, leksaker och spel på Klosslabbet.`
-      : 'Upptäck fantastiska LEGO, leksaker och spel i denna kollektion på Klosslabbet.',
-  },
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
+  // Add collection-specific keywords
+  const collectionTitle = data?.collection?.title || 'Kollektion';
+  const productCount = data?.collection?.products?.nodes?.length || 0;
+  
+  return [
+    { title: `${collectionTitle} | Klosslabbet` },
+    {
+      name: 'description',
+      content: data?.collection?.description 
+        ? `${data?.collection?.description} ✓ ${productCount}+ produkter ✓ Fri frakt över 989 kr ✓ Säker betalning`
+        : `Upptäck ${collectionTitle} med ${productCount}+ produkter. ✓ Fri frakt över 989 kr ✓ 30 dagars öppet köp ✓ Snabb leverans`,
+    },
   {
     tagName: 'link',
     rel: 'canonical',

@@ -28,14 +28,38 @@ import React, {useState} from 'react';
 import {useAside} from '~/components/Aside';
 
 export const meta: MetaFunction<typeof loader> = ({data}) => {
+  const product = data?.product;
+  
   return [
-    {title: `${data?.product.title ?? ''} | Stockholm Toys`},
-    {name: 'description', content: data?.product.description ?? ''},
+    {title: `${product?.title ?? ''} | Klosslabbet`},
+    {
+      name: 'description', 
+      content: `Köp ${product?.title} hos Klosslabbet. ${product?.description?.substring(0, 150)}... ✓ Fri frakt över 989 kr ✓ Säker betalning`
+    },
     {
       tagName: 'link',
       rel: 'canonical',
-      href: getCanonicalUrlForPath(`/products/${data?.product.handle}`),
+      href: getCanonicalUrlForPath(`/products/${product?.handle}`),
     },
+    {
+      'script:ld+json': {
+        '@context': 'https://schema.org',
+        '@type': 'Product',
+        name: product?.title,
+        description: product?.description,
+        image: product?.featuredImage?.url,
+        offers: {
+          '@type': 'Offer',
+          price: product?.priceRange?.minVariantPrice?.amount,
+          priceCurrency: 'SEK',
+          availability: product?.availableForSale ? 'InStock' : 'OutOfStock',
+          seller: {
+            '@type': 'Organization',
+            name: 'Klosslabbet'
+          }
+        }  // <-- This was missing
+      }  // <-- This was missing
+    }
   ];
 };
 

@@ -164,9 +164,9 @@ export default function Cart() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h1.586a1 1 0 01.707.293L10.414 7.5A1 1 0 0011.121 8H13m6 0a2 2 0 110 4M5 8a2 2 0 000 4m0 0v8a2 2 0 002 2h10a2 2 0 002-2v-8m0 0V9a2 2 0 00-2-2H7a2 2 0 00-2 2v3" />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-1">Fri frakt över €20</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-1">Fri frakt över 989 kr</h3>
               <p className="text-gray-600 text-sm">
-                Fri leverans på alla beställningar över €20
+                Fri leverans på alla beställningar över 989kr
               </p>
             </div>
 
