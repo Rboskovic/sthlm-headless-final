@@ -10,7 +10,7 @@ import {getCanonicalUrlForPath} from '~/lib/canonical';
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   // Add collection-specific keywords
   const collectionTitle = data?.collection?.title || 'Kollektion';
-  const productCount = data?.collection?.products?.nodes?.length || 0;
+  const productCount = data?.filteredTotalCount || data?.totalProductCount || 0;
   
   return [
     { title: `${collectionTitle} | Klosslabbet` },
@@ -20,12 +20,13 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
         ? `${data?.collection?.description} ✓ ${productCount}+ produkter ✓ Fri frakt över 989 kr ✓ Säker betalning`
         : `Upptäck ${collectionTitle} med ${productCount}+ produkter. ✓ Fri frakt över 989 kr ✓ 30 dagars öppet köp ✓ Snabb leverans`,
     },
-  {
-    tagName: 'link',
-    rel: 'canonical',
-    href: getCanonicalUrlForPath(`/collections/${data?.collection?.handle}`),
-  },
-];
+    {
+      tagName: 'link',
+      rel: 'canonical',
+      href: getCanonicalUrlForPath(`/collections/${data?.collection?.handle}`),
+    },
+  ];
+};
 
 export async function loader({ context, request, params }: LoaderFunctionArgs) {
   const { storefront } = context;
@@ -221,7 +222,7 @@ export default function Collection() {
   );
 }
 
-// ✅ CLEAN: Simple collection info query
+// ✅ FIXED: Collection info query with metafields to satisfy TypeScript
 const COLLECTION_INFO_QUERY = `#graphql
   query CollectionInfo(
     $handle: String!
@@ -232,6 +233,7 @@ const COLLECTION_INFO_QUERY = `#graphql
       id
       title
       description
+      descriptionHtml
       handle
       seo {
         description
@@ -244,6 +246,45 @@ const COLLECTION_INFO_QUERY = `#graphql
         height
         altText
       }
+      products(first: 1) {
+        nodes {
+          id
+        }
+        edges {
+          node {
+            id
+          }
+        }
+        filters {
+          id
+          label
+          type
+          values {
+            id
+            label
+            count
+            input
+          }
+        }
+        pageInfo {
+          hasNextPage
+          hasPreviousPage
+          startCursor
+          endCursor
+        }
+      }
+      metafields(identifiers: [
+        {namespace: "custom", key: "banner_image"},
+        {namespace: "custom", key: "collection_color"},
+        {namespace: "custom", key: "mobile_menu_featured"}
+      ]) {
+        id
+        key
+        value
+        namespace
+        type
+      }
+      updatedAt
     }
   }
 ` as const;
