@@ -5,6 +5,7 @@ import {
 } from '@shopify/remix-oxygen';
 import {useLoaderData, useSearchParams, type MetaFunction} from 'react-router';
 import {getPaginationVariables, Analytics} from '@shopify/hydrogen';
+import {getCanonicalUrl} from '~/lib/canonical';
 import {SearchResults} from '~/components/SearchResults';
 import {
   type RegularSearchReturn,
@@ -12,8 +13,26 @@ import {
   getEmptyPredictiveSearchResult,
 } from '~/lib/search';
 
-export const meta: MetaFunction = () => {
-  return [{title: `Search | STHLM Toys & Games`}];
+export const meta: MetaFunction<typeof loader> = ({request}) => {
+  const url = new URL(request.url);
+  const searchQuery = url.searchParams.get('q');
+  
+  return [
+    {title: searchQuery 
+      ? `Sök: ${searchQuery} | Klosslabbet` 
+      : 'Sök produkter | Klosslabbet'},
+    {
+      name: 'description',
+      content: searchQuery 
+        ? `Sökresultat för "${searchQuery}" - Hitta LEGO, leksaker och spel på Klosslabbet`
+        : 'Sök bland vårt sortiment av LEGO, leksaker och spel. Hitta perfekta produkter för alla åldrar på Klosslabbet.'
+    },
+    {
+      tagName: 'link',
+      rel: 'canonical',
+      href: getCanonicalUrl(request),
+    },
+  ];
 };
 
 export async function loader({request, context}: LoaderFunctionArgs) {

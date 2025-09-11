@@ -6,6 +6,7 @@ import {Await, useLoaderData, type MetaFunction} from 'react-router';
 import {Suspense, useState} from 'react';
 import {ChevronLeft, ChevronRight} from 'lucide-react';
 import type {ProductFragment} from 'storefrontapi.generated';
+import {getCanonicalUrlForPath} from '~/lib/canonical';
 
 // ✅ EXISTING: Keep all your existing components
 import {HeroBanner} from '~/components/HeroBanner';
@@ -23,7 +24,18 @@ import {
 } from '~/lib/homepage-product-queries';
 
 export const meta: MetaFunction = () => {
-  return [{title: 'STHLM Toys & Games | Hem'}];
+  return [
+    {title: 'Klosslabbet - Sveriges bästa LEGO-leksaksbutik'},
+    {
+      name: 'description', 
+      content: 'Handla LEGO och leksaker online hos Klosslabbet. Fri frakt över 989 kr. Säkert köp och konkurrenskraftiga priser direkt hem till dig.'
+    },
+    {
+      tagName: 'link',
+      rel: 'canonical',
+      href: getCanonicalUrlForPath('/'),
+    },
+  ];
 };
 
 export async function loader(args: LoaderFunctionArgs) {

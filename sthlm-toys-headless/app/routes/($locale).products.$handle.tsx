@@ -22,6 +22,7 @@ import {PriceDisplay} from '~/components/ui/PriceDisplay';
 import {ShopButton} from '~/components/ui/ShopButton';
 import {AddToCartButton} from '~/components/AddToCartButton';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
+import {getCanonicalUrlForPath} from '~/lib/canonical';
 import {Check} from 'lucide-react';
 import React, {useState} from 'react';
 import {useAside} from '~/components/Aside';
@@ -31,8 +32,9 @@ export const meta: MetaFunction<typeof loader> = ({data}) => {
     {title: `${data?.product.title ?? ''} | Stockholm Toys`},
     {name: 'description', content: data?.product.description ?? ''},
     {
+      tagName: 'link',
       rel: 'canonical',
-      href: `/products/${data?.product.handle}`,
+      href: getCanonicalUrlForPath(`/products/${data?.product.handle}`),
     },
   ];
 };

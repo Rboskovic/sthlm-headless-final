@@ -5,14 +5,20 @@ import { type LoaderFunctionArgs, type MetaFunction } from '@shopify/remix-oxyge
 import { useLoaderData } from 'react-router';
 import { getPaginationVariables } from '@shopify/hydrogen';
 import { CollectionPage } from '~/components/CollectionPage';
+import {getCanonicalUrlForPath} from '~/lib/canonical';
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => [
-  { title: `${data?.collection?.title || 'Collection'} | STHLM Toys & Games` },
+  { title: `${data?.collection?.title || 'Kollektion'} | Klosslabbet` },
   {
     name: 'description',
-    content:
-      data?.collection?.description ||
-      'Discover amazing products in this collection.',
+    content: data?.collection?.description 
+      ? `${data?.collection?.description} - Handla LEGO, leksaker och spel på Klosslabbet.`
+      : 'Upptäck fantastiska LEGO, leksaker och spel i denna kollektion på Klosslabbet.',
+  },
+  {
+    tagName: 'link',
+    rel: 'canonical',
+    href: getCanonicalUrlForPath(`/collections/${data?.collection?.handle}`),
   },
 ];
 

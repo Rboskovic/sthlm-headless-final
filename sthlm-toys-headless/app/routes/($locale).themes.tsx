@@ -6,6 +6,7 @@ import {useLoaderData, type MetaFunction} from 'react-router';
 import type {Collection} from '@shopify/hydrogen/storefront-api-types';
 import {THEMES_COLLECTIONS_QUERY} from '~/lib/fragments';
 import {ThemesGrid} from '~/components/ThemesGrid';
+import {getCanonicalUrlForPath} from '~/lib/canonical';
 
 export const meta: MetaFunction = () => {
   return [
@@ -13,6 +14,11 @@ export const meta: MetaFunction = () => {
     {
       name: 'description',
       content: 'Upptäck LEGO® set efter tema - från Star Wars™ och Harry Potter™ till Technic, City, Marvel och mycket mer. Hitta det perfekta LEGO® setet för alla åldrar.',
+    },
+    {
+      tagName: 'link',
+      rel: 'canonical',
+      href: getCanonicalUrlForPath('/themes'),
     },
   ];
 };

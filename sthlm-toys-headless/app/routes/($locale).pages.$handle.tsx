@@ -2,9 +2,21 @@ import {type LoaderFunctionArgs} from '@shopify/remix-oxygen';
 import {useLoaderData, type MetaFunction} from 'react-router';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
 import {HelpPage} from '~/components/HelpPage';
+import {getCanonicalUrlForPath} from '~/lib/canonical';
 
 export const meta: MetaFunction<typeof loader> = ({data}) => {
-  return [{title: `Klosslabbet | ${data?.page.title ?? ''}`}];
+  return [
+    {title: `Klosslabbet | ${data?.page.title ?? ''}`},
+    {
+      name: 'description',
+      content: data?.page.seo?.description || data?.page.title || 'Klosslabbet - information och hjälp',
+    },
+    {
+      tagName: 'link',
+      rel: 'canonical',
+      href: getCanonicalUrlForPath(`/pages/${data?.page.handle}`),
+    },
+  ];
 };
 
 export async function loader(args: LoaderFunctionArgs) {
