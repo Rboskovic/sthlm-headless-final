@@ -167,22 +167,29 @@ function SearchResultsProducts({
 function SearchResultsEmpty({popularCollections}: {popularCollections?: any[]}) {
   return (
     <div className="bg-white rounded-lg shadow-sm p-8">
-      <div className="text-center py-16">
+      <div className="py-16" style={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        alignItems: 'center', 
+        textAlign: 'center' 
+      }}>
         <div className="mb-8">
           <svg className="w-16 h-16 text-gray-300 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
         </div>
         
-        <h2 className="text-2xl font-bold text-gray-900 mb-4 text-center">No results found</h2>
-        <p className="text-gray-600 mb-12 max-w-md mx-auto text-center">
-          We couldn't find any products matching your search. Try different keywords or browse our categories.
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">
+          Inga resultat hittades
+        </h2>
+        <p className="text-gray-600 mb-12 max-w-md">
+          Vi kunde inte hitta några produkter som matchade din sökning. Prova olika sökord eller bläddra bland våra kategorier.
         </p>
 
         {/* Popular Categories Section */}
         <div className="max-w-lg mx-auto">
           <div className="mb-6">
-            <h4 className="text-lg font-medium text-gray-900 text-center">Popular Categories</h4>
+            <h4 className="text-lg font-medium text-gray-900">Populära Kategorier</h4>
           </div>
           
           {/* Popular Categories Grid */}

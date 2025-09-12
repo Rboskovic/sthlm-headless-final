@@ -13,9 +13,14 @@ import {
   getEmptyPredictiveSearchResult,
 } from '~/lib/search';
 
-export const meta: MetaFunction<typeof loader> = ({request}) => {
-  const url = new URL(request.url);
-  const searchQuery = url.searchParams.get('q');
+// ✅ FIXED: Updated meta function for React Router 7
+export const meta: MetaFunction<typeof loader> = ({data, location}) => {
+  const searchParams = new URLSearchParams(location.search);
+  const searchQuery = searchParams.get('q');
+  
+  // Build canonical URL manually since we don't have request object
+  const canonicalPath = location.pathname + (location.search ? `?${location.search}` : '');
+  const canonicalUrl = `https://www.klosslabbet.se${canonicalPath}`;
   
   return [
     {title: searchQuery 
@@ -30,7 +35,7 @@ export const meta: MetaFunction<typeof loader> = ({request}) => {
     {
       tagName: 'link',
       rel: 'canonical',
-      href: getCanonicalUrl(request),
+      href: canonicalUrl,
     },
   ];
 };
