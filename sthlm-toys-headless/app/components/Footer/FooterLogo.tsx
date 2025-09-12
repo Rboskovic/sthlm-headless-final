@@ -18,8 +18,7 @@ export function FooterLogo({shop}: {shop: Shop}) {
         <img
           src={shop.brand.logo.image.url}
           alt={shop.name}
-          className="h-8 w-auto"
-          style={{filter: 'brightness(0) invert(1)'}} // Make logo white for footer
+          className="h-12 w-auto"
         />
       ) : (
         <span className="text-white font-bold text-lg">

@@ -1,5 +1,5 @@
 // FILE: app/components/HeroBanner.tsx
-// ✅ FIXED: Simplified to work with direct props from metafields
+// ✅ LEGO-STYLE: Full-width background with constrained content
 
 import {ShopLinkButton} from '~/components/ui/ShopButton';
 
@@ -15,9 +15,9 @@ interface HeroBannerProps {
 }
 
 /**
- * HeroBanner Component
- * ✅ FIXED: Works directly with props from metafields
- * ✅ FIXED: Pixel-perfect match of Smyths Toys hero banner
+ * HeroBanner Component - LEGO Style
+ * ✅ FIXED: Full-width background, constrained content
+ * ✅ CONSISTENT: Same container width as other components
  */
 export function HeroBanner({
   title = 'Bygg, skapa & föreställ dig',
@@ -30,10 +30,10 @@ export function HeroBanner({
   textColor = '#1F2937',
 }: HeroBannerProps) {
   return (
-    <div className="hero-banner w-full">
-      {/* ✅ MOBILE: Background image loading */}
+    <div className="hero-banner">
+      {/* ✅ MOBILE: Full-width edge-to-edge background */}
       <div
-        className="block lg:hidden relative w-full"
+        className="block lg:hidden relative"
         style={{
           aspectRatio: '375 / 244',
           backgroundColor: backgroundColor,
@@ -43,74 +43,97 @@ export function HeroBanner({
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
+          /* ✅ EDGE-TO-EDGE: Same technique as desktop */
+          width: '100vw',
+          marginLeft: '50%',
+          transform: 'translateX(-50%)',
         }}
       >
-        {/* Mobile Text Overlay */}
-        <div className="absolute inset-0 flex items-center justify-center text-center px-4">
-          <h1
-            className="text-white font-black"
-            style={{
-              fontFamily: 'system-ui, -apple-system, sans-serif',
-              fontSize: 'clamp(28px, 8vw, 48px)',
-              fontWeight: 900,
-              lineHeight: '1.1',
-              textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
-              letterSpacing: '-0.02em',
-              textTransform: 'uppercase',
-              paddingBottom: '60px',
-            }}
-          >
-            {title}
-          </h1>
+        {/* Mobile Text Overlay - Uses design system container */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="container text-center">
+            <h1
+              className="text-white font-black"
+              style={{
+                fontFamily: 'system-ui, -apple-system, sans-serif',
+                fontSize: 'clamp(28px, 8vw, 48px)',
+                fontWeight: 900,
+                lineHeight: '1.1',
+                textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
+                letterSpacing: '-0.02em',
+                textTransform: 'uppercase',
+                paddingBottom: '60px',
+              }}
+            >
+              {title}
+            </h1>
+          </div>
         </div>
       </div>
 
-      {/* Mobile CTA Button */}
-      <div className="block lg:hidden text-center py-4">
-        <ShopLinkButton
-          to={buttonLink}
-          variant="cta"
-          size="lg"
-          className="rounded-full"
-        >
-          {buttonText}
-        </ShopLinkButton>
+      {/* Mobile CTA Button - Uses container for consistency */}
+      <div
+        className="block lg:hidden text-center py-4"
+        style={{
+          width: '100vw',
+          marginLeft: '50%',
+          transform: 'translateX(-50%)',
+        }}
+      >
+        <div className="container">
+          <ShopLinkButton
+            to={buttonLink}
+            variant="cta"
+            size="lg"
+            className="rounded-full"
+            style={{
+              backgroundColor: '#2563eb', /* Blue background */
+              color: 'white',              /* White text */
+              border: 'none',
+              fontSize: '16px',
+              fontWeight: 600,
+              paddingLeft: '32px',
+              paddingRight: '32px',
+              paddingTop: '12px',
+              paddingBottom: '12px',
+              transition: 'background-color 0.2s ease',
+            }}
+          >
+            {buttonText}
+          </ShopLinkButton>
+        </div>
       </div>
 
-      {/* ✅ DESKTOP: Pixel-perfect match of Smyths Toys hero banner */}
+      {/* ✅ DESKTOP: LEGO-style full-width background with constrained content */}
       <div
         className="hidden lg:block relative w-full"
         style={{
           backgroundColor: backgroundColor,
           minHeight: '440px',
+          /* ✅ FULL-WIDTH: Background goes edge-to-edge */
+          width: '100vw',
+          marginLeft: '50%',
+          transform: 'translateX(-50%)',
         }}
       >
-        {/* ✅ FIXED: Contained content area with proper max-width */}
-        <div
-          className="mx-auto flex items-center relative h-full"
-          style={{
-            maxWidth: '1272px',
-            paddingLeft: '16px',
-            paddingRight: '16px',
-            minHeight: '440px',
-          }}
-        >
-          {/* ✅ FIXED: Left Content - Text and CTA with more padding */}
+        {/* ✅ CONSTRAINED CONTENT: Uses design system container for consistency */}
+        <div className="container flex items-center relative h-full" style={{ minHeight: '440px' }}>
+          
+          {/* ✅ Left Content - Text and CTA */}
           <div
-            className="flex-1 z-10 pr-8"
+            className="flex-1 z-10"
             style={{
               maxWidth: '50%',
               paddingTop: '40px',
               paddingBottom: '40px',
-              paddingLeft: '32px', // More padding from left edge
+              paddingRight: '32px',
             }}
           >
-            {/* ✅ FIXED: Title - Matching Smyths typography exactly */}
+            {/* Title - Matching LEGO typography */}
             <h1
               className="mb-4"
               style={{
-                fontFamily:
-                  'system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
+                fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
                 fontSize: '52px',
                 fontWeight: 800,
                 lineHeight: '1.1',
@@ -122,12 +145,11 @@ export function HeroBanner({
               {title}
             </h1>
 
-            {/* ✅ FIXED: Subtitle - Matching Smyths typography */}
+            {/* Subtitle */}
             <p
               className="mb-8"
               style={{
-                fontFamily:
-                  'system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
+                fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
                 fontSize: '18px',
                 fontWeight: 400,
                 lineHeight: '1.4',
@@ -139,7 +161,7 @@ export function HeroBanner({
               {subtitle}
             </p>
 
-            {/* ✅ FIXED: CTA Button - Exact match to Smyths style */}
+            {/* CTA Button */}
             <ShopLinkButton
               to={buttonLink}
               variant="secondary"
@@ -165,7 +187,7 @@ export function HeroBanner({
             </ShopLinkButton>
           </div>
 
-          {/* ✅ FIXED: Right Image - Properly contained and loaded */}
+          {/* ✅ Right Image - Properly contained */}
           <div
             className="flex-1 flex justify-end items-center"
             style={{
@@ -187,7 +209,6 @@ export function HeroBanner({
                 }}
               />
             ) : (
-              // ✅ FALLBACK: Show placeholder if no image provided
               <div
                 style={{
                   width: '100%',

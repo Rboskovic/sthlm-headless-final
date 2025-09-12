@@ -131,8 +131,8 @@ export default function Homepage() {
       <HeroBanner
         title={heroData.title || 'Bygg, skapa & föreställ dig'}
         subtitle={heroData.subtitle || 'Upptäck oändliga möjligheter med vår fantastiska LEGO-kollektion'}
-        buttonText={heroData.buttonText || 'Handla nu'}
-        buttonLink={heroData.buttonLink || '/collections/lego'}
+        buttonText={heroData.buttonText || 'Visa teman'}
+        buttonLink={heroData.buttonLink || '/themes'}
         backgroundImage="https://cdn.shopify.com/s/files/1/0900/8811/2507/files/hero-mobile2.png?v=1753985948"
         mobileBackgroundImage="https://cdn.shopify.com/s/files/1/0900/8811/2507/files/hero-mobile2.png?v=1753985948"
         backgroundColor={heroData.backgroundColor || '#FFD42B'}
