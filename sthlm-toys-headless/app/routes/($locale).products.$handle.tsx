@@ -214,10 +214,10 @@ export default function Product() {
   
   // Shop-wide shipping information
   const freeShippingText = getMetafieldValue(shop?.metafields, 'free_shipping_text') || 
-    'Free Shipping on orders $49 and up*';
+    'Fri frakt på beställningar över 949 kr*';
   
   const freeShippingNote = getMetafieldValue(shop?.metafields, 'free_shipping_note') || 
-    '*Offer applies to standard shipping to one location in the contiguous U.S. A $20 shipping surcharge per item applies to customers living outside the contiguous United States: Hawaii, Alaska typically ships in 3 to 4 business days. Eligible for return on ToysRUs.com only.';
+    '*Erbjudandet gäller standardfrakt till upphämtningsställe i Sverige. Leverans vid dörren tar vanligtvis 3 till 4 dagar och kostar 299 kr.';
 
   // ✅ NEW: Parse shipping text into bullet points
   const shippingBulletPoints = parseShippingText(freeShippingText);

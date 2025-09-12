@@ -23,7 +23,7 @@ export function FooterLogo({shop}: {shop: Shop}) {
         />
       ) : (
         <span className="text-white font-bold text-lg">
-          {shop?.name || 'STHLM Toys & Games'}
+          {shop?.name || 'Klosslabbet'}
         </span>
       )}
     </Link>

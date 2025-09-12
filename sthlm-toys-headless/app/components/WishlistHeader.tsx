@@ -24,7 +24,7 @@ export function WishlistHeader({
   const [copySuccess, setCopySuccess] = useState(false);
 
   const handleShare = async () => {
-    const success = await onShare('Kolla in min önskelista från STHLM Toys & Games!');
+    const success = await onShare('Kolla in min önskelista från Klosslabbet!');
     if (!success) {
       // Fallback to copy link if native sharing not supported
       handleCopyLink();
@@ -33,7 +33,7 @@ export function WishlistHeader({
   };
 
   const handleCopyLink = async () => {
-    const success = await onCopyLink('Min STHLM Toys & Games Önskelista');
+    const success = await onCopyLink('Min Klosslabbet Önskelista');
     if (success) {
       setCopySuccess(true);
       setTimeout(() => setCopySuccess(false), 2000);

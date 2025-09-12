@@ -41,13 +41,13 @@ export function Logo({
       {shop?.brand?.logo?.image?.url ? (
         <img
           src={shop.brand.logo.image.url}
-          alt={shop.name || 'STHLM Toys & Games'}
+          alt={shop.name || 'Klosslabbet'}
           className={`${sizeClasses[size]} w-auto`}
           style={color === 'white' ? {filter: 'brightness(0) invert(1)'} : {}}
         />
       ) : (
         <div className={`flex flex-col items-start font-bold ${colorClasses[color]}`}>
-          <div className="text-lg leading-tight font-bold">STHLM</div>
+          <div className="text-lg leading-tight font-bold">Klosslabbet</div>
           <div className="text-yellow-400 text-sm leading-tight font-semibold">
             TOYS & GAMES
           </div>

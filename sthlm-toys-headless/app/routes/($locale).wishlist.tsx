@@ -9,7 +9,7 @@ import { WishlistHeader } from '~/components/WishlistHeader';
 import { WishlistEmpty } from '~/components/WishlistEmpty';
 
 export const meta: MetaFunction = () => [
-  { title: 'Min Önskelista | STHLM Toys & Games' },
+  { title: 'Min Önskelista | Klosslabbet' },
   { name: 'description', content: 'Dina sparade favoritprodukter' }
 ];
 
