@@ -1,5 +1,5 @@
 // FILE: app/routes/($locale).ages.tsx
-// ✅ FIXED: Proper hero container, image loading, sort order, Swedish translation
+// ✅ FIXED: Proper titles, descriptions, smaller banner, TypeScript errors fixed
 
 import {type LoaderFunctionArgs, type MetaFunction} from '@shopify/remix-oxygen';
 import {useLoaderData, Link} from 'react-router';
@@ -70,10 +70,10 @@ export default function AgesPage() {
 
   return (
     <div className="bg-white">
-      {/* ✅ FIXED: Contained hero section like debug info */}
-      <div className="container py-8">
-        <div className="bg-black text-white py-8 px-6 rounded-lg">
-          <h1 className="text-3xl md:text-4xl font-bold text-center text-white">
+      {/* ✅ FIXED: Smaller hero section height */}
+      <div className="container py-6">
+        <div className="bg-black text-white py-6 px-6 rounded-lg">
+          <h1 className="text-2xl md:text-3xl font-bold text-center text-white">
             LEGO® Sets efter ålder och gåvor för alla åldrar
           </h1>
         </div>
@@ -130,7 +130,7 @@ export default function AgesPage() {
 }
 
 /**
- * Age Card Component - Swedish labels
+ * Age Card Component - Fixed titles and descriptions
  */
 function AgeCard({collection}: {collection: Collection}) {
   // Extract metafield values with proper namespace checking
@@ -141,17 +141,23 @@ function AgeCard({collection}: {collection: Collection}) {
     return metafield?.value || null;
   };
 
-  // Extract age from title (e.g., "Ålder 4+" → "4+")
-  const ageRange = getAgeFromTitle(collection.title);
+  // ✅ FIXED: Use collection title directly (no extraction)
+  const displayTitle = collection.title;
   const lifestyleImageValue = getMetafieldValue('age_lifestyle_image');
 
-  // ✅ FIXED: Handle Shopify image metafield - it might be JSON or direct URL
+  // ✅ FIXED: TypeScript errors - properly type the parsed JSON
+  interface ShopifyImageData {
+    url?: string;
+    src?: string;
+    alt?: string;
+  }
+
   let lifestyleImageUrl = null;
   
   if (lifestyleImageValue) {
     try {
-      // Try to parse as JSON first (Shopify file reference)
-      const parsed = JSON.parse(lifestyleImageValue);
+      // ✅ FIXED: Type assertion for parsed JSON
+      const parsed = JSON.parse(lifestyleImageValue) as ShopifyImageData;
       lifestyleImageUrl = parsed.url || parsed.src || lifestyleImageValue;
     } catch {
       // If not JSON, use as direct URL
@@ -175,19 +181,22 @@ function AgeCard({collection}: {collection: Collection}) {
             />
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
-              <div className="text-white text-2xl font-bold">{ageRange}</div>
+              <div className="text-white text-2xl font-bold">{displayTitle}</div>
             </div>
           )}
         </div>
 
-        {/* Content - Swedish */}
+        {/* Content - Swedish with better layout for descriptions */}
         <div className="p-6">
-          <h3 className="text-xl font-bold text-gray-900 mb-2">{ageRange}</h3>
+          <h3 className="text-xl font-bold text-gray-900 mb-3">{displayTitle}</h3>
+          
+          {/* ✅ FIXED: Always show description if available */}
           {collection.description && (
-            <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+            <p className="text-gray-600 text-sm mb-4 leading-relaxed">
               {collection.description}
             </p>
           )}
+          
           <div className="text-blue-600 font-medium hover:text-blue-800 transition-colors">
             Handla nu →
           </div>
@@ -195,18 +204,6 @@ function AgeCard({collection}: {collection: Collection}) {
       </div>
     </Link>
   );
-}
-
-/**
- * Helper function to extract age from collection title
- */
-function getAgeFromTitle(title: string): string {
-  // Extract age patterns like "Ålder 4+", "4+", "1.5+", etc.
-  const ageMatch = title.match(/(\d+\.?\d*)\+/);
-  if (ageMatch) {
-    return `${ageMatch[1]}+`;
-  }
-  return title;
 }
 
 // ✅ FIXED: Enhanced GraphQL Query with proper image metafield handling
