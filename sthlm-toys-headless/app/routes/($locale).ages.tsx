@@ -1,9 +1,12 @@
 // FILE: app/routes/($locale).ages.tsx
 // ✅ FIXED: Proper titles, descriptions, smaller banner, TypeScript errors fixed
+// ✅ ADDED: Blog section with carousel for age-related articles
 
 import {type LoaderFunctionArgs, type MetaFunction} from '@shopify/remix-oxygen';
 import {useLoaderData, Link} from 'react-router';
 import type {Collection} from '@shopify/hydrogen/storefront-api-types';
+import {Image} from '@shopify/hydrogen';
+import {useState} from 'react';
 
 export const meta: MetaFunction = () => {
   return [
@@ -18,6 +21,7 @@ export async function loader({context}: LoaderFunctionArgs) {
   try {
     console.log('🔍 Startar ages loader...');
     
+    // Fetch age collections
     const ageCollectionsData = await storefront.query(AGE_COLLECTIONS_QUERY);
     
     console.log('📦 Rå collections response:', JSON.stringify(ageCollectionsData, null, 2));
@@ -54,19 +58,48 @@ export async function loader({context}: LoaderFunctionArgs) {
 
     console.log(`✅ Filtrerat till ${filteredAgeCollections.length} ålderssamlingar`);
 
+    // Fetch blog articles for age page
+    const blogsData = await storefront.query(AGE_BLOGS_QUERY);
+    const allArticles = [];
+
+    // Collect all articles from all blogs
+    if (blogsData?.blogs?.nodes) {
+      for (const blog of blogsData.blogs.nodes) {
+        if (blog.articles?.nodes) {
+          allArticles.push(...blog.articles.nodes.map(article => ({
+            ...article,
+            blogHandle: blog.handle
+          })));
+        }
+      }
+    }
+
+    // Filter articles that have age_page=true metafield
+    const ageArticles = allArticles.filter(article => {
+      const agePageMetafield = article.metafields?.find(
+        field => field?.key === 'age_page' && 
+        (field.namespace === 'custom' || field.namespace === 'app')
+      );
+      return agePageMetafield?.value === 'true';
+    });
+
+    console.log(`📚 Found ${ageArticles.length} age-related articles`);
+
     return {
       ageCollections: filteredAgeCollections,
+      ageArticles: ageArticles,
     };
   } catch (error) {
     console.error('❌ Fel vid laddning av åldersidan:', error);
     return {
       ageCollections: [],
+      ageArticles: [],
     };
   }
 }
 
 export default function AgesPage() {
-  const {ageCollections} = useLoaderData<typeof loader>();
+  const {ageCollections, ageArticles} = useLoaderData<typeof loader>();
 
   return (
     <div className="bg-white">
@@ -112,20 +145,184 @@ export default function AgesPage() {
         )}
       </div>
 
-      {/* ✅ Phase 2: Blog placeholder - Swedish translation */}
-      <div className="bg-gray-50 py-16">
-        <div className="container text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Lektips för olika åldrar</h2>
-          <p className="text-gray-600 mb-8">Här kommer vi snart visa artiklar och tips för olika åldersgrupper.</p>
+      {/* ✅ NEW: Blog Articles Section with Carousel */}
+      {ageArticles && ageArticles.length > 0 && (
+        <BlogCarouselSection articles={ageArticles} />
+      )}
+
+      {/* ✅ Phase 2: Blog placeholder - Swedish translation (fallback if no articles) */}
+      {(!ageArticles || ageArticles.length === 0) && (
+        <div className="bg-gray-50 py-16">
+          <div className="container text-center">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Lektips för olika åldrar</h2>
+            <p className="text-gray-600 mb-8">Här kommer vi snart visa artiklar och tips för olika åldersgrupper.</p>
+            <Link 
+              to="/blogs" 
+              className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Se alla bloggar →
+            </Link>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Blog Carousel Section Component
+ */
+function BlogCarouselSection({articles}: {articles: any[]}) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const articlesPerView = 4;
+  const maxIndex = Math.max(0, articles.length - articlesPerView);
+
+  const handlePrevious = () => {
+    setCurrentIndex(prev => Math.max(0, prev - articlesPerView));
+  };
+
+  const handleNext = () => {
+    setCurrentIndex(prev => Math.min(maxIndex, prev + articlesPerView));
+  };
+
+  const visibleArticles = articles.slice(currentIndex, currentIndex + articlesPerView);
+
+  return (
+    <div className="bg-gray-50 py-16">
+      <div className="container">
+        {/* Section Header */}
+        <div className="flex justify-between items-center mb-8">
+          <h2 className="text-2xl font-bold text-gray-900">Toys by Age</h2>
           <Link 
             to="/blogs" 
-            className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+            className="text-gray-600 hover:text-gray-900 transition-colors"
           >
-            Se alla bloggar →
+            View all articles &gt;
           </Link>
+        </div>
+
+        {/* Carousel Container */}
+        <div className="relative">
+          {/* Articles Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {visibleArticles.map((article) => (
+              <BlogArticleCard key={article.id} article={article} />
+            ))}
+          </div>
+
+          {/* Navigation Arrows */}
+          {articles.length > articlesPerView && (
+            <>
+              {/* Previous Arrow */}
+              <button
+                onClick={handlePrevious}
+                disabled={currentIndex === 0}
+                className={`absolute left-0 top-1/2 -translate-y-1/2 -translate-x-12 w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center transition-all ${
+                  currentIndex === 0 
+                    ? 'opacity-50 cursor-not-allowed' 
+                    : 'hover:shadow-xl hover:scale-110'
+                }`}
+                aria-label="Previous articles"
+              >
+                <svg 
+                  className="w-6 h-6 text-gray-600" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth={2} 
+                    d="M15 19l-7-7 7-7" 
+                  />
+                </svg>
+              </button>
+
+              {/* Next Arrow */}
+              <button
+                onClick={handleNext}
+                disabled={currentIndex >= maxIndex}
+                className={`absolute right-0 top-1/2 -translate-y-1/2 translate-x-12 w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center transition-all ${
+                  currentIndex >= maxIndex 
+                    ? 'opacity-50 cursor-not-allowed' 
+                    : 'hover:shadow-xl hover:scale-110'
+                }`}
+                aria-label="Next articles"
+              >
+                <svg 
+                  className="w-6 h-6 text-gray-600" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth={2} 
+                    d="M9 5l7 7-7 7" 
+                  />
+                </svg>
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>
+  );
+}
+
+/**
+ * Blog Article Card Component
+ */
+function BlogArticleCard({article}: {article: any}) {
+  const publishedDate = new Intl.DateTimeFormat('sv-SE', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  }).format(new Date(article.publishedAt));
+
+  return (
+    <article className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow">
+      <Link to={`/blogs/${article.blogHandle}/${article.handle}`}>
+        {/* Article Image */}
+        <div className="relative w-full" style={{ aspectRatio: '4/3' }}>
+          {article.image ? (
+            <Image
+              data={article.image}
+              aspectRatio="4/3"
+              className="w-full h-full object-cover"
+              loading="lazy"
+              sizes="(min-width: 1024px) 25vw, (min-width: 768px) 50vw, 100vw"
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
+              <span className="text-white text-lg font-bold">No Image</span>
+            </div>
+          )}
+        </div>
+
+        {/* Article Content */}
+        <div className="p-4">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
+            {article.title}
+          </h3>
+          
+          {article.excerpt && (
+            <p className="text-gray-600 text-sm mb-3 line-clamp-3">
+              {article.excerpt}
+            </p>
+          )}
+
+          <div className="flex justify-between items-center">
+            <span className="text-xs text-gray-500">{publishedDate}</span>
+            <span className="text-blue-600 font-medium text-sm hover:text-blue-800 transition-colors">
+              Read more →
+            </span>
+          </div>
+        </div>
+      </Link>
+    </article>
   );
 }
 
@@ -227,6 +424,42 @@ const AGE_COLLECTIONS_QUERY = `#graphql
           key
           value
           namespace
+        }
+      }
+    }
+  }
+` as const;
+
+// ✅ NEW: GraphQL Query for Blog Articles with age_page metafield
+const AGE_BLOGS_QUERY = `#graphql
+  query AgeBlogs($country: CountryCode, $language: LanguageCode)
+    @inContext(country: $country, language: $language) {
+    blogs(first: 10) {
+      nodes {
+        handle
+        articles(first: 50) {
+          nodes {
+            id
+            title
+            handle
+            excerpt
+            publishedAt
+            image {
+              id
+              altText
+              url
+              width
+              height
+            }
+            metafields(identifiers: [
+              {namespace: "custom", key: "age_page"},
+              {namespace: "app", key: "age_page"}
+            ]) {
+              key
+              value
+              namespace
+            }
+          }
         }
       }
     }

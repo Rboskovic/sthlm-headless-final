@@ -1,3 +1,6 @@
+// FILE: app/routes/($locale).blogs.$blogHandle._index.tsx
+// ✅ UPDATED: Swedish language, better styling, consistent with ages page
+
 import {type LoaderFunctionArgs} from '@shopify/remix-oxygen';
 import {Link, useLoaderData, type MetaFunction} from 'react-router';
 import {Image, getPaginationVariables} from '@shopify/hydrogen';
@@ -6,7 +9,10 @@ import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
 
 export const meta: MetaFunction<typeof loader> = ({data}) => {
-  return [{title: `Hydrogen | ${data?.blog.title ?? ''} blog`}];
+  return [
+    {title: `${data?.blog.title ?? ''} - Klosslabbet`},
+    {name: 'description', content: data?.blog.seo?.description || `Läs artiklar från ${data?.blog.title}`},
+  ];
 };
 
 export async function loader(args: LoaderFunctionArgs) {
@@ -29,7 +35,7 @@ async function loadCriticalData({
   params,
 }: LoaderFunctionArgs) {
   const paginationVariables = getPaginationVariables(request, {
-    pageBy: 4,
+    pageBy: 12,
   });
 
   if (!params.blogHandle) {
@@ -69,18 +75,63 @@ export default function Blog() {
   const {articles} = blog;
 
   return (
-    <div className="blog">
-      <h1>{blog.title}</h1>
-      <div className="blog-grid">
-        <PaginatedResourceSection connection={articles}>
-          {({node: article, index}) => (
-            <ArticleItem
-              article={article}
-              key={article.id}
-              loading={index < 2 ? 'eager' : 'lazy'}
+    <div className="bg-white min-h-screen">
+      {/* Hero Section */}
+      <div className="container py-6">
+        <div className="bg-black text-white py-6 px-6 rounded-lg">
+          <h1 className="text-2xl md:text-3xl font-bold text-center text-white">
+            {blog.title}
+          </h1>
+        </div>
+      </div>
+
+      {/* Description */}
+      {blog.seo?.description && (
+        <div className="container py-8">
+          <div className="max-w-4xl mx-auto text-center">
+            <p className="text-gray-700 text-lg leading-relaxed">
+              {blog.seo.description}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Back to Blogs Link */}
+      <div className="container pb-4">
+        <Link 
+          to="/blogs" 
+          className="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors"
+        >
+          <svg 
+            className="w-5 h-5 mr-2" 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path 
+              strokeLinecap="round" 
+              strokeLinejoin="round" 
+              strokeWidth={2} 
+              d="M15 19l-7-7 7-7" 
             />
-          )}
-        </PaginatedResourceSection>
+          </svg>
+          Tillbaka till alla bloggar
+        </Link>
+      </div>
+
+      {/* Articles Grid */}
+      <div className="container pb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <PaginatedResourceSection connection={articles}>
+            {({node: article, index}) => (
+              <ArticleItem
+                article={article}
+                key={article.id}
+                loading={index < 3 ? 'eager' : 'lazy'}
+              />
+            )}
+          </PaginatedResourceSection>
+        </div>
       </div>
     </div>
   );
@@ -93,29 +144,62 @@ function ArticleItem({
   article: ArticleItemFragment;
   loading?: HTMLImageElement['loading'];
 }) {
-  const publishedAt = new Intl.DateTimeFormat('en-US', {
+  const publishedAt = new Intl.DateTimeFormat('sv-SE', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
   }).format(new Date(article.publishedAt!));
+
   return (
-    <div className="blog-article" key={article.id}>
+    <article className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
       <Link to={`/blogs/${article.blog.handle}/${article.handle}`}>
+        {/* Article Image */}
         {article.image && (
-          <div className="blog-article-image">
+          <div className="relative w-full" style={{ aspectRatio: '16/9' }}>
             <Image
               alt={article.image.altText || article.title}
-              aspectRatio="3/2"
+              aspectRatio="16/9"
               data={article.image}
               loading={loading}
-              sizes="(min-width: 768px) 50vw, 100vw"
+              sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+              className="w-full h-full object-cover"
             />
           </div>
         )}
-        <h3>{article.title}</h3>
-        <small>{publishedAt}</small>
+        
+        {/* Article Content */}
+        <div className="p-6">
+          <h3 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2 hover:text-blue-600 transition-colors">
+            {article.title}
+          </h3>
+          
+          {/* Article Excerpt - Extract from contentHtml if no excerpt field */}
+          {article.contentHtml && (
+            <div 
+              className="text-gray-600 text-sm mb-4 line-clamp-3"
+              dangerouslySetInnerHTML={{
+                __html: article.contentHtml.substring(0, 150) + '...'
+              }}
+            />
+          )}
+          
+          <div className="flex justify-between items-center">
+            <time className="text-xs text-gray-500" dateTime={article.publishedAt}>
+              {publishedAt}
+            </time>
+            {article.author?.name && (
+              <span className="text-xs text-gray-500">
+                av {article.author.name}
+              </span>
+            )}
+          </div>
+          
+          <div className="mt-4 text-blue-600 font-medium hover:text-blue-800 transition-colors">
+            Läs mer →
+          </div>
+        </div>
       </Link>
-    </div>
+    </article>
   );
 }
 
@@ -152,7 +236,6 @@ const BLOGS_QUERY = `#graphql
           endCursor
           startCursor
         }
-
       }
     }
   }
