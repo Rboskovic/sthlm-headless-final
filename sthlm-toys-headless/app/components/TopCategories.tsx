@@ -1,7 +1,26 @@
 import {Link} from 'react-router';
 import {Image} from '@shopify/hydrogen';
 import {useState, useRef} from 'react';
-import type {CollectionFragment} from 'storefrontapi.generated';
+
+// ✅ TYPESCRIPT FIX: Create proper interface with metafields
+interface CollectionFragment {
+  id: string;
+  title: string;
+  handle: string;
+  image?: {
+    id?: string;
+    url: string;
+    altText?: string;
+    width?: number;
+    height?: number;
+  } | null;
+  metafields?: Array<{
+    id?: string;
+    key: string;
+    value: string;
+    namespace: string;
+  }>;
+}
 
 // Category colors matching the Smyths theme
 const categoryColors: Record<string, string> = {
@@ -83,9 +102,9 @@ export function TopCategories({collections}: TopCategoriesProps) {
   // Drag threshold in pixels - only disable pointer events after this distance
   const DRAG_THRESHOLD = 10;
 
-  // Helper function to extract metafield values
+  // ✅ TYPESCRIPT FIX: Helper function to extract metafield values
   const getMetafieldValue = (
-    metafields: Array<{key: string; value: string; namespace: string}> | null,
+    metafields: Array<{key: string; value: string; namespace: string}> | undefined,
     key: string,
   ): string | null => {
     if (!metafields) return null;

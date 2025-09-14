@@ -1,7 +1,18 @@
 import {Link} from 'react-router';
 import {Image} from '@shopify/hydrogen';
 import {useState, useRef} from 'react';
-import type {CollectionFragment} from 'storefrontapi.generated';
+
+// ✅ TYPESCRIPT FIX: Create proper interface with metafields
+interface CollectionFragment {
+  id: string;
+  title: string;
+  handle: string;
+  image?: {
+    url: string;
+    altText?: string;
+  } | null;
+  metafields?: Array<{key: string; value: string; namespace: string}>;
+}
 
 // Age-based colors for the fallback placeholders
 const ageColors: Record<string, string> = {
@@ -64,7 +75,7 @@ interface AgeGroupWithColor extends CollectionFragment {
   backgroundColor?: string;
 }
 
-interface ShopByBrandProps {
+interface ShopByBrandProps { // → ShopByAgeProps
   brands: CollectionFragment[];
 }
 
@@ -80,9 +91,9 @@ export function ShopByAge({brands}: ShopByBrandProps) {
   // Drag threshold in pixels - only disable pointer events after this distance
   const DRAG_THRESHOLD = 10;
 
-  // Helper function to extract metafield values (NAMESPACE-AWARE LIKE TOPCATEGORIES)
+  // ✅ TYPESCRIPT FIX: Helper function to extract metafield values (NAMESPACE-AWARE LIKE TOPCATEGORIES)
   const getMetafieldValue = (
-    metafields: Array<{key: string; value: string; namespace: string}> | null,
+    metafields: Array<{key: string; value: string; namespace: string}> | undefined,
     key: string,
   ): string | null => {
     if (!metafields) return null;
@@ -200,22 +211,42 @@ export function ShopByAge({brands}: ShopByBrandProps) {
       >
         {/* Desktop Layout */}
         <div className="hidden md:block">
-          {/* Header with ONLY centered title - NO shop all button */}
-          <div className="flex items-center justify-center mb-8">
-            <h2
-              className="text-black font-semibold"
-              style={{
-                fontSize: '36px',
-                fontWeight: 600,
-                lineHeight: '42px',
-                fontFamily:
-                  "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                color: 'rgb(33, 36, 39)',
-                textAlign: 'center',
-              }}
-            >
-              Hitta rätt LEGO® för varje ålder
-            </h2>
+          {/* ✅ ADDED: Header with centered title and right-aligned Shop All link (same as TopCategories) */}
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex-1"></div>
+            <div className="flex-1 flex justify-center">
+              <h2
+                className="text-black font-semibold"
+                style={{
+                  fontSize: '36px',
+                  fontWeight: 600,
+                  lineHeight: '42px',
+                  fontFamily:
+                    "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                  color: 'rgb(33, 36, 39)',
+                  textAlign: 'center',
+                }}
+              >
+                Handla efter ålder
+              </h2>
+            </div>
+            <div className="flex-1 flex justify-end">
+              <Link
+                to="/ages"
+                className="text-blue-600 hover:text-blue-700 transition-colors duration-200"
+                style={{
+                  fontSize: '18px',
+                  fontWeight: 500,
+                  fontFamily:
+                    "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                  color: '#3B82F6',
+                  textDecoration: 'none',
+                  alignSelf: 'center',
+                }}
+              >
+                Visa alla
+              </Link>
+            </div>
           </div>
 
           {/* Desktop Grid */}
@@ -342,7 +373,7 @@ export function ShopByAge({brands}: ShopByBrandProps) {
               marginBottom: '24px',
             }}
           >
-            Hitta rätt LEGO® för varje ålder
+            Handla efter ålder
           </h2>
 
           {/* Mobile Horizontal Scroll Container */}
@@ -501,7 +532,22 @@ export function ShopByAge({brands}: ShopByBrandProps) {
             </div>
           </div>
 
-          {/* NO mobile shop all button - removed completely */}
+          {/* ✅ ADDED: Mobile Shop All Button (same as TopCategories) */}
+          <div className="flex justify-center mt-4">
+            <Link
+              to="/ages"
+              className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-10 rounded-full transition-colors duration-200"
+              style={{
+                fontSize: '16px',
+                fontWeight: 500,
+                fontFamily:
+                  "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                color: 'white',
+              }}
+            >
+              Visa alla
+            </Link>
+          </div>
         </div>
       </div>
     </section>

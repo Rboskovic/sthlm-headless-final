@@ -140,7 +140,7 @@ export default function Homepage() {
         textColor={heroData.textColor || '#1F2937'}
       />
 
-      {/* ✅ 1. New Products Section - Smyths-style arrows */}
+      {/* ✅ 1. New Products Section - Product carousel with navigation */}
       <Suspense fallback={<ProductSectionSkeleton title="Nya produkter" />}>
         <Await resolve={data.newProducts}>
           {(response) => {
@@ -149,51 +149,28 @@ export default function Homepage() {
             if (newProducts.length === 0) return null;
 
             return (
-              <SmythsStyleProductSection
+              <ProductCarouselSection
                 products={newProducts as ProductFragment[]}
                 title="Nya produkter"
-                showAddedLabels={true}
               />
             );
           }}
         </Await>
       </Suspense>
 
-      {/* ✅ 2. Shop By Age (Handla efter ålder) - MOVED UP */}
-      <TopCategories collections={data.topCategories} />
+      {/* ✅ 2. Shop By Theme (Shoppa efter tema) */}
+      <TopCategories collections={data.topCategories as any} />
 
       {/* ✅ 3. Featured Banners - Keep as is */}
       <FeaturedBanners collections={data.featuredBanners} />
 
-      {/* ✅ 4. REA PRODUKTER SECTION - TURNED OFF */}
-      {/* 
-      <Suspense fallback={<ProductSectionSkeleton title="Rea Produkter" />}>
-        <Await resolve={data.homepageProducts}>
-          {(response) => {
-            if (!response) return null;
-            const rawSaleProducts = response.saleProducts?.nodes || [];
-            const sortedSaleProducts = sortSaleProductsByDiscount(rawSaleProducts);
-            if (sortedSaleProducts.length === 0) return null;
-
-            return (
-              <SmythsStyleProductSection
-                products={sortedSaleProducts as ProductFragment[]}
-                title="Rea Produkter"
-                showAddedLabels={false}
-              />
-            );
-          }}
-        </Await>
-      </Suspense>
-      */}
-
-      {/* ✅ 5. Shop By Discount (Handla efter pris) */}
+      {/* ✅ 4. Shop By Price (Handla efter pris) */}
       <ShopByDiscount discounts={data.shopByDiscountData as any} />
 
-      {/* ✅ 6. Shop By Brand/Theme (Shoppa efter tema) - MOVED DOWN */}
+      {/* ✅ 5. Shop By Age (Hitta rätt LEGO för varje ålder) */}
       <ShopByAge brands={data.shopByAgeData} />
 
-      {/* ✅ 7. Recommended Products Section - Now using separate component */}
+      {/* ✅ 6. Recommended Products Section */}
       <Suspense fallback={<ProductSectionSkeleton title="Rekommenderade produkter" />}>
         <Await resolve={data.homepageProducts}>
           {(response) => {
@@ -215,29 +192,13 @@ export default function Homepage() {
   );
 }
 
-// Helper function to calculate "added X days ago"
-function getDaysAgo(updatedAt: string): string {
-  const now = new Date();
-  const updated = new Date(updatedAt);
-  const diffTime = Math.abs(now.getTime() - updated.getTime());
-  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-  
-  if (diffDays === 0) return 'idag';
-  if (diffDays === 1) return '1 dag sedan';
-  if (diffDays <= 7) return `${diffDays} dagar sedan`;
-  if (diffDays <= 30) return `${Math.floor(diffDays / 7)} veckor sedan`;
-  return `${Math.floor(diffDays / 30)} månader sedan`;
-}
-
-// Smyths-Style Product Section with proper crossfade animation
-function SmythsStyleProductSection({ 
+// Product Carousel Section with proper navigation
+function ProductCarouselSection({ 
   products, 
-  title, 
-  showAddedLabels = false 
+  title 
 }: { 
   products: ProductFragment[]; 
-  title: string; 
-  showAddedLabels?: boolean;
+  title: string;
 }) {
   const [currentPage, setCurrentPage] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -284,49 +245,56 @@ function SmythsStyleProductSection({
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Desktop Layout */}
         <div className="hidden md:block">
-          <div className="flex justify-between items-center mb-6">
-            <h2
-              className="text-black font-semibold"
-              style={{
-                fontSize: '28px',
-                fontWeight: 600,
-                lineHeight: '32px',
-                fontFamily: "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                color: 'rgb(33, 36, 39)',
-              }}
-            >
-              {title}
-            </h2>
+          {/* ✅ FIXED: Desktop Header with centered title and right-aligned navigation (same as other sections) */}
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex-1"></div>
+            <div className="flex-1 flex justify-center">
+              <h2
+                className="text-black font-semibold"
+                style={{
+                  fontSize: '36px',
+                  fontWeight: 600,
+                  lineHeight: '42px',
+                  fontFamily: "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                  color: 'rgb(33, 36, 39)',
+                  textAlign: 'center',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {title}
+              </h2>
+            </div>
+            <div className="flex-1 flex justify-end">
+              {hasMultiplePages && (
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={prevPage}
+                    disabled={currentPage === 0}
+                    className={`p-2 rounded-full transition-all duration-300 ${
+                      currentPage === 0 
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                        : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 hover:shadow-md'
+                    }`}
+                    aria-label="Previous products"
+                  >
+                    <ChevronLeft size={20} />
+                  </button>
 
-            {hasMultiplePages && (
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={prevPage}
-                  disabled={currentPage === 0}
-                  className={`p-2 rounded-full transition-all duration-300 ${
-                    currentPage === 0 
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-                      : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 hover:shadow-md'
-                  }`}
-                  aria-label="Previous products"
-                >
-                  <ChevronLeft size={20} />
-                </button>
-
-                <button
-                  onClick={nextPage}
-                  disabled={currentPage === totalPages - 1}
-                  className={`p-2 rounded-full transition-all duration-300 ${
-                    currentPage === totalPages - 1
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-                      : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 hover:shadow-md'
-                  }`}
-                  aria-label="Next products"
-                >
-                  <ChevronRight size={20} />
-                </button>
-              </div>
-            )}
+                  <button
+                    onClick={nextPage}
+                    disabled={currentPage === totalPages - 1}
+                    className={`p-2 rounded-full transition-all duration-300 ${
+                      currentPage === totalPages - 1
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                        : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 hover:shadow-md'
+                    }`}
+                    aria-label="Next products"
+                  >
+                    <ChevronRight size={20} />
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
           
           {/* Desktop Product Grid with Crossfade */}
@@ -356,6 +324,7 @@ function SmythsStyleProductSection({
                 lineHeight: '28px',
                 fontFamily: "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
                 color: 'rgb(33, 36, 39)',
+                whiteSpace: 'nowrap',
               }}
             >
               {title}

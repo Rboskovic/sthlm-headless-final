@@ -1,24 +1,47 @@
 // FILE: app/components/FeaturedBanners.tsx
 // ✅ SHOPIFY HYDROGEN STANDARDS: Updated with homepage_banner_image approach
-// ✅ FIXED: New banner system - uses homepage_banner_image metafield instead of featured_banner boolean
+// ✅ FIXED: Mobile scaling - adjusted height to match 1.75:1 image ratio
+// ✅ FIXED: TypeScript using ShopByAge pattern - NO IMAGE COMPONENT, NO IMPORT ISSUES
 
 import {Link} from 'react-router';
-import {Image} from '@shopify/hydrogen';
-import type {CollectionFragment} from 'storefrontapi.generated';
+
+// ✅ TYPESCRIPT FIX: Create proper interface with metafields (same pattern as ShopByAge.tsx)
+// NOTE: Not importing from storefrontapi.generated - defining our own interface
+interface CollectionFragment {
+  id: string;
+  title: string;
+  handle: string;
+  description?: string;
+  image?: {
+    url: string;
+    altText?: string;
+    id?: string;
+    width?: number;
+    height?: number;
+  } | null;
+  metafields?: Array<{key: string; value: string; namespace: string}>;
+}
+
+// Enhanced collection with banner image
+interface CollectionWithBanner extends CollectionFragment {
+  bannerImage?: {
+    url: string | null;
+    altText: string;
+  };
+}
 
 interface FeaturedBannersProps {
   collections: CollectionFragment[];
 }
 
 // Fallback banners for testing/development
-const fallbackBanners = [
+const fallbackBanners: CollectionWithBanner[] = [
   {
     id: 'fallback-1',
     title: 'MINECRAFT',
     handle: 'minecraft',
     description: 'Bygg din värld med oändliga möjligheter',
     image: {
-      id: 'fallback-img-1',
       url: 'https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
       altText: 'Minecraft Collection',
       width: 800,
@@ -31,7 +54,6 @@ const fallbackBanners = [
     handle: 'sonic',
     description: 'Snabbhetens ultimata äventyr väntar',
     image: {
-      id: 'fallback-img-2',
       url: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
       altText: 'Sonic Collection', 
       width: 800,
@@ -41,9 +63,9 @@ const fallbackBanners = [
 ];
 
 export function FeaturedBanners({collections}: FeaturedBannersProps) {
-  // Helper function to extract metafield values (same pattern as other components)
+  // Helper function to extract metafield values (same pattern as ShopByAge.tsx)
   const getMetafieldValue = (
-    metafields: Array<{key: string; value: string; namespace: string}> | null,
+    metafields: Array<{key: string; value: string; namespace: string}> | undefined,
     key: string,
   ): string | null => {
     if (!metafields) return null;
@@ -52,14 +74,14 @@ export function FeaturedBanners({collections}: FeaturedBannersProps) {
   };
 
   // ✅ NEW BANNER LOGIC: Filter collections that have homepage_banner_image metafield set
-  const featuredBanners =
+  const featuredBanners: CollectionWithBanner[] =
     collections && collections.length > 0
       ? collections.filter((collection) => {
           // Check if homepage_banner_image metafield exists and has a value
           const bannerImageUrl = getMetafieldValue(collection.metafields, 'homepage_banner_image');
           return bannerImageUrl && bannerImageUrl.trim().length > 0;
         })
-        .map((collection) => {
+        .map((collection): CollectionWithBanner => {
           // Add the custom banner image to the collection
           const bannerImageUrl = getMetafieldValue(collection.metafields, 'homepage_banner_image');
           return {
@@ -97,27 +119,27 @@ export function FeaturedBanners({collections}: FeaturedBannersProps) {
                     height: '400px',
                   }}
                 >
-                  {/* ✅ UPDATED: Use banner image if available, fallback to collection image */}
-                  {(banner.bannerImage?.url || banner.image?.url) ? (
-                    <>
-                      <Image
-                        data={banner.bannerImage || banner.image}
-                        alt={banner.bannerImage?.altText || banner.image?.altText || banner.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        sizes="(min-width: 768px) 50vw, 100vw"
-                        loading="lazy"
-                      />
-                    </>
+                  {/* ✅ FIXED: All images use regular img tags - NO SHOPIFY IMAGE COMPONENT */}
+                  {banner.bannerImage?.url ? (
+                    <img
+                      src={banner.bannerImage.url}
+                      alt={banner.bannerImage.altText}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  ) : banner.image?.url ? (
+                    <img
+                      src={banner.image.url}
+                      alt={banner.image.altText || banner.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
                   ) : (
                     /* Fallback colored background */
-                    <>
-                      <div
-                        className="w-full h-full flex items-center justify-center"
-                        style={{backgroundColor: '#4CAF50'}}
-                      >
-                        <div className="text-white text-sm opacity-75">No Image</div>
-                      </div>
-                    </>
+                    <div
+                      className="w-full h-full flex items-center justify-center"
+                      style={{backgroundColor: '#4CAF50'}}
+                    >
+                      <div className="text-white text-sm opacity-75">No Image</div>
+                    </div>
                   )}
 
                   {/* Content overlay */}
@@ -192,30 +214,30 @@ export function FeaturedBanners({collections}: FeaturedBannersProps) {
                 <div
                   className="relative overflow-hidden rounded-xl group-hover:shadow-lg transition-shadow duration-200"
                   style={{
-                    height: '250px',
+                    height: '200px', // ✅ FIXED: Changed from 250px to 200px to match 1.75:1 ratio (~350×200)
                   }}
                 >
-                  {/* ✅ UPDATED: Use banner image if available, fallback to collection image */}
-                  {(banner.bannerImage?.url || banner.image?.url) ? (
-                    <>
-                      <Image
-                        data={banner.bannerImage || banner.image}
-                        alt={banner.bannerImage?.altText || banner.image?.altText || banner.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        sizes="100vw"
-                        loading="lazy"
-                      />
-                    </>
+                  {/* ✅ FIXED: All images use regular img tags - NO SHOPIFY IMAGE COMPONENT */}
+                  {banner.bannerImage?.url ? (
+                    <img
+                      src={banner.bannerImage.url}
+                      alt={banner.bannerImage.altText}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  ) : banner.image?.url ? (
+                    <img
+                      src={banner.image.url}
+                      alt={banner.image.altText || banner.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
                   ) : (
                     /* Fallback colored background */
-                    <>
-                      <div
-                        className="w-full h-full flex items-center justify-center"
-                        style={{backgroundColor: '#4CAF50'}}
-                      >
-                        <div className="text-white text-xs opacity-75">No Image</div>
-                      </div>
-                    </>
+                    <div
+                      className="w-full h-full flex items-center justify-center"
+                      style={{backgroundColor: '#4CAF50'}}
+                    >
+                      <div className="text-white text-xs opacity-75">No Image</div>
+                    </div>
                   )}
 
                   {/* Content overlay */}

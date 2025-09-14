@@ -1,17 +1,51 @@
 import {Link} from 'react-router';
 import {Image} from '@shopify/hydrogen';
 import {useState, useRef} from 'react';
-import type {Collection} from '@shopify/hydrogen/storefront-api-types';
+
+// ✅ TYPESCRIPT FIX: Local interface matching the structure we need
+interface DiscountCollection {
+  id: string;
+  title: string;
+  handle: string;
+  image?: {
+    id?: string;
+    url: string;
+    altText?: string;
+    width?: number;
+    height?: number;
+  } | null;
+  metafields?: Array<{
+    id?: string;
+    key: string;
+    value: string;
+    namespace: string;
+  }>;
+}
 
 interface ShopByDiscountProps {
   variant?: 'homepage' | 'collection';
-  discounts?: Collection[] | null;
+  discounts?: any[] | null; // Accept any array to avoid type conflicts
 }
 
-// ✅ TYPESCRIPT FIX: Create a proper interface that extends Collection with optional properties
-interface PriceRangeWithColor extends Omit<Collection, 'metafields'> {
+// ✅ TYPESCRIPT FIX: Local interface for price ranges with color
+interface PriceRangeWithColor {
+  id: string;
+  title: string;
+  handle: string;
+  image?: {
+    id?: string;
+    url: string;
+    altText?: string;
+    width?: number;
+    height?: number;
+  } | null;
   backgroundColor?: string;
-  metafields?: any; // Make metafields optional for fallback data
+  metafields?: Array<{
+    id?: string;
+    key: string;
+    value: string;
+    namespace: string;
+  }>;
 }
 
 // Price range color mapping for fallbacks
@@ -24,7 +58,7 @@ const priceColors: Record<string, string> = {
   'best-value': '#F44336',   // Red for best value
 };
 
-// ✅ TYPESCRIPT FIX: Add all required Collection properties to fallback data
+// ✅ TYPESCRIPT FIX: Fallback price ranges with proper typing
 const fallbackPriceRanges: PriceRangeWithColor[] = [
   {
     id: 'under-100',
@@ -32,25 +66,6 @@ const fallbackPriceRanges: PriceRangeWithColor[] = [
     handle: 'under-100',
     backgroundColor: priceColors['under-100'],
     image: null,
-    // Required Collection properties
-    description: '',
-    descriptionHtml: '',
-    products: {
-      nodes: [],
-      edges: [],
-      filters: [],
-      pageInfo: {
-        hasNextPage: false,
-        hasPreviousPage: false,
-        startCursor: null,
-        endCursor: null,
-      },
-    },
-    seo: {
-      title: null,
-      description: null,
-    },
-    updatedAt: new Date().toISOString(),
   },
   {
     id: 'under-250',
@@ -58,25 +73,6 @@ const fallbackPriceRanges: PriceRangeWithColor[] = [
     handle: 'under-250',
     backgroundColor: priceColors['under-250'],
     image: null,
-    // Required Collection properties
-    description: '',
-    descriptionHtml: '',
-    products: {
-      nodes: [],
-      edges: [],
-      filters: [],
-      pageInfo: {
-        hasNextPage: false,
-        hasPreviousPage: false,
-        startCursor: null,
-        endCursor: null,
-      },
-    },
-    seo: {
-      title: null,
-      description: null,
-    },
-    updatedAt: new Date().toISOString(),
   },
   {
     id: 'under-500',
@@ -84,25 +80,6 @@ const fallbackPriceRanges: PriceRangeWithColor[] = [
     handle: 'under-500',
     backgroundColor: priceColors['under-500'],
     image: null,
-    // Required Collection properties
-    description: '',
-    descriptionHtml: '',
-    products: {
-      nodes: [],
-      edges: [],
-      filters: [],
-      pageInfo: {
-        hasNextPage: false,
-        hasPreviousPage: false,
-        startCursor: null,
-        endCursor: null,
-      },
-    },
-    seo: {
-      title: null,
-      description: null,
-    },
-    updatedAt: new Date().toISOString(),
   },
   {
     id: 'under-1000',
@@ -110,25 +87,6 @@ const fallbackPriceRanges: PriceRangeWithColor[] = [
     handle: 'under-1000',
     backgroundColor: priceColors['under-1000'],
     image: null,
-    // Required Collection properties
-    description: '',
-    descriptionHtml: '',
-    products: {
-      nodes: [],
-      edges: [],
-      filters: [],
-      pageInfo: {
-        hasNextPage: false,
-        hasPreviousPage: false,
-        startCursor: null,
-        endCursor: null,
-      },
-    },
-    seo: {
-      title: null,
-      description: null,
-    },
-    updatedAt: new Date().toISOString(),
   },
   {
     id: 'best-value',
@@ -136,25 +94,6 @@ const fallbackPriceRanges: PriceRangeWithColor[] = [
     handle: 'best-value',
     backgroundColor: priceColors['best-value'],
     image: null,
-    // Required Collection properties
-    description: '',
-    descriptionHtml: '',
-    products: {
-      nodes: [],
-      edges: [],
-      filters: [],
-      pageInfo: {
-        hasNextPage: false,
-        hasPreviousPage: false,
-        startCursor: null,
-        endCursor: null,
-      },
-    },
-    seo: {
-      title: null,
-      description: null,
-    },
-    updatedAt: new Date().toISOString(),
   },
   {
     id: 'over-1000',
@@ -162,25 +101,6 @@ const fallbackPriceRanges: PriceRangeWithColor[] = [
     handle: 'over-1000',
     backgroundColor: priceColors['over-1000'],
     image: null,
-    // Required Collection properties
-    description: '',
-    descriptionHtml: '',
-    products: {
-      nodes: [],
-      edges: [],
-      filters: [],
-      pageInfo: {
-        hasNextPage: false,
-        hasPreviousPage: false,
-        startCursor: null,
-        endCursor: null,
-      },
-    },
-    seo: {
-      title: null,
-      description: null,
-    },
-    updatedAt: new Date().toISOString(),
   },
 ];
 
@@ -199,15 +119,23 @@ export function ShopByDiscount({
   // Drag threshold in pixels - only disable pointer events after this distance
   const DRAG_THRESHOLD = 10;
 
-  // ✅ TYPESCRIPT FIX: Proper typing for metafield helper function
-  const getMetafieldValue = (metafields: any, key: string): string | null => {
+  // ✅ TYPESCRIPT FIX: Helper function for metafield extraction
+  const getMetafieldValue = (metafields: any[] | undefined, key: string): string | null => {
     if (!metafields || !Array.isArray(metafields)) return null;
-    // Check both custom and app namespaces like TopCategories does
-    const metafield = metafields.find((field: any) => 
-      field && 
-      field.key === key && 
-      (field.namespace === 'custom' || field.namespace === 'app')
-    ) as any;
+    
+    // Handle both Shopify's metafield structure and our local structure
+    const metafield = metafields.find((field: any) => {
+      if (!field) return false;
+      
+      // Check if it's a Shopify metafield with nested structure
+      if (field.key && field.value && field.namespace) {
+        return field.key === key && (field.namespace === 'custom' || field.namespace === 'app');
+      }
+      
+      // Check if it's our simplified structure
+      return field.key === key;
+    }) as any; // Explicit any cast to avoid TypeScript confusion
+    
     return metafield && metafield.value ? metafield.value : null;
   };
 
@@ -222,55 +150,71 @@ export function ShopByDiscount({
     );
   };
 
-  // Filter featured price ranges from Shopify data (IMPROVED FILTERING + SORTING)
+  // ✅ TYPESCRIPT FIX: Safe conversion from any input to our local type
+  const convertToDiscountCollection = (item: any): DiscountCollection => {
+    return {
+      id: item.id || '',
+      title: item.title || '',
+      handle: item.handle || '',
+      image: item.image ? {
+        id: item.image.id,
+        url: item.image.url || '',
+        altText: item.image.altText,
+        width: item.image.width,
+        height: item.image.height,
+      } : null,
+      metafields: item.metafields || [],
+    };
+  };
+
+  // Filter featured price ranges from Shopify data
   const featuredPriceRanges =
     discounts && discounts.length > 0
-      ? discounts.filter((discount: Collection) => {
-          // ✅ TYPESCRIPT FIX: Cast to access metafields safely
-          const discountWithMetafields = discount as Collection & { metafields?: any };
-          
-          // Check all possible metafield variations like TopCategories does
-          const featuredValue =
-            getMetafieldValue(discountWithMetafields.metafields, 'featured-discount') ||
-            getMetafieldValue(discountWithMetafields.metafields, 'featured_discount');
-          const isFeatured = isTrueValue(featuredValue);
-          
-          // DEBUG: Log each collection for troubleshooting (can be disabled)
-          const DEBUG_LOGS = false; // Set to false to disable logs
-          if (DEBUG_LOGS) {
-            console.log(`💰 Price Collection: ${discount.title}`, {
-              metafields: discountWithMetafields.metafields,
-              featuredValue,
-              isFeatured,
-              hasImage: !!discount.image?.url
-            });
-          }
-          
-          return isFeatured;
-        })
-        .sort((a, b) => {
-          // ✅ TYPESCRIPT FIX: Cast to access metafields safely for sorting
-          const aWithMetafields = a as Collection & { metafields?: any };
-          const bWithMetafields = b as Collection & { metafields?: any };
-          
-          // Sort by sort_order metafield (underscore, not hyphen), then alphabetically as fallback
-          const sortOrderA = parseInt(getMetafieldValue(aWithMetafields.metafields, 'sort_order') || '999');
-          const sortOrderB = parseInt(getMetafieldValue(bWithMetafields.metafields, 'sort_order') || '999');
-          
-          if (sortOrderA !== sortOrderB) {
-            return sortOrderA - sortOrderB; // Numeric sort
-          }
-          
-          // Fallback to alphabetical if no sort_order
-          return a.title.localeCompare(b.title);
-        })
+      ? discounts
+          .map(convertToDiscountCollection) // Convert to our safe type
+          .filter((discount) => {
+            // Check all possible metafield variations
+            const featuredValue =
+              getMetafieldValue(discount.metafields, 'featured-discount') ||
+              getMetafieldValue(discount.metafields, 'featured_discount');
+            const isFeatured = isTrueValue(featuredValue);
+            
+            // DEBUG: Log each collection for troubleshooting (can be disabled)
+            const DEBUG_LOGS = false; // Set to false to disable logs
+            if (DEBUG_LOGS) {
+              console.log(`💰 Price Collection: ${discount.title}`, {
+                metafields: discount.metafields,
+                featuredValue,
+                isFeatured,
+                hasImage: !!discount.image?.url
+              });
+            }
+            
+            return isFeatured;
+          })
+          .sort((a, b) => {
+            // Sort by sort_order metafield, then alphabetically as fallback
+            const sortOrderA = parseInt(getMetafieldValue(a.metafields, 'sort_order') || '999');
+            const sortOrderB = parseInt(getMetafieldValue(b.metafields, 'sort_order') || '999');
+            
+            if (sortOrderA !== sortOrderB) {
+              return sortOrderA - sortOrderB; // Numeric sort
+            }
+            
+            // Fallback to alphabetical if no sort_order
+            return a.title.localeCompare(b.title);
+          })
       : [];
 
-  // ✅ TYPESCRIPT FIX: Cast Shopify collections to include backgroundColor
+  // ✅ TYPESCRIPT FIX: Convert to PriceRangeWithColor safely
   const displayPriceRanges: PriceRangeWithColor[] =
     featuredPriceRanges.length > 0 
-      ? featuredPriceRanges.map((range) => ({
-          ...range,
+      ? featuredPriceRanges.map((range): PriceRangeWithColor => ({
+          id: range.id,
+          title: range.title,
+          handle: range.handle,
+          image: range.image,
+          metafields: range.metafields,
           backgroundColor: priceColors[range.handle] || priceColors['under-100'],
         }))
       : fallbackPriceRanges;
@@ -324,22 +268,42 @@ export function ShopByDiscount({
       >
         {/* Desktop Layout */}
         <div className="hidden md:block">
-          {/* Desktop Header with ONLY centered title - NO shop all button */}
-          <div className="flex items-center justify-center mb-8">
-            <h2
-              className="text-black font-semibold"
-              style={{
-                fontSize: '36px',
-                fontWeight: 600,
-                lineHeight: '42px',
-                fontFamily:
-                  "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                color: 'rgb(33, 36, 39)',
-                textAlign: 'center',
-              }}
-            >
-              Handla efter pris
-            </h2>
+          {/* ✅ ADDED: Desktop Header with centered title and right-aligned Shop All link (same as TopCategories) */}
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex-1"></div>
+            <div className="flex-1 flex justify-center">
+              <h2
+                className="text-black font-semibold"
+                style={{
+                  fontSize: '36px',
+                  fontWeight: 600,
+                  lineHeight: '42px',
+                  fontFamily:
+                    "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                  color: 'rgb(33, 36, 39)',
+                  textAlign: 'center',
+                }}
+              >
+                Handla efter pris
+              </h2>
+            </div>
+            <div className="flex-1 flex justify-end">
+              <Link
+                to="/handla-efter-pris"
+                className="text-blue-600 hover:text-blue-700 transition-colors duration-200"
+                style={{
+                  fontSize: '18px',
+                  fontWeight: 500,
+                  fontFamily:
+                    "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                  color: '#3B82F6',
+                  textDecoration: 'none',
+                  alignSelf: 'center',
+                }}
+              >
+                Visa alla
+              </Link>
+            </div>
           </div>
 
           {/* Desktop Grid */}
@@ -509,7 +473,22 @@ export function ShopByDiscount({
             ))}
           </div>
 
-          {/* REMOVED: Mobile Shop All Button - no button anymore */}
+          {/* ✅ ADDED: Mobile Shop All Button (same as TopCategories) */}
+          <div className="flex justify-center mt-4">
+            <Link
+              to="/handla-efter-pris"
+              className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-10 rounded-full transition-colors duration-200"
+              style={{
+                fontSize: '16px',
+                fontWeight: 500,
+                fontFamily:
+                  "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                color: 'white',
+              }}
+            >
+              Visa alla
+            </Link>
+          </div>
         </div>
       </div>
     </section>
