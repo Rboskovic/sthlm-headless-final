@@ -19,8 +19,8 @@ export function Footer({
     >
       {/* Desktop Layout */}
       <div className="hidden lg:block">
-        <div className="max-w-[1272px] mx-auto px-3 py-12">
-          <div className="grid grid-cols-12 gap-8">
+        <div className="max-w-[1272px] mx-auto px-3 py-4">
+          <div className="grid grid-cols-12 gap-8 items-start">
             {/* Left side - Footer Links (5 columns) */}
             <div className="col-span-5">
               <Suspense fallback={<FooterLinksFallback />}>
@@ -42,20 +42,40 @@ export function Footer({
             </div>
 
             {/* Middle - Contact Us (4 columns) */}
-            <div className="col-span-4 text-white text-sm space-y-2">
-              <h3 className="font-semibold text-base">Kontakta</h3>
-              <p>
-                Mejla oss:{' '}
-                <a href="mailto:info@klosslabbet.se" className="underline">
-                  info@klosslabbet.se
-                </a>
-              </p>
-              <p>
-                Ring oss:{' '}
-                <a href="tel:0768686263" className="underline">
-                  076-868-62-63
-                </a>
-              </p>
+            <div className="col-span-4">
+              <h4 className="text-white font-bold text-lg mb-4">Kontakta</h4>
+              <ul className="space-y-2">
+                <li>
+                  <a 
+                    href="mailto:info@klosslabbet.se" 
+                    className="text-sm transition-colors"
+                    style={{color: 'white', textDecoration: 'none'}}
+                    onMouseEnter={(e) => {
+                      (e.target as HTMLElement).style.color = '#FCD34D';
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.target as HTMLElement).style.color = 'white';
+                    }}
+                  >
+                    Mejla oss: info@klosslabbet.se
+                  </a>
+                </li>
+                <li>
+                  <a 
+                    href="tel:0768686263" 
+                    className="text-sm transition-colors"
+                    style={{color: 'white', textDecoration: 'none'}}
+                    onMouseEnter={(e) => {
+                      (e.target as HTMLElement).style.color = '#FCD34D';
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.target as HTMLElement).style.color = 'white';
+                    }}
+                  >
+                    Ring oss: 076-868-62-63
+                  </a>
+                </li>
+              </ul>
             </div>
 
             {/* Right side - Newsletter (3 columns) */}
@@ -69,7 +89,7 @@ export function Footer({
             <div className="flex justify-between items-center">
               {/* Logo and Social Media */}
               <div className="flex items-center gap-8">
-                <FooterLogo shop={header.shop} />
+                <FooterLogo shop={header.shop as any} />
                 <SocialMedia />
               </div>
 
@@ -84,57 +104,84 @@ export function Footer({
 
       {/* Mobile Layout */}
       <div className="lg:hidden">
-        <div className="px-4 py-8">
+        <div className="px-4 py-6">
           {/* Newsletter signup at top */}
           <div className="mb-8">
             <NewsletterSignup isMobile />
           </div>
 
-          {/* Footer links with custom mobile layout */}
-          <Suspense fallback={<FooterLinksFallback />}>
-            <Await resolve={footerPromise}>
-              {(footer) => (
-                <FooterLinks
-                  menu={footer?.menu}
-                  primaryDomainUrl={header.shop.primaryDomain.url}
-                  publicStoreDomain={publicStoreDomain}
-                  isMobile
-                />
-              )}
-            </Await>
-          </Suspense>
+          {/* Footer sections layout - 2x2 grid */}
+          <div className="mb-8">
+            {/* First row: Support and Mitt konto */}
+            <Suspense fallback={<FooterLinksFallback />}>
+              <Await resolve={footerPromise}>
+                {(footer) => (
+                  <FooterLinks
+                    menu={footer?.menu}
+                    primaryDomainUrl={header.shop.primaryDomain.url}
+                    publicStoreDomain={publicStoreDomain}
+                    isMobile
+                  />
+                )}
+              </Await>
+            </Suspense>
+
+            {/* Second row: Kontakta and Hitta oss på */}
+            <div className="grid grid-cols-2 gap-6 mt-6">
+              {/* Kontakta section */}
+              <div>
+                <h4 className="text-white font-bold text-lg mb-3">Kontakta</h4>
+                <ul className="space-y-2">
+                  <li>
+                    <a 
+                      href="mailto:info@klosslabbet.se" 
+                      className="text-sm transition-colors"
+                      style={{color: 'white', textDecoration: 'none'}}
+                      onMouseEnter={(e) => {
+                        (e.target as HTMLElement).style.color = '#FCD34D';
+                      }}
+                      onMouseLeave={(e) => {
+                        (e.target as HTMLElement).style.color = 'white';
+                      }}
+                    >
+                      Mejla oss: info@klosslabbet.se
+                    </a>
+                  </li>
+                  <li>
+                    <a 
+                      href="tel:0768686263" 
+                      className="text-sm transition-colors"
+                      style={{color: 'white', textDecoration: 'none'}}
+                      onMouseEnter={(e) => {
+                        (e.target as HTMLElement).style.color = '#FCD34D';
+                      }}
+                      onMouseLeave={(e) => {
+                        (e.target as HTMLElement).style.color = 'white';
+                      }}
+                    >
+                      Ring oss: 076-868-62-63
+                    </a>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Hitta oss på section */}
+              <div>
+                <h4 className="text-white font-bold text-lg mb-3">Hitta oss på</h4>
+                <SocialMedia isMobile />
+              </div>
+            </div>
+          </div>
 
           {/* Payment Icons - Mobile */}
           <div className="mt-8">
             <PaymentIcons />
           </div>
 
-          {/* Contact Us - Mobile */}
-          <div className="mt-8 text-white text-sm space-y-2">
-            <h3 className="font-semibold text-base">Kontakta</h3>
-            <p>
-              Mejla oss:{' '}
-              <a href="mailto:info@klosslabbet.se" className="underline">
-                info@klosslabbet.se
-              </a>
-            </p>
-            <p>
-              Ring oss:{' '}
-              <a href="tel:0768686263" className="underline">
-                076-868-62-63
-              </a>
-            </p>
-          </div>
-
-          {/* Social media */}
-          <div className="mt-8 mb-6">
-            <SocialMedia isMobile />
-          </div>
-
           {/* Logo and copyright */}
-          <div className="text-center">
-            <div className="mb-4">
-              <FooterLogo shop={header.shop} />
+          <div className="text-center mt-8">
+            <div className="mb-4 flex justify-center">
+              <FooterLogo shop={header.shop as any} />
             </div>
             <div className="text-white text-sm">
               © 2025 Klosslabbet. Alla rättigheter förbehållna.

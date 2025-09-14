@@ -9,6 +9,7 @@ const FALLBACK_FOOTER_SECTIONS = [
     links: [
       {id: 'help', title: 'Hjälp & Support', url: '/pages/hjalp'},
       {id: 'terms', title: 'Köpvillkor', url: '/pages/kopvillkor'},
+      {id: 'returns', title: 'Returpolicy', url: '/pages/returpolicy'},
       {id: 'privacy', title: 'Integritetspolicy', url: '/pages/privacy-policy'},
       {id: 'cookies', title: 'Cookies', url: '/pages/cookies'},
     ],
@@ -69,10 +70,10 @@ export function FooterLinks({
                     className="flex items-center gap-2 transition-colors text-sm"
                     style={{color: 'white', textDecoration: 'none'}}
                     onMouseEnter={(e) => {
-                      e.target.style.color = '#FCD34D';
+                      (e.target as HTMLElement).style.color = '#FCD34D';
                     }}
                     onMouseLeave={(e) => {
-                      e.target.style.color = 'white';
+                      (e.target as HTMLElement).style.color = 'white';
                     }}
                   >
                     {link.icon === 'heart' && (
@@ -103,10 +104,10 @@ export function FooterLinks({
                   className="flex items-center gap-2 text-sm transition-colors"
                   style={{color: 'white', textDecoration: 'none'}}
                   onMouseEnter={(e) => {
-                    e.target.style.color = '#FCD34D';
+                    (e.target as HTMLElement).style.color = '#FCD34D';
                   }}
                   onMouseLeave={(e) => {
-                    e.target.style.color = 'white';
+                    (e.target as HTMLElement).style.color = 'white';
                   }}
                 >
                   {link.icon === 'heart' && (

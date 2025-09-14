@@ -10,65 +10,70 @@ export function NewsletterSignup({isMobile = false}: NewsletterSignupProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Connect to newsletter service
+    // TODO: Connect to Shopify Customer API or newsletter service
+    console.log('Newsletter signup:', email);
     setEmail(''); // Clear form on success
   };
 
   return (
-    <div className={`${isMobile ? 'text-center' : ''}`}>
-      <h3 className="text-white text-xl font-bold mb-2">
+    <div className={`${isMobile ? 'text-left' : ''}`}>
+      <h4 className="text-white font-bold text-lg mb-4">
         Registrera dig för kul!
-      </h3>
-      <p className="text-white text-sm mb-4 leading-relaxed">
-        Få exklusiva uppdateringar om nya LEGO®-set, byggidéer och recensioner.
-      </p>
+      </h4>
 
-      <form onSubmit={handleSubmit} className="space-y-3">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Email Input - Keep as is */}
         <input
           type="email"
           placeholder="Ange e-postadress"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full px-4 py-3 bg-white text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-400 font-medium"
+          className="w-full px-4 py-3 text-gray-700 placeholder-gray-400 border-0 focus:outline-none focus:ring-0"
           style={{
-            borderRadius: '12px',
+            backgroundColor: '#ffffff',
+            borderRadius: '8px',
             fontSize: '16px',
             fontFamily: 'inherit',
-            border: 'none',
             boxShadow: 'none',
+            border: 'none',
           }}
           required
         />
+        
+        {/* Privacy Text - Before button */}
+        <p className="text-white text-xs leading-relaxed mb-6">
+          Genom att registrera dig för vårt nyhetsbrev godkänner du våra{' '}
+          <Link
+            to="/pages/kopvillkor"
+            className="text-white underline hover:text-yellow-300"
+            style={{color: 'white', textDecoration: 'underline'}}
+          >
+            villkor
+          </Link>{' '}
+          och vår{' '}
+          <Link
+            to="/pages/integritetspolicy"
+            className="text-white underline hover:text-yellow-300"
+            style={{color: 'white', textDecoration: 'underline'}}
+          >
+            integritetspolicy
+          </Link>
+          .
+        </p>
+
+        {/* Submit Button - Smyths Style */}
         <button
           type="submit"
-          className="w-full text-black font-bold py-3 px-6 transition-colors border-2 border-white rounded-lg hover:opacity-90"
+          className="bg-white text-blue-600 font-bold py-3 px-8 rounded-full hover:bg-gray-100 transition-colors mt-3"
           style={{
-            backgroundColor: 'rgba(255,212,43,1)',
+            fontSize: '16px',
+            fontWeight: '600',
+            color: '#2563eb',
           }}
         >
           Registrera dig
         </button>
       </form>
-
-      <p className="text-white text-xs mt-3 leading-relaxed">
-        Genom att registrera dig för vårt nyhetsbrev godkänner du våra{' '}
-        <Link
-          to="/pages/kopvillkor"
-          className="text-white underline hover:text-yellow-300"
-          style={{color: 'white', textDecoration: 'underline'}}
-        >
-          villkor
-        </Link>{' '}
-        och vår{' '}
-        <Link
-          to="/pages/privacy-policy"
-          className="text-white underline hover:text-yellow-300"
-          style={{color: 'white', textDecoration: 'underline'}}
-        >
-          integritetspolicy
-        </Link>
-        .
-      </p>
     </div>
   );
 }
