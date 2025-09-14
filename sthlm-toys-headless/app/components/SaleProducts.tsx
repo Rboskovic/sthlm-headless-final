@@ -133,7 +133,7 @@ export function SaleProducts({
               <div className="flex-1 flex justify-end">
                 {showViewAll && (
                   <Link
-                    to="/collections/sale-homepage-products"
+                    to="/collections/alla-erbjudanden"
                     className="inline-flex items-center justify-center px-6 py-3 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-all duration-200 transform hover:scale-105 shadow-sm hover:shadow-md"
                     style={{
                       fontSize: '16px',

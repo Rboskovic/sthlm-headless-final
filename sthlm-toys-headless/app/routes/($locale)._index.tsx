@@ -13,8 +13,9 @@ import {HeroBanner} from '~/components/HeroBanner';
 import {TopCategories} from '~/components/TopCategories';
 import {ShopByDiscount} from '~/components/ShopByDiscount';
 import {FeaturedBanners} from '~/components/FeaturedBanners';
-import {ShopByBrand} from '~/components/ShopByBrand';
+import {ShopByAge} from '~/components/ShopByAge';
 import {ProductItem} from '~/components/ProductItem';
+import {RecommendedProductsHomepage} from '~/components/RecommendedProductsHomepage';
 
 // ✅ NEW: Flexible product queries and helpers
 import {
@@ -48,13 +49,13 @@ async function loadCriticalData({context}: LoaderFunctionArgs) {
   try {
     const [
       topCategoriesData,
-      shopByBrandData,
+      shopByAgeData,
       featuredBannersData,
       shopByDiscountData,
       heroData,
     ] = await Promise.all([
       context.storefront.query(TOP_CATEGORIES_QUERY),
-      context.storefront.query(SHOP_BY_BRAND_QUERY),
+      context.storefront.query(SHOP_BY_AGE_QUERY),
       context.storefront.query(FEATURED_BANNERS_QUERY),
       context.storefront.query(SHOP_BY_DISCOUNT_QUERY),
       context.storefront.query(HERO_BANNER_QUERY),
@@ -62,7 +63,7 @@ async function loadCriticalData({context}: LoaderFunctionArgs) {
 
     return {
       topCategories: topCategoriesData.collections.nodes || [],
-      shopByBrandData: shopByBrandData.collections.nodes || [],
+      shopByAgeData: shopByAgeData.collections.nodes || [],
       featuredBanners: featuredBannersData.collections.nodes || [],
       shopByDiscountData: shopByDiscountData.collections.nodes || [],
       heroMetafields: heroData.shop.metafields || [],
@@ -71,7 +72,7 @@ async function loadCriticalData({context}: LoaderFunctionArgs) {
     console.error('Error loading collections:', error);
     return {
       topCategories: [],
-      shopByBrandData: [],
+      shopByAgeData: [],
       featuredBanners: [],
       shopByDiscountData: [],
       heroMetafields: [],
@@ -190,9 +191,9 @@ export default function Homepage() {
       <ShopByDiscount discounts={data.shopByDiscountData as any} />
 
       {/* ✅ 6. Shop By Brand/Theme (Shoppa efter tema) - MOVED DOWN */}
-      <ShopByBrand brands={data.shopByBrandData} />
+      <ShopByAge brands={data.shopByAgeData} />
 
-      {/* ✅ 7. Recommended Products Section - Keep button style */}
+      {/* ✅ 7. Recommended Products Section - Now using separate component */}
       <Suspense fallback={<ProductSectionSkeleton title="Rekommenderade produkter" />}>
         <Await resolve={data.homepageProducts}>
           {(response) => {
@@ -202,7 +203,7 @@ export default function Homepage() {
             if (featuredProducts.length === 0) return null;
 
             return (
-              <RecommendedProductsSection
+              <RecommendedProductsHomepage
                 products={featuredProducts as ProductFragment[]}
                 title="Rekommenderade produkter"
               />
@@ -427,88 +428,6 @@ function SmythsStyleProductSection({
   );
 }
 
-// Recommended Products Section with inline show more
-function RecommendedProductsSection({ 
-  products, 
-  title 
-}: { 
-  products: ProductFragment[]; 
-  title: string; 
-}) {
-  const [displayCount, setDisplayCount] = useState(8);
-  
-  const showMore = () => {
-    setDisplayCount(prev => Math.min(prev + 8, products.length));
-  };
-  
-  const currentProducts = products.slice(0, displayCount);
-  const hasMore = displayCount < products.length;
-
-  return (
-    <section className="w-full bg-gray-50">
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="text-center mb-8">
-          <h2
-            className="text-black font-semibold mb-2"
-            style={{
-              fontSize: '32px',
-              fontWeight: 600,
-              lineHeight: '36px',
-              fontFamily: "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-              color: 'rgb(33, 36, 39)',
-            }}
-          >
-            {title}
-          </h2>
-          <p className="text-gray-600 text-lg">
-            Handplockade favoriter bara för dig
-          </p>
-        </div>
-
-        {/* Desktop Grid */}
-        <div className="hidden md:grid md:grid-cols-4 gap-6">
-          {currentProducts.map((product, index) => (
-            <ProductItem
-              key={product.id}
-              product={product}
-              loading={index < 4 ? 'eager' : 'lazy'}
-            />
-          ))}
-        </div>
-
-        {/* Mobile Grid */}
-        <div className="grid grid-cols-2 gap-4 md:hidden">
-          {currentProducts.slice(0, Math.min(displayCount, 4)).map((product, index) => (
-            <ProductItem
-              key={product.id}
-              product={product}
-              loading={index < 2 ? 'eager' : 'lazy'}
-            />
-          ))}
-        </div>
-
-        {/* Show More Button - Inline loading */}
-        {hasMore && (
-          <div className="text-center mt-8">
-            <button
-              onClick={showMore}
-              className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-8 rounded-full transition-colors duration-200 shadow-md hover:shadow-lg"
-              style={{
-                fontSize: '16px',
-                fontWeight: 500,
-                fontFamily: "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                color: 'white',
-              }}
-            >
-              Visa fler produkter
-            </button>
-          </div>
-        )}
-      </div>
-    </section>
-  );
-}
-
 // Product Section Skeleton
 function ProductSectionSkeleton({ title }: { title: string }) {
   return (
@@ -562,8 +481,8 @@ const TOP_CATEGORIES_QUERY = `#graphql
   }
 ` as const;
 
-const SHOP_BY_BRAND_QUERY = `#graphql
-  fragment ShopByBrand on Collection {
+const SHOP_BY_AGE_QUERY = `#graphql
+  fragment ShopByAge on Collection {
     id
     title
     handle
@@ -588,11 +507,11 @@ const SHOP_BY_BRAND_QUERY = `#graphql
       namespace
     }
   }
-  query ShopByBrand($country: CountryCode, $language: LanguageCode)
+  query ShopByAge($country: CountryCode, $language: LanguageCode)
     @inContext(country: $country, language: $language) {
     collections(first: 100, sortKey: TITLE) {
       nodes {
-        ...ShopByBrand
+        ...ShopByAge
       }
     }
   }
@@ -648,10 +567,7 @@ const FEATURED_BANNERS_QUERY = `#graphql
       height
     }
     metafields(identifiers: [
-      {namespace: "custom", key: "featured-banner"},
-      {namespace: "custom", key: "featured_banner"},
-      {namespace: "app", key: "featured-banner"},
-      {namespace: "app", key: "featured_banner"}
+      {namespace: "custom", key: "homepage_banner_image"}
     ]) {
       id
       key
@@ -698,6 +614,10 @@ const NEW_PRODUCTS_QUERY = `#graphql
         title
         handle
         vendor
+        description
+        descriptionHtml
+        encodedVariantExistence
+        encodedVariantAvailability
         updatedAt
         featuredImage {
           id

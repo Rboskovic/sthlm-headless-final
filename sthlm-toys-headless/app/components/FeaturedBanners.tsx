@@ -1,6 +1,6 @@
 // FILE: app/components/FeaturedBanners.tsx
-// ✅ SHOPIFY HYDROGEN STANDARDS: Featured banner component
-// ✅ FIXED: Removed white background on desktop, using object-contain for full image visibility
+// ✅ SHOPIFY HYDROGEN STANDARDS: Updated with homepage_banner_image approach
+// ✅ FIXED: New banner system - uses homepage_banner_image metafield instead of featured_banner boolean
 
 import {Link} from 'react-router';
 import {Image} from '@shopify/hydrogen';
@@ -51,26 +51,24 @@ export function FeaturedBanners({collections}: FeaturedBannersProps) {
     return metafield ? metafield.value : null;
   };
 
-  // Helper function to check if a value represents "true" (same as other components)
-  const isTrueValue = (value: string | null): boolean => {
-    if (!value) return false;
-    const normalizedValue = value.toLowerCase().trim();
-    return (
-      normalizedValue === 'true' ||
-      normalizedValue === '1' ||
-      normalizedValue === 'yes'
-    );
-  };
-
-  // Filter featured banners from Shopify data (same pattern as other components)
+  // ✅ NEW BANNER LOGIC: Filter collections that have homepage_banner_image metafield set
   const featuredBanners =
     collections && collections.length > 0
       ? collections.filter((collection) => {
-          const featuredBannerValue =
-            getMetafieldValue(collection.metafields, 'featured-banner') ||
-            getMetafieldValue(collection.metafields, 'featured_banner');
-          const isFeatured = isTrueValue(featuredBannerValue);
-          return isFeatured;
+          // Check if homepage_banner_image metafield exists and has a value
+          const bannerImageUrl = getMetafieldValue(collection.metafields, 'homepage_banner_image');
+          return bannerImageUrl && bannerImageUrl.trim().length > 0;
+        })
+        .map((collection) => {
+          // Add the custom banner image to the collection
+          const bannerImageUrl = getMetafieldValue(collection.metafields, 'homepage_banner_image');
+          return {
+            ...collection,
+            bannerImage: {
+              url: bannerImageUrl,
+              altText: `${collection.title} Banner`,
+            },
+          };
         })
       : [];
 
@@ -99,13 +97,13 @@ export function FeaturedBanners({collections}: FeaturedBannersProps) {
                     height: '400px',
                   }}
                 >
-                  {/* Banner Image - ✅ FIXED: Using object-contain for full image visibility */}
-                  {banner.image?.url ? (
+                  {/* ✅ UPDATED: Use banner image if available, fallback to collection image */}
+                  {(banner.bannerImage?.url || banner.image?.url) ? (
                     <>
                       <Image
-                        data={banner.image}
-                        alt={banner.image.altText || banner.title}
-                        className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+                        data={banner.bannerImage || banner.image}
+                        alt={banner.bannerImage?.altText || banner.image?.altText || banner.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         sizes="(min-width: 768px) 50vw, 100vw"
                         loading="lazy"
                       />
@@ -122,7 +120,7 @@ export function FeaturedBanners({collections}: FeaturedBannersProps) {
                     </>
                   )}
 
-                  {/* Content overlay - ✅ FIXED: Removed white background, using text shadow only */}
+                  {/* Content overlay */}
                   <div className="absolute inset-0 flex flex-col justify-end p-6">
                     <div className="text-left">
                       {/* Collection Title */}
@@ -197,13 +195,13 @@ export function FeaturedBanners({collections}: FeaturedBannersProps) {
                     height: '250px',
                   }}
                 >
-                  {/* Banner Image - ✅ FIXED: Mobile also uses object-contain */}
-                  {banner.image?.url ? (
+                  {/* ✅ UPDATED: Use banner image if available, fallback to collection image */}
+                  {(banner.bannerImage?.url || banner.image?.url) ? (
                     <>
                       <Image
-                        data={banner.image}
-                        alt={banner.image.altText || banner.title}
-                        className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+                        data={banner.bannerImage || banner.image}
+                        alt={banner.bannerImage?.altText || banner.image?.altText || banner.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         sizes="100vw"
                         loading="lazy"
                       />
