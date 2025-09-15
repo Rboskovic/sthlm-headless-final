@@ -70,9 +70,9 @@ export default [
     rules: {
       'eslint-comments/no-unused-disable': 'error',
       'no-console': [
-        'warn',
+        'error', // Changed from 'warn' to 'error' for production
         {
-          allow: ['warn', 'error'],
+          allow: ['warn', 'error'], // Still allow console.warn and console.error
         },
       ],
       'no-use-before-define': 'off',
@@ -86,7 +86,7 @@ export default [
       ],
       'no-useless-escape': 'off',
       'no-case-declarations': 'off',
-    },
+},
   },
   ...fixupConfigRules(
     compat.extends(

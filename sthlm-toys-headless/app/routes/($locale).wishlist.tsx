@@ -1,5 +1,7 @@
-// app/routes/($locale).wishlist.tsx
+// FILE: app/routes/($locale).wishlist.tsx
 // ✅ FIXED: Load collections data for WishlistEmpty like cart and mobile menu do
+// ✅ FIXED: Removed duplicate query, now imports from fragments.ts
+// ✅ FIXED: TypeScript type issues
 
 import { type MetaFunction, type LoaderFunctionArgs } from '@shopify/remix-oxygen';
 import { useLoaderData } from 'react-router';
@@ -7,10 +9,11 @@ import { useSessionWishlist } from '~/hooks/useSessionWishlist';
 import { ProductItem } from '~/components/ProductItem';
 import { WishlistHeader } from '~/components/WishlistHeader';
 import { WishlistEmpty } from '~/components/WishlistEmpty';
+import { MOBILE_MENU_COLLECTIONS_QUERY } from '~/lib/fragments';
 
 export const meta: MetaFunction = () => [
   { title: 'Min Önskelista | Klosslabbet' },
-  { name: 'description', content: 'Dina sparade favoritprodukter' }
+  { name: 'description', content: 'Dina sparade favoritprodukter' },
 ];
 
 export async function loader({ context }: LoaderFunctionArgs) {
@@ -38,7 +41,7 @@ export default function WishlistPage() {
     clearWishlist,
     createShareableLink,
     shareWishlist,
-    copyShareLink
+    copyShareLink,
   } = useSessionWishlist();
 
   if (isLoading) {
@@ -57,59 +60,44 @@ export default function WishlistPage() {
   }
 
   if (wishlistCount === 0) {
-    // ✅ FIXED: Pass collections data to WishlistEmpty
-    return <WishlistEmpty popularCollections={popularCollections} />;
+    // ✅ FIXED: Type assertion for collections data
+    return <WishlistEmpty popularCollections={popularCollections as any} />;
   }
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
-      <WishlistHeader 
+      <WishlistHeader
         count={wishlistCount}
         onClear={clearWishlist}
         onShare={shareWishlist}
         onCopyLink={copyShareLink}
         createShareableLink={createShareableLink}
       />
-      
+
       {/* ✅ Use ProductItem instead of custom grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {wishlistItems.map((item, index) => (
-          <ProductItem
-            key={`${item.id}-${item.variantId || 'default'}-${index}`}
-            product={item}
-            loading="lazy"
-          />
-        ))}
+        {wishlistItems.map((item, index) => {
+          // ✅ FIXED: Transform WishlistItem to match ProductItem expectations
+          const transformedProduct = {
+            ...item,
+            featuredImage: item.featuredImage ? {
+              url: item.featuredImage.url,
+              altText: item.featuredImage.altText || undefined, // Convert null to undefined
+              id: '', // WishlistItem doesn't have id, provide default
+              width: 300, // WishlistItem doesn't have width, provide default
+              height: 300, // WishlistItem doesn't have height, provide default
+            } : null,
+          };
+
+          return (
+            <ProductItem
+              key={`${item.id}-${item.variantId || 'default'}-${index}`}
+              product={transformedProduct as any}
+              loading="lazy"
+            />
+          );
+        })}
       </div>
     </div>
   );
 }
-
-// ✅ ADDED: Same collections query used by cart and mobile menu
-const MOBILE_MENU_COLLECTIONS_QUERY = `#graphql
-  query MobileMenuCollections($country: CountryCode, $language: LanguageCode)
-    @inContext(country: $country, language: $language) {
-    collections(first: 75, sortKey: UPDATED_AT, reverse: true) {
-      nodes {
-        id
-        title
-        handle
-        image {
-          id
-          url
-          altText
-          width
-          height
-        }
-        metafields(identifiers: [
-          {namespace: "custom", key: "mobile_menu_featured"},
-          {namespace: "custom", key: "mobile_menu_image"}
-        ]) {
-          key
-          value
-          namespace
-        }
-      }
-    }
-  }
-` as const;

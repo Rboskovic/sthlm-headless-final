@@ -238,11 +238,6 @@ export default function Product() {
   // ✅ NEW: Parse shipping text into bullet points
   const shippingBulletPoints = parseShippingText(freeShippingText);
 
-  console.log('🐛 Product Detail Page - selectedVariant:', selectedVariant);
-  console.log('🐛 Product Detail Page - quantity:', quantity);
-  console.log('🐛 Product Detail Page - product metafields:', product?.metafields);
-  console.log('🐛 Product Detail Page - shop metafields:', shop?.metafields);
-  console.log('🐛 Product Detail Page - whyTheyLoveItItems:', whyTheyLoveItItems);
 
   return (
     <div className="w-full bg-white min-h-screen">
@@ -433,7 +428,6 @@ export default function Product() {
                   },
                 ]}
                 onClick={() => {
-                  console.log('🐛 Opening cart aside after adding item');
                   open('cart');
                 }}
                 disabled={!selectedVariant?.availableForSale}

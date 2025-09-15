@@ -15,7 +15,7 @@ import {ShopLinkButton} from '~/components/ui/ShopButton';
 import {ArrowLeft} from 'lucide-react';
 
 export const meta: MetaFunction = () => {
-  return [{title: `Kundvagn | STHLM Toys & Games`}];
+  return [{title: `Kundvagn | Klosslabbet`}];
 };
 
 export const headers: HeadersFunction = ({actionHeaders}) => actionHeaders;

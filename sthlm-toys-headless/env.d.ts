@@ -29,12 +29,12 @@ declare module 'react-router' {
     // to change context type, change the return of createAppLoadContext() instead
   }
 
-  // TODO: remove this once we've migrated our loaders to `Route.LoaderArgs` 
+  // Legacy support for older loader patterns - remove if all loaders migrated
   interface LoaderFunctionArgs {
     context: AppLoadContext;
   }
 
-  // TODO: remove this once we've migrated our loaders to `Route.ActionArgs`
+  // Legacy support for older action patterns - remove if all actions migrated  
   interface ActionFunctionArgs {
     context: AppLoadContext;
   }

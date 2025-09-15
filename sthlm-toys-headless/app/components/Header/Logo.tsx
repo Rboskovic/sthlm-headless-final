@@ -23,8 +23,8 @@ interface LogoProps {
 export function Logo({shop, className = '', style = {}}: LogoProps) {
   // Extract logo data with proper fallbacks
   const logoUrl = shop?.brand?.logo?.image?.url;
-  const logoAlt = shop?.brand?.logo?.image?.altText || shop?.name || 'STHLM Toys & Games';
-  const shopName = shop?.name || 'STHLM Toys & Games';
+  const logoAlt = shop?.brand?.logo?.image?.altText || shop?.name || 'Klosslabbet';
+  const shopName = shop?.name || 'Klosslabbet';
 
   // Default styling that can be overridden
   const defaultStyle: React.CSSProperties = {
@@ -63,7 +63,7 @@ export function Logo({shop, className = '', style = {}}: LogoProps) {
       
       {/* Fallback Text Logo - Hidden by default, shown if image fails */}
       <div 
-        className="flex flex-col items-start text-white font-bold"
+        className="flex items-center text-white font-bold"
         style={{
           height: style.height || '50px',
           maxWidth: style.maxWidth || '200px',
@@ -72,12 +72,9 @@ export function Logo({shop, className = '', style = {}}: LogoProps) {
           ...style,
         }}
       >
-        <div className="text-lg leading-tight font-bold whitespace-nowrap">
-          STHLM
-        </div>
-        <div className="text-yellow-400 text-sm leading-tight font-semibold whitespace-nowrap">
-          TOYS & GAMES
-        </div>
+        <span className="text-lg font-bold whitespace-nowrap">
+          klosslabbet.se
+        </span>
       </div>
     </Link>
   );
