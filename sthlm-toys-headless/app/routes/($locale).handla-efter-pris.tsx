@@ -1,5 +1,5 @@
-// FILE: app/routes/($locale).ages.tsx
-// ✅ PRODUCTION READY: Age collections page with blog carousel
+// FILE: app/routes/($locale).handla-efter-pris.tsx
+// ✅ PRODUCTION READY: Price-based shopping page with blog carousel
 // ✅ PERFORMANCE: Fetches 100 collections efficiently via GraphQL
 
 import {type LoaderFunctionArgs, type MetaFunction} from '@shopify/remix-oxygen';
@@ -10,8 +10,8 @@ import {useState} from 'react';
 
 export const meta: MetaFunction = () => {
   return [
-    {title: 'LEGO® Sets efter ålder och gåvor för alla åldrar - Klosslabbet'},
-    {name: 'description', content: 'Vi har LEGO® sets perfekt för barn och vuxna i alla åldrar. Från småbarn till tonåringar, det finns gott om att upptäcka med vårt breda sortiment av intressen och budgetar.'},
+    {title: 'Handla LEGO®-set efter pris - Klosslabbet'},
+    {name: 'description', content: 'LEGO®-set är perfekta julklappar för både barn och vuxna, oavsett budget. Hitta det perfekta tillskottet till din LEGO-samling eller välj den bästa födelsedags- eller säsongsgåvan till vänner, familj eller nära och kära.'},
   ];
 };
 
@@ -19,12 +19,12 @@ export async function loader({context}: LoaderFunctionArgs) {
   const {storefront} = context;
 
   try {
-    // Fetch age collections
-    const ageCollectionsData = await storefront.query(AGE_COLLECTIONS_QUERY);
-    const allCollections = ageCollectionsData?.collections?.nodes || [];
+    // Fetch discount page collections
+    const discountCollectionsData = await storefront.query(DISCOUNT_COLLECTIONS_QUERY);
+    const allCollections = discountCollectionsData?.collections?.nodes || [];
 
-    // Filter collections that have BOTH age_collection=true AND age_lifestyle_image
-    const filteredAgeCollections = allCollections.filter((collection: Collection) => {
+    // Filter collections that have BOTH discountpage_collection=true AND age_lifestyle_image
+    const filteredDiscountCollections = allCollections.filter((collection: Collection) => {
       const getMetafieldValue = (key: string) => {
         const metafield = collection.metafields?.find(field => 
           field?.key === key && (field.namespace === 'custom' || field.namespace === 'app')
@@ -32,10 +32,10 @@ export async function loader({context}: LoaderFunctionArgs) {
         return metafield?.value || null;
       };
 
-      const isAgeCollection = getMetafieldValue('age_collection') === 'true';
+      const isDiscountCollection = getMetafieldValue('discountpage_collection') === 'true';
       const lifestyleImageValue = getMetafieldValue('age_lifestyle_image');
       
-      return isAgeCollection && lifestyleImageValue;
+      return isDiscountCollection && lifestyleImageValue;
     }).sort((a: Collection, b: Collection) => {
       const getSortOrder = (collection: Collection) => {
         const sortOrderField = collection.metafields?.find(field => 
@@ -47,8 +47,8 @@ export async function loader({context}: LoaderFunctionArgs) {
       return getSortOrder(a) - getSortOrder(b);
     });
 
-    // Fetch blog articles for age page
-    const blogsData = await storefront.query(AGE_BLOGS_QUERY);
+    // Fetch blog articles for discount page
+    const blogsData = await storefront.query(DISCOUNT_BLOGS_QUERY);
     const allArticles = [];
 
     // Collect all articles from all blogs
@@ -63,85 +63,82 @@ export async function loader({context}: LoaderFunctionArgs) {
       }
     }
 
-    // Filter articles that have age_page=true metafield
-    const ageArticles = allArticles.filter((article: any) => {
-      const agePageMetafield = article.metafields?.find(
-        (field: any) => field?.key === 'age_page' && 
+    // Filter articles that have discount_page=true metafield
+    const discountArticles = allArticles.filter((article: any) => {
+      const discountPageMetafield = article.metafields?.find(
+        (field: any) => field?.key === 'discount_page' && 
         (field.namespace === 'custom' || field.namespace === 'app')
       );
-      return agePageMetafield?.value === 'true';
+      return discountPageMetafield?.value === 'true';
     });
 
     return {
-      ageCollections: filteredAgeCollections,
-      ageArticles: ageArticles,
+      discountCollections: filteredDiscountCollections,
+      discountArticles: discountArticles,
     };
   } catch (error) {
     return {
-      ageCollections: [],
-      ageArticles: [],
+      discountCollections: [],
+      discountArticles: [],
     };
   }
 }
 
-export default function AgesPage() {
-  const {ageCollections, ageArticles} = useLoaderData<typeof loader>();
+export default function HandlaEfterPrisPage() {
+  const {discountCollections, discountArticles} = useLoaderData<typeof loader>();
 
   return (
     <div className="bg-white">
-      {/* ✅ UPDATED: Yellow banner, thinner, more rounded */}
+      {/* ✅ Hero section */}
       <div className="container py-6">
         <div className="text-black py-2 px-6 rounded-xl" style={{backgroundColor: '#FFD42B'}}>
           <h1 className="text-2xl md:text-3xl font-bold text-center text-black">
-            LEGO® Sets efter ålder och gåvor för alla åldrar
+            Handla LEGO®-set efter pris
           </h1>
         </div>
       </div>
 
-      {/* ✅ UPDATED: Reduced top padding */}
+      {/* ✅ Description Section - Updated content */}
       <div className="container pt-2 pb-8">
         <div className="max-w-4xl mx-auto text-center">
           <p className="text-gray-700 text-lg leading-relaxed">
-            Vi har LEGO® sets perfekt för <Link to="/collections/barn" className="text-blue-600 hover:underline">barn</Link> och{' '}
-            <Link to="/collections/vuxna" className="text-blue-600 hover:underline">vuxna</Link> i alla åldrar. Från{' '}
-            <Link to="/collections/småbarn" className="text-blue-600 hover:underline">småbarn</Link> till{' '}
-            <Link to="/collections/tonåringar" className="text-blue-600 hover:underline">tonåringar</Link>, det finns gott om att upptäcka med vårt breda sortiment av{' '}
-            <Link to="/collections/intressen" className="text-blue-600 hover:underline">intressen</Link> och{' '}
-            <Link to="/collections/budgetar" className="text-blue-600 hover:underline">budgetar</Link>. Hitta ditt nästa LEGO-tillskott till din LEGO-kollektion eller välj den bästa{' '}
+            LEGO®-set är perfekta julklappar för både <Link to="/collections/barn" className="text-blue-600 hover:underline">barn</Link> och{' '}
+            <Link to="/collections/vuxna" className="text-blue-600 hover:underline">vuxna</Link>, oavsett budget. Hitta det perfekta tillskottet till din{' '}
+            <Link to="/collections/lego-samling" className="text-blue-600 hover:underline">LEGO-samling</Link> eller välj den bästa{' '}
             <Link to="/collections/födelsedag" className="text-blue-600 hover:underline">födelsedags</Link>- eller{' '}
-            <Link to="/collections/helgdag" className="text-blue-600 hover:underline">helgdagspresenten</Link> för din vän, kollega eller familj.
+            <Link to="/collections/säsong" className="text-blue-600 hover:underline">säsongsgåvan</Link> till vänner, familj eller nära och kära.
           </p>
         </div>
       </div>
 
-      {/* ✅ UPDATED: Reduced bottom padding */}
+      {/* ✅ Price Collections Grid */}
       <div className="container pb-4">
-        {ageCollections.length > 0 ? (
+        {discountCollections.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {ageCollections.map((collection: Collection) => (
-              <AgeCard key={collection.id} collection={collection} />
+            {discountCollections.map((collection: Collection) => (
+              <PriceCard key={collection.id} collection={collection} />
             ))}
           </div>
         ) : (
           <div className="text-center py-16">
             <p className="text-gray-600 text-lg">
-              Ålderssamlingar kommer snart! Kontrollera att kollektioner har både age_collection=true och age_lifestyle_image inställda.
+              Prissamlingar kommer snart! Kontrollera att kollektioner har både discountpage_collection=true och age_lifestyle_image inställda.
             </p>
           </div>
         )}
       </div>
 
-      {/* ✅ NEW: Blog Articles Section with Carousel */}
-      {ageArticles && ageArticles.length > 0 && (
-        <BlogCarouselSection articles={ageArticles} />
+      {/* ✅ Blog Articles Section with Carousel */}
+      {discountArticles && discountArticles.length > 0 && (
+        <BlogCarouselSection articles={discountArticles} />
       )}
 
-      {/* ✅ Phase 2: Blog placeholder - Swedish translation (fallback if no articles) */}
-      {(!ageArticles || ageArticles.length === 0) && (
+      {/* ✅ Blog placeholder (fallback if no articles) */}
+      {(!discountArticles || discountArticles.length === 0) && (
         <div className="bg-gray-50 py-16">
           <div className="container text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Lektips för olika åldrar</h2>
-            <p className="text-gray-600 mb-8">Här kommer vi snart visa artiklar och tips för olika åldersgrupper.</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Tips för budgetmedveten LEGO-shopping</h2>
+            <p className="text-gray-600 mb-8">Här kommer vi snart visa artiklar och tips för smart LEGO-shopping inom olika budgetar.</p>
             <Link 
               to="/blogs" 
               className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
@@ -178,7 +175,7 @@ function BlogCarouselSection({articles}: {articles: any[]}) {
       <div className="container">
         {/* Section Header */}
         <div className="flex justify-between items-center mb-8">
-          <h2 className="text-2xl font-bold text-gray-900">Toys by Age</h2>
+          <h2 className="text-2xl font-bold text-gray-900">Välja rätt LEGO®-leksak efter åldersgrupp</h2>
           <Link 
             to="/blogs" 
             className="text-gray-600 hover:text-gray-900 transition-colors"
@@ -313,9 +310,9 @@ function BlogArticleCard({article}: {article: any}) {
 }
 
 /**
- * Age Card Component - Fixed titles and descriptions
+ * Price Card Component - Same as AgeCard but for price collections
  */
-function AgeCard({collection}: {collection: Collection}) {
+function PriceCard({collection}: {collection: Collection}) {
   // Extract metafield values with proper namespace checking
   const getMetafieldValue = (key: string) => {
     const metafield = collection.metafields?.find(field => 
@@ -324,11 +321,10 @@ function AgeCard({collection}: {collection: Collection}) {
     return metafield?.value || null;
   };
 
-  // ✅ FIXED: Use collection title directly (no extraction)
   const displayTitle = collection.title;
   const lifestyleImageValue = getMetafieldValue('age_lifestyle_image');
 
-  // ✅ FIXED: TypeScript errors - properly type the parsed JSON
+  // TypeScript interface for parsed JSON
   interface ShopifyImageData {
     url?: string;
     src?: string;
@@ -339,7 +335,6 @@ function AgeCard({collection}: {collection: Collection}) {
   
   if (lifestyleImageValue) {
     try {
-      // ✅ FIXED: Type assertion for parsed JSON
       const parsed = JSON.parse(lifestyleImageValue) as ShopifyImageData;
       lifestyleImageUrl = parsed.url || parsed.src || lifestyleImageValue;
     } catch {
@@ -369,11 +364,10 @@ function AgeCard({collection}: {collection: Collection}) {
           )}
         </div>
 
-        {/* Content - Swedish with better layout for descriptions */}
+        {/* Content */}
         <div className="p-6">
           <h3 className="text-xl font-bold text-gray-900 mb-3">{displayTitle}</h3>
           
-          {/* ✅ FIXED: Always show description if available */}
           {collection.description && (
             <p className="text-gray-600 text-sm mb-4 leading-relaxed">
               {collection.description}
@@ -389,9 +383,9 @@ function AgeCard({collection}: {collection: Collection}) {
   );
 }
 
-// ✅ FIXED: Enhanced GraphQL Query with proper image metafield handling
-const AGE_COLLECTIONS_QUERY = `#graphql
-  query AgeCollections($country: CountryCode, $language: LanguageCode)
+// GraphQL Query for Discount Page Collections
+const DISCOUNT_COLLECTIONS_QUERY = `#graphql
+  query DiscountCollections($country: CountryCode, $language: LanguageCode)
     @inContext(country: $country, language: $language) {
     collections(first: 100, sortKey: UPDATED_AT, reverse: true) {
       nodes {
@@ -400,8 +394,8 @@ const AGE_COLLECTIONS_QUERY = `#graphql
         handle
         description
         metafields(identifiers: [
-          {namespace: "custom", key: "age_collection"},
-          {namespace: "app", key: "age_collection"},
+          {namespace: "custom", key: "discountpage_collection"},
+          {namespace: "app", key: "discountpage_collection"},
           {namespace: "custom", key: "age_lifestyle_image"},
           {namespace: "app", key: "age_lifestyle_image"},
           {namespace: "custom", key: "sort_order"},
@@ -416,9 +410,9 @@ const AGE_COLLECTIONS_QUERY = `#graphql
   }
 ` as const;
 
-// ✅ NEW: GraphQL Query for Blog Articles with age_page metafield
-const AGE_BLOGS_QUERY = `#graphql
-  query AgeBlogs($country: CountryCode, $language: LanguageCode)
+// GraphQL Query for Blog Articles with discount_page metafield
+const DISCOUNT_BLOGS_QUERY = `#graphql
+  query DiscountBlogs($country: CountryCode, $language: LanguageCode)
     @inContext(country: $country, language: $language) {
     blogs(first: 10) {
       nodes {
@@ -438,8 +432,8 @@ const AGE_BLOGS_QUERY = `#graphql
               height
             }
             metafields(identifiers: [
-              {namespace: "custom", key: "age_page"},
-              {namespace: "app", key: "age_page"}
+              {namespace: "custom", key: "discount_page"},
+              {namespace: "app", key: "discount_page"}
             ]) {
               key
               value

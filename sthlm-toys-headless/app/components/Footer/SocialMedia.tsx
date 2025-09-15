@@ -1,4 +1,4 @@
-import {Facebook, Instagram, Youtube} from 'lucide-react';
+import {SiYoutube, SiInstagram, SiFacebook, SiTiktok} from 'react-icons/si';
 
 interface SocialMediaProps {
   isMobile?: boolean;
@@ -6,10 +6,20 @@ interface SocialMediaProps {
 
 export function SocialMedia({isMobile = false}: SocialMediaProps) {
   const socialLinks = [
-    {name: 'YouTube', icon: Youtube, url: 'https://www.youtube.com/@klosslabbet'},
-    {name: 'Instagram', icon: Instagram, url: 'https://www.instagram.com/klosslabbet/'},
-    {name: 'Facebook', icon: Facebook, url: '#'},
+    {name: 'YouTube', icon: SiYoutube, url: 'https://www.youtube.com/@klosslabbet'},
+    {name: 'Instagram', icon: SiInstagram, url: 'https://www.instagram.com/klosslabbet.se/'},
+    {name: 'Facebook', icon: SiFacebook, url: 'https://www.facebook.com/profile.php?id=61573161414339'},
+    {name: 'TikTok', icon: SiTiktok, url: 'http://www.tiktok.com/@klosslabbet'},
   ];
+
+  // Responsive border radius: square on very small screens, rounded on mobile, circular on desktop
+  const getBorderRadius = () => {
+    if (!isMobile) return '50%'; // Desktop: circular
+    if (typeof window !== 'undefined' && window.innerWidth <= 375) {
+      return '0px'; // Very small screens (iPhone SE): completely square
+    }
+    return '8px'; // Regular mobile: rounded
+  };
 
   return (
     <div className={`${isMobile ? 'mt-2' : ''}`}>
@@ -28,10 +38,10 @@ export function SocialMedia({isMobile = false}: SocialMediaProps) {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                width: isMobile ? '48px' : '40px',
-                height: isMobile ? '48px' : '40px',
+                width: isMobile ? '40px' : '40px',
+                height: isMobile ? '40px' : '40px',
                 backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                borderRadius: '50%',
+                borderRadius: getBorderRadius(),
                 border: '2px solid rgba(255, 255, 255, 0.3)',
                 backdropFilter: 'blur(10px)',
               }}
@@ -47,8 +57,8 @@ export function SocialMedia({isMobile = false}: SocialMediaProps) {
               }}
             >
               <IconComponent 
-                size={isMobile ? 24 : 20} 
-                className="text-white" 
+                size={isMobile ? 20 : 20} 
+                color="white"
               />
             </a>
           );

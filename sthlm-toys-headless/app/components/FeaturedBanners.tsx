@@ -138,7 +138,7 @@ export function FeaturedBanners({collections}: FeaturedBannersProps) {
                       className="w-full h-full flex items-center justify-center"
                       style={{backgroundColor: '#4CAF50'}}
                     >
-                      <div className="text-white text-sm opacity-75">No Image</div>
+                      <div className="text-white text-sm opacity-75">Ingen bild</div>
                     </div>
                   )}
 
@@ -236,7 +236,7 @@ export function FeaturedBanners({collections}: FeaturedBannersProps) {
                       className="w-full h-full flex items-center justify-center"
                       style={{backgroundColor: '#4CAF50'}}
                     >
-                      <div className="text-white text-xs opacity-75">No Image</div>
+                      <div className="text-white text-xs opacity-75">Ingen bild</div>
                     </div>
                   )}
 
