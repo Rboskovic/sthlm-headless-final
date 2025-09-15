@@ -1,4 +1,4 @@
-// app/root.tsx - Fixed with handleAuthStatus for customer session persistence
+// app/root.tsx - Fixed for Shopify hosted account system
 import { Analytics, getShopAnalytics, useNonce } from "@shopify/hydrogen";
 import { type LoaderFunctionArgs } from "@shopify/remix-oxygen";
 import {
@@ -17,7 +17,6 @@ import {
   FOOTER_QUERY,
   HEADER_QUERY,
   MOBILE_MENU_COLLECTIONS_QUERY,
-  CUSTOMER_DETAILS_QUERY,
 } from "~/lib/fragments";
 import resetStyles from "~/styles/reset.css?url";
 import tailwindCss from "~/styles/tailwind.css?url";
@@ -49,7 +48,7 @@ export function links() {
   ];
 }
 
-// ✅ Updated loader with handleAuthStatus fix
+// ✅ FIXED: Removed customer account queries since using Shopify hosted account
 export async function loader({ context }: LoaderFunctionArgs) {
   const { storefront, env, customerAccount, cart } = context;
 
@@ -75,21 +74,8 @@ export async function loader({ context }: LoaderFunctionArgs) {
       return null;
     });
 
-  // --- Customer data with handleAuthStatus fix ---
+  // ✅ SIMPLIFIED: Only check login status for Shopify hosted account
   const isLoggedIn = await customerAccount.isLoggedIn();
-  let customer = null;
-
-  if (isLoggedIn) {
-    try {
-      // ✅ CRITICAL FIX: Call handleAuthStatus to maintain session
-      await customerAccount.handleAuthStatus();
-      
-      const { data } = await customerAccount.query(CUSTOMER_DETAILS_QUERY);
-      customer = data?.customer;
-    } catch (error) {
-      console.error("Failed to load customer details:", error);
-    }
-  }
 
   return {
     header,
@@ -108,9 +94,8 @@ export async function loader({ context }: LoaderFunctionArgs) {
       language: storefront.i18n.language,
     },
     publicStoreDomain: env.PUBLIC_STORE_DOMAIN,
-    // ✅ Customer fields
+    // ✅ Only login status for Shopify hosted account
     isLoggedIn,
-    customer,
   };
 }
 
@@ -162,8 +147,8 @@ export function ErrorBoundary() {
   let errorMessage = "Unknown error";
   let errorStatus = 500;
 
-  if (isRouteErrorResponse(error)) {
-    errorMessage = error?.data?.message ?? error.data;
+  if (isRouteErrorResponse(error) && error.data) {
+    errorMessage = error.data.message ?? error.data;
     errorStatus = error.status;
   } else if (error instanceof Error) {
     errorMessage = error.message;

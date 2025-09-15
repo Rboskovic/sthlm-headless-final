@@ -1,5 +1,5 @@
 // FILE: app/components/Header/HeaderMain.tsx
-// ✅ UPDATED: Integrated with session-based wishlist system
+// ✅ FIXED: Simplified for Shopify hosted account system
 
 import {Suspense, useState} from 'react';
 import {Link, Await} from 'react-router';
@@ -9,11 +9,9 @@ import {CartToggle} from './CartToggle';
 import {Logo} from './Logo';
 import {WishlistIcon} from '~/components/WishlistIcon'; // ✅ Session wishlist integration
 import type {HeaderMainProps} from './types';
-import type {CustomerFragment} from 'customer-accountapi.generated';
 
 interface HeaderMainPropsUpdated extends HeaderMainProps {
   onMobileMenuToggle?: () => void;
-  customer?: CustomerFragment | null;
 }
 
 // ✅ SHOPIFY URLs 
@@ -27,7 +25,6 @@ export function HeaderMain({
   cart,
   isLoggedIn,
   onMobileMenuToggle,
-  customer,
 }: HeaderMainPropsUpdated) {
   const [isAccountDropdownOpen, setIsAccountDropdownOpen] = useState(false);
 
@@ -63,7 +60,7 @@ export function HeaderMain({
               <Await resolve={isLoggedIn}>
                 {(isLoggedIn) => (
                   <div className="relative">
-                    {isLoggedIn && customer ? (
+                    {isLoggedIn ? (
                       <>
                         <button
                           onClick={toggleAccountDropdown}
@@ -79,7 +76,7 @@ export function HeaderMain({
                         >
                           <User size={15} className="text-white" />
                           <span className="text-white">
-                            Hej, {customer.firstName || 'Användare'}
+                            Mitt konto
                           </span>
                           <ChevronDown
                             size={14}

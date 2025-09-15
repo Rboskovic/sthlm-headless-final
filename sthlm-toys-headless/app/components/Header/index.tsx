@@ -12,7 +12,6 @@ export function Header({
   isLoggedIn,
   publicStoreDomain,
   popularCollections = [],
-  customer, // ✅ ENHANCED: Accept customer data
 }: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -33,7 +32,6 @@ export function Header({
           cart={cart}
           isLoggedIn={isLoggedIn}
           onMobileMenuToggle={handleMobileMenuToggle}
-          customer={customer} // ✅ ENHANCED: Pass customer data to HeaderMain
         />
 
         {/* 2. Desktop Navigation - Menu items */}
