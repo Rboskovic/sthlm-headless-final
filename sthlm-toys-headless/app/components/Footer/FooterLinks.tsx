@@ -10,7 +10,7 @@ const FALLBACK_FOOTER_SECTIONS = [
       {id: 'help', title: 'Hjälp & Support', url: '/pages/hjalp'},
       {id: 'terms', title: 'Köpvillkor', url: '/pages/kopvillkor'},
       {id: 'returns', title: 'Returpolicy', url: '/pages/returpolicy'},
-      {id: 'privacy', title: 'Integritetspolicy', url: '/pages/privacy-policy'},
+      {id: 'privacy', title: 'Integritetspolicy', url: '/pages/integritetspolicy'},
       {id: 'cookies', title: 'Cookies', url: '/pages/cookies'},
     ],
   },
@@ -23,7 +23,7 @@ const FALLBACK_FOOTER_SECTIONS = [
       {
         id: 'wishlist',
         title: 'Min önskelista',
-        url: '/account/wishlist',
+        url: 'wishlist',
         icon: 'heart',
       },
     ],

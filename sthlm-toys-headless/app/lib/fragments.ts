@@ -1,5 +1,5 @@
 // FILE: app/lib/fragments.ts
-// ✅ FIXED: Added CUSTOMER_DETAILS_QUERY to resolve deployment error
+// ✅ FIXED: Removed customer fragments causing GraphQL errors since using Shopify hosted account
 // ✅ UPDATED: Added paymentSettings to FOOTER_QUERY for official payment icons
 
 // Fragment for money fields
@@ -161,41 +161,6 @@ const SHOP_FRAGMENT = `#graphql
   }
 ` as const;
 
-// ✅ ADDED: Customer fragments for account functionality
-const CUSTOMER_ADDRESS_FRAGMENT = `#graphql
-  fragment Address on CustomerAddress {
-    id
-    formatted
-    firstName
-    lastName
-    company
-    address1
-    address2
-    territoryCode
-    zoneCode
-    city
-    zip
-    phoneNumber
-  }
-` as const;
-
-const CUSTOMER_FRAGMENT = `#graphql
-  fragment Customer on Customer {
-    id
-    firstName
-    lastName
-    defaultAddress {
-      ...Address
-    }
-    addresses(first: 6) {
-      nodes {
-        ...Address
-      }
-    }
-  }
-  ${CUSTOMER_ADDRESS_FRAGMENT}
-` as const;
-
 // Header query - STRING format for Hydrogen
 export const HEADER_QUERY = `#graphql
   query Header(
@@ -231,16 +196,6 @@ export const FOOTER_QUERY = `#graphql
     }
   }
   ${MENU_FRAGMENT}
-` as const;
-
-// ✅ ADDED: Customer Details Query - This is what root.tsx was looking for!
-export const CUSTOMER_DETAILS_QUERY = `#graphql
-  query CustomerDetails {
-    customer {
-      ...Customer
-    }
-  }
-  ${CUSTOMER_FRAGMENT}
 ` as const;
 
 // EXISTING: Mobile menu collections query
@@ -326,6 +281,4 @@ export {
   SHOP_FRAGMENT,
   MOBILE_MENU_COLLECTION_FRAGMENT,
   THEMES_COLLECTION_FRAGMENT,
-  CUSTOMER_FRAGMENT,
-  CUSTOMER_ADDRESS_FRAGMENT,
 };

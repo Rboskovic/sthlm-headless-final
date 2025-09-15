@@ -8,7 +8,7 @@ import { WishlistSharing } from '~/lib/wishlist-sharing';
 import { WishlistStorage } from '~/lib/wishlist-storage';
 
 export const meta: MetaFunction = () => [
-  { title: 'Delad Önskelista | STHLM Toys & Games' },
+  { title: 'Delad Önskelista | Klosslabbet' },
   { name: 'description', content: 'Kolla in denna delade önskelista!' }
 ];
 

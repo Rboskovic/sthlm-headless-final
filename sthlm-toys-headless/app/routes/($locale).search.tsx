@@ -256,7 +256,7 @@ export default function SearchPage() {
             {/* Results count with gray background - aligned to container */}
             <div className="bg-gray-50 rounded-lg p-4 mb-4">
               <p className="text-lg text-gray-700">
-                Found <strong>{result.totalProducts || result.total}</strong> results for <strong>"{term}"</strong>
+                Hittade <strong>{result.totalProducts || result.total}</strong> resultat för <strong>"{term}"</strong>
               </p>
             </div>
             
@@ -267,11 +267,11 @@ export default function SearchPage() {
                 onChange={(e) => handleSortChange(e.target.value)}
                 className="px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
               >
-                <option value="relevance">Sort by: Relevance</option>
-                <option value="price_low">Price: Low to High</option>
-                <option value="price_high">Price: High to Low</option>
-                <option value="newest">Newest First</option>
-                <option value="title">Name A-Z</option>
+                <option value="relevance">Sortera efter: Relevans</option>
+                <option value="price_low">Pris: Lågt till högt</option>
+                <option value="price_high">Pris: Högt till lågt</option>
+                <option value="newest">Nyast först</option>
+                <option value="title">Namn A–Ö</option>
               </select>
             </div>
           </div>
