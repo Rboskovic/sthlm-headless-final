@@ -1,0 +1,13 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "npm",
+			"script": "typecheck",
+			"path": "sthlm-toys-headless",
+			"problemMatcher": [],
+			"label": "npm: typecheck - sthlm-toys-headless",
+			"detail": "tsc --noEmit"
+		}
+	]
+}

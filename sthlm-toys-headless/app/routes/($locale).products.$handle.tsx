@@ -1,7 +1,8 @@
 // FILE: app/routes/($locale).products.$handle.tsx
 // ✅ SHOPIFY HYDROGEN STANDARD: Complete Product Detail Page with metafields
 // ✅ UPDATED: Now uses ProductItem for recommended products
-// ✅ FIXED: GraphQL fragment AND query naming conflicts resolved
+// ✅ FIXED: All TypeScript errors resolved
+// ✅ FIXED: React Hooks rules compliance
 
 import {redirect, type LoaderFunctionArgs} from '@shopify/remix-oxygen';
 import {useLoaderData, type MetaFunction, Await} from 'react-router';
@@ -47,18 +48,18 @@ export const meta: MetaFunction<typeof loader> = ({data}) => {
         '@type': 'Product',
         name: product?.title,
         description: product?.description,
-        image: product?.featuredImage?.url,
+        image: product?.selectedOrFirstAvailableVariant?.image?.url,
         offers: {
           '@type': 'Offer',
-          price: product?.priceRange?.minVariantPrice?.amount,
+          price: product?.selectedOrFirstAvailableVariant?.price?.amount,
           priceCurrency: 'SEK',
-          availability: product?.availableForSale ? 'InStock' : 'OutOfStock',
+          availability: product?.selectedOrFirstAvailableVariant?.availableForSale ? 'InStock' : 'OutOfStock',
           seller: {
             '@type': 'Organization',
             name: 'Klosslabbet'
           }
-        }  // <-- This was missing
-      }  // <-- This was missing
+        }
+      }
     }
   ];
 };
@@ -139,9 +140,9 @@ function loadDeferredData({context, params}: LoaderFunctionArgs) {
   };
 }
 
-// Helper function to get metafield value with proper null checking
+// ✅ FIX: Updated helper function to handle Maybe types properly
 function getMetafieldValue(
-  metafields: Array<{key: string; value: string; namespace: string}> | null | undefined,
+  metafields: Array<{key: string; value: string; namespace: string} | null> | null | undefined,
   key: string,
   namespace: string = 'custom'
 ): string | null {
@@ -187,20 +188,35 @@ export default function Product() {
     getAdjacentAndFirstAvailableVariants(product),
   );
 
-  // Sets the search param to the selected variant without navigation
-  // only when no search params are set in the url
-  useSelectedOptionInUrlParam(selectedVariant.selectedOptions);
-
-  // Get the product options array
+  // Get the product options array FIRST
   const productOptions = getProductOptions({
     ...product,
     selectedOrFirstAvailableVariant: selectedVariant,
   });
 
+  // ✅ CRITICAL FIX: Always call the hook to comply with React Rules of Hooks
+  const hasVariantOptions = productOptions.some(option => option.optionValues.length > 1);
+  const meaningfulSelectedOptions = selectedVariant?.selectedOptions?.filter(
+    (option: any) => !(option.name === 'Title' && option.value === 'Default Title')
+  ) || [];
+
+  // Always call the hook, but pass empty array when no meaningful options
+  const optionsToSync = (hasVariantOptions && meaningfulSelectedOptions.length > 0) 
+    ? meaningfulSelectedOptions 
+    : [];
+  
+  useSelectedOptionInUrlParam(optionsToSync);
+
   const {title, descriptionHtml, vendor} = product;
 
-  // ✅ FIX 1: Get ALL product images, not just variant image
-  const productImages = product.images?.nodes || [selectedVariant?.image].filter(Boolean);
+  // ✅ FIX: Get ALL product images with proper typing
+  const productImages = product.images?.nodes?.map((image: any) => ({
+    ...image,
+    __typename: 'Image' as const
+  })) || (selectedVariant?.image ? [{
+    ...selectedVariant.image,
+    __typename: 'Image' as const
+  }] : []);
 
   // ✅ KEEP: Reset quantity when variant changes
   React.useEffect(() => {
@@ -576,8 +592,10 @@ const PRODUCT_QUERY = `#graphql
       currencyCode
     }
     product {
+      id
       title
       handle
+      vendor
     }
     selectedOptions {
       name
@@ -611,47 +629,8 @@ const SHOP_METAFIELDS_QUERY = `#graphql
   }
 ` as const;
 
-// ✅ RECOMMENDED PRODUCTS: Query for product recommendations - FIXED BOTH FRAGMENT AND QUERY NAMES
+// ✅ RECOMMENDED PRODUCTS: Query for product recommendations - FIXED ALL TYPING ISSUES
 const RECOMMENDED_PRODUCTS_QUERY = `#graphql
-  fragment ProductPageRecommendedProduct on Product {
-    id
-    title
-    handle
-    vendor
-    featuredImage {
-      id
-      url
-      altText
-      width
-      height
-    }
-    priceRange {
-      minVariantPrice {
-        amount
-        currencyCode
-      }
-    }
-    selectedOrFirstAvailableVariant(selectedOptions: []) {
-      id
-      title
-      availableForSale
-      price {
-        amount
-        currencyCode
-      }
-      compareAtPrice {
-        amount
-        currencyCode
-      }
-      image {
-        id
-        url
-        altText
-        width
-        height
-      }
-    }
-  }
   query ProductPageRecommendedProducts(
     $country: CountryCode, 
     $language: LanguageCode,
@@ -659,7 +638,43 @@ const RECOMMENDED_PRODUCTS_QUERY = `#graphql
   ) @inContext(country: $country, language: $language) {
     products(first: $first, sortKey: UPDATED_AT, reverse: true) {
       nodes {
-        ...ProductPageRecommendedProduct
+        id
+        title
+        handle
+        vendor
+        featuredImage {
+          id
+          url
+          altText
+          width
+          height
+        }
+        priceRange {
+          minVariantPrice {
+            amount
+            currencyCode
+          }
+        }
+        selectedOrFirstAvailableVariant(selectedOptions: []) {
+          id
+          title
+          availableForSale
+          price {
+            amount
+            currencyCode
+          }
+          compareAtPrice {
+            amount
+            currencyCode
+          }
+          image {
+            id
+            url
+            altText
+            width
+            height
+          }
+        }
       }
     }
   }

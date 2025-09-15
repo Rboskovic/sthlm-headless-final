@@ -127,7 +127,7 @@ function CartEmpty({layout, popularCollections}: {layout: CartLayout; popularCol
 
         {/* Continue Shopping Button */}
         <Link
-          to="/collections/toys"
+          to="/collections/lego"
           onClick={layout === 'aside' ? close : undefined}
           className="inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-8 rounded-xl mt-6 mb-6 transition-colors"
           style={{ color: 'white' }}
