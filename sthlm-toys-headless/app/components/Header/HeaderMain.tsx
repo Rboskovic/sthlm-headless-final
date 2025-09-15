@@ -1,8 +1,8 @@
 // FILE: app/components/Header/HeaderMain.tsx
 // ✅ FIXED: Simplified for Shopify hosted account system
 
-import {Suspense, useState} from 'react';
-import {Link, Await} from 'react-router';
+import {useState} from 'react';
+import {Link} from 'react-router';
 import {Menu, User, FileText, HelpCircle, ChevronDown} from 'lucide-react';
 import {SearchBar} from './SearchBar';
 import {CartToggle} from './CartToggle';
@@ -55,89 +55,83 @@ export function HeaderMain({
               paddingBottom: '4px',
             }}
           >
-            {/* Account section with dropdown */}
-            <Suspense fallback={null}>
-              <Await resolve={isLoggedIn}>
-                {(isLoggedIn) => (
-                  <div className="relative">
-                    {isLoggedIn ? (
-                      <>
-                        <button
-                          onClick={toggleAccountDropdown}
-                          className="flex items-center text-white hover:bg-white/10 transition-colors"
-                          style={{
-                            fontSize: '14px',
-                            fontWeight: 500,
-                            lineHeight: '18px',
-                            gap: '6px',
-                            padding: '6px 10px',
-                            borderRadius: '4px',
-                          }}
-                        >
-                          <User size={15} className="text-white" />
-                          <span className="text-white">
-                            Mitt konto
-                          </span>
-                          <ChevronDown
-                            size={14}
-                            className={`text-white transition-transform ${
-                              isAccountDropdownOpen ? 'rotate-180' : ''
-                            }`}
-                          />
-                        </button>
+            {/* Account section with dropdown - ✅ FIXED: No Promise wrapper */}
+            <div className="relative">
+              {isLoggedIn ? (
+                <>
+                  <button
+                    onClick={toggleAccountDropdown}
+                    className="flex items-center text-white hover:bg-white/10 transition-colors"
+                    style={{
+                      fontSize: '14px',
+                      fontWeight: 500,
+                      lineHeight: '18px',
+                      gap: '6px',
+                      padding: '6px 10px',
+                      borderRadius: '4px',
+                    }}
+                  >
+                    <User size={15} className="text-white" />
+                    <span className="text-white">
+                      Mitt konto
+                    </span>
+                    <ChevronDown
+                      size={14}
+                      className={`text-white transition-transform ${
+                        isAccountDropdownOpen ? 'rotate-180' : ''
+                      }`}
+                    />
+                  </button>
 
-                        {/* Account Dropdown */}
-                        {isAccountDropdownOpen && (
-                          <>
-                            <div
-                              className="fixed inset-0 z-10"
-                              onClick={closeAccountDropdown}
-                            />
-                            <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg py-2 z-20 min-w-[180px]">
-                              <a
-                                href={SHOPIFY_ACCOUNT_URL}
-                                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                              >
-                                Mitt konto
-                              </a>
-                              <a
-                                href={SHOPIFY_ORDERS_URL}
-                                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                              >
-                                Mina beställningar
-                              </a>
-                              <a
-                                href={SHOPIFY_ACCOUNT_URL}
-                                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                              >
-                                Logga ut
-                              </a>
-                            </div>
-                          </>
-                        )}
-                      </>
-                    ) : (
-                      <a
-                        href={SHOPIFY_LOGIN_URL}
-                        className="flex items-center text-white hover:bg-white/10 transition-colors"
-                        style={{
-                          fontSize: '14px',
-                          fontWeight: 500,
-                          lineHeight: '18px',
-                          gap: '6px',
-                          textDecoration: 'none',
-                          padding: '6px 10px',
-                          borderRadius: '4px',
-                        }}
-                      >
-                        <User size={15} className="text-white" />
-                        <span className="text-white">Logga in</span>
-                      </a>
-                    )}
-                  </div>
-                )}
-              </Await>
-            </Suspense>
+                  {/* Account Dropdown */}
+                  {isAccountDropdownOpen && (
+                    <>
+                      <div
+                        className="fixed inset-0 z-10"
+                        onClick={closeAccountDropdown}
+                      />
+                      <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg py-2 z-20 min-w-[180px]">
+                        <a
+                          href={SHOPIFY_ACCOUNT_URL}
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          Mitt konto
+                        </a>
+                        <a
+                          href={SHOPIFY_ORDERS_URL}
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          Mina beställningar
+                        </a>
+                        <a
+                          href={SHOPIFY_ACCOUNT_URL}
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          Logga ut
+                        </a>
+                      </div>
+                    </>
+                  )}
+                </>
+              ) : (
+                <a
+                  href={SHOPIFY_LOGIN_URL}
+                  className="flex items-center text-white hover:bg-white/10 transition-colors"
+                  style={{
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    lineHeight: '18px',
+                    gap: '6px',
+                    textDecoration: 'none',
+                    padding: '6px 10px',
+                    borderRadius: '4px',
+                  }}
+                >
+                  <User size={15} className="text-white" />
+                  <span className="text-white">Logga in</span>
+                </a>
+              )}
+            </div>
 
             {/* Orders Link */}
             <a

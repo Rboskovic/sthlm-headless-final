@@ -29,7 +29,7 @@ interface MobileMenuFullscreenProps {
   isOpen: boolean;
   onClose: () => void;
   shop: any;
-  isLoggedIn: Promise<boolean>;
+  isLoggedIn: boolean;
   popularCollections?: Collection[];
   menu?: Menu | null;
   primaryDomainUrl?: string;
@@ -233,7 +233,7 @@ function MainMenuScreen({
   getUrl,
   popularCollections,
 }: {
-  isLoggedIn: Promise<boolean>;
+  isLoggedIn: boolean;
   menu?: Menu | null;
   onClose: () => void;
   onNavigateToLevel2: (item: MenuItem) => void;

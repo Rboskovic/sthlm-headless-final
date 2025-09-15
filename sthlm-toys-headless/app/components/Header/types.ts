@@ -41,7 +41,7 @@ export interface HeaderData {
 export interface HeaderProps {
   header: HeaderData;
   cart: Promise<CartApiQueryFragment | null>;
-  isLoggedIn: Promise<boolean>;
+  isLoggedIn: boolean;
   publicStoreDomain: string;
   popularCollections?: Collection[];
 }
@@ -49,7 +49,7 @@ export interface HeaderProps {
 export interface HeaderMainProps {
   shop: Shop;
   cart: Promise<CartApiQueryFragment | null>;
-  isLoggedIn: Promise<boolean>;
+  isLoggedIn: boolean;
   onMobileMenuToggle?: () => void;
 }
 
@@ -88,7 +88,7 @@ export interface MobileMenuFullscreenProps {
   isOpen: boolean;
   onClose: () => void;
   shop: Shop;
-  isLoggedIn: Promise<boolean>;
+  isLoggedIn: boolean;
   popularCollections?: Collection[];
   menu?: Menu | null;
   primaryDomainUrl?: string;

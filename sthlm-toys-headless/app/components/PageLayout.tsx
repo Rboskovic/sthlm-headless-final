@@ -2,7 +2,6 @@
 import {Await, Link, useRouteLoaderData} from 'react-router';
 import {Suspense, useId} from 'react';
 import type {CartApiQueryFragment} from 'storefrontapi.generated';
-import type {CustomerFragment} from 'customer-accountapi.generated';
 import {Aside} from '~/components/Aside';
 import Footer from '~/components/Footer';
 import Header from '~/components/Header';
@@ -18,7 +17,7 @@ interface PageLayoutProps {
   cart: Promise<CartApiQueryFragment | null>;
   footer: Promise<any>;
   header: any;
-  isLoggedIn: Promise<boolean>;
+  isLoggedIn: boolean;
   publicStoreDomain: string;
   children?: React.ReactNode;
   popularCollections?: Collection[];
@@ -33,9 +32,6 @@ export function PageLayout({
   publicStoreDomain,
   popularCollections = [],
 }: PageLayoutProps) {
-  // ✅ ENHANCED: Get customer data from account route when available
-  const accountData = useRouteLoaderData<{customer: CustomerFragment}>('routes/($locale).account');
-  const customer = accountData?.customer || null;
 
   return (
     <Aside.Provider>
@@ -49,7 +45,6 @@ export function PageLayout({
           isLoggedIn={isLoggedIn}
           publicStoreDomain={publicStoreDomain}
           popularCollections={popularCollections}
-          customer={customer} // ✅ ENHANCED: Pass customer data to header
         />
       )}
       <main>{children}</main>

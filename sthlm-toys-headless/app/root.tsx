@@ -74,17 +74,22 @@ export async function loader({ context }: LoaderFunctionArgs) {
       return null;
     });
 
-  // ✅ FIXED: Sync login state properly without fetching customer data
+  // ✅ ENHANCED: Properly handle Shopify login redirects and sync state
   let isLoggedIn = false;
   
   try {
-    // First check if logged in
-    isLoggedIn = await customerAccount.isLoggedIn();
+    // Check for Shopify login redirect parameter
+    const url = new URL((context.request as Request).url);
+    const loggedInParam = url.searchParams.get('logged_in');
+    // Always sync auth status first (this is critical for login redirects)
+    await customerAccount.handleAuthStatus();
     
-    // If logged in, sync the session state (this fixes the login redirect issue)
-    if (isLoggedIn) {
+    // Then check login status
+    isLoggedIn = await customerAccount.isLoggedIn();
+
+    // If we have the logged_in parameter but still not logged in, force another sync
+    if (loggedInParam === 'true' && !isLoggedIn) {
       await customerAccount.handleAuthStatus();
-      // Re-check login status after syncing (in case it changed)
       isLoggedIn = await customerAccount.isLoggedIn();
     }
   } catch (error) {
@@ -111,7 +116,7 @@ export async function loader({ context }: LoaderFunctionArgs) {
     },
     publicStoreDomain: env.PUBLIC_STORE_DOMAIN,
     // ✅ Properly synced login status (wrapped in Promise for PageLayout compatibility)
-    isLoggedIn: Promise.resolve(isLoggedIn),
+    isLoggedIn,
   };
 }
 
