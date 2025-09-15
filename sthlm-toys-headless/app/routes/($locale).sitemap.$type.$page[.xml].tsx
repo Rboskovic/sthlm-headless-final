@@ -79,7 +79,7 @@ export async function loader({
   try {
     // Fetch all items with pagination
     while (hasNextPage) {
-      const response = await storefront.query(query, {
+      const response: any = await storefront.query(query, {
         variables: {
           first: itemsPerPage,
           after: cursor,

@@ -53,7 +53,7 @@ export async function loader({
     let cursor = null;
     
     while (hasNextProducts) {
-      const response = await storefront.query(`#graphql
+      const response: any = await storefront.query(`#graphql
         query ProductsPagination($first: Int!, $after: String) {
           products(first: $first, after: $after) {
             edges {
