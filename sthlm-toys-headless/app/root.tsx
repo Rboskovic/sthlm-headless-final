@@ -81,20 +81,34 @@ export async function loader({ context }: LoaderFunctionArgs) {
     // Check for Shopify login redirect parameter
     const url = new URL((context.request as Request).url);
     const loggedInParam = url.searchParams.get('logged_in');
+    
+    console.log('🔍 AUTH DEBUG:', {
+      url: url.toString(),
+      loggedInParam,
+      hasShopifyRedirect: loggedInParam === 'true'
+    });
+    
     // Always sync auth status first (this is critical for login redirects)
+    console.log('🔄 Syncing auth status...');
     await customerAccount.handleAuthStatus();
     
     // Then check login status
+    console.log('📊 Checking login status...');
     isLoggedIn = await customerAccount.isLoggedIn();
+    console.log('📊 Login result:', isLoggedIn);
 
     // If we have the logged_in parameter but still not logged in, force another sync
     if (loggedInParam === 'true' && !isLoggedIn) {
+      console.log('🔄 Shopify redirect detected but not logged in, trying again...');
       await customerAccount.handleAuthStatus();
       isLoggedIn = await customerAccount.isLoggedIn();
+      console.log('📊 Second attempt result:', isLoggedIn);
     }
+    
+    console.log('🎯 Final auth state:', isLoggedIn);
   } catch (error) {
     // Gracefully handle any auth errors
-    console.error("Auth status check failed:", error);
+    console.error("❌ Auth status check failed:", error);
     isLoggedIn = false;
   }
 
@@ -115,7 +129,7 @@ export async function loader({ context }: LoaderFunctionArgs) {
       language: storefront.i18n.language,
     },
     publicStoreDomain: env.PUBLIC_STORE_DOMAIN,
-    // ✅ Properly synced login status (wrapped in Promise for PageLayout compatibility)
+    // ✅ Properly synced login status
     isLoggedIn,
   };
 }
