@@ -1,4 +1,4 @@
-// app/root.tsx - Fixed for Shopify hosted account system
+// app/root.tsx - Fixed login state sync while keeping deployment working
 import { Analytics, getShopAnalytics, useNonce } from "@shopify/hydrogen";
 import { type LoaderFunctionArgs } from "@shopify/remix-oxygen";
 import {
@@ -48,7 +48,7 @@ export function links() {
   ];
 }
 
-// ✅ FIXED: Removed customer account queries since using Shopify hosted account
+// ✅ FIXED: Login state sync without customer data fetching
 export async function loader({ context }: LoaderFunctionArgs) {
   const { storefront, env, customerAccount, cart } = context;
 
@@ -74,12 +74,28 @@ export async function loader({ context }: LoaderFunctionArgs) {
       return null;
     });
 
-  // ✅ SIMPLIFIED: Only check login status for Shopify hosted account
-  const isLoggedIn = await customerAccount.isLoggedIn();
+  // ✅ FIXED: Sync login state properly without fetching customer data
+  let isLoggedIn = false;
+  
+  try {
+    // First check if logged in
+    isLoggedIn = await customerAccount.isLoggedIn();
+    
+    // If logged in, sync the session state (this fixes the login redirect issue)
+    if (isLoggedIn) {
+      await customerAccount.handleAuthStatus();
+      // Re-check login status after syncing (in case it changed)
+      isLoggedIn = await customerAccount.isLoggedIn();
+    }
+  } catch (error) {
+    // Gracefully handle any auth errors
+    console.error("Auth status check failed:", error);
+    isLoggedIn = false;
+  }
 
   return {
     header,
-    popularCollections: mobileMenuCollections?.collections?.nodes || [],
+    popularCollections: (mobileMenuCollections?.collections?.nodes || []) as any,
     footer,
     cart: cart.get(),
     shop: getShopAnalytics({
@@ -94,8 +110,8 @@ export async function loader({ context }: LoaderFunctionArgs) {
       language: storefront.i18n.language,
     },
     publicStoreDomain: env.PUBLIC_STORE_DOMAIN,
-    // ✅ Only login status for Shopify hosted account
-    isLoggedIn,
+    // ✅ Properly synced login status (wrapped in Promise for PageLayout compatibility)
+    isLoggedIn: Promise.resolve(isLoggedIn),
   };
 }
 
