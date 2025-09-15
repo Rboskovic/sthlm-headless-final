@@ -1,13 +1,12 @@
 // FILE: app/components/Header/MobileMenuFullscreen.tsx
-// ✅ UPDATED: Just changed URLs to point to Shopify - keeping all existing functionality
+// ✅ SIMPLIFIED: Always shows "Mitt Konto" - no auth logic needed
 
-import {Suspense, useState} from 'react';
-import {Link, Await} from 'react-router';
+import {useState} from 'react';
+import {Link} from 'react-router';
 import {
   X,
   ChevronRight,
   ChevronLeft,
-  LogIn,
   User,
   Heart,
   Package,
@@ -19,17 +18,15 @@ import {WishlistsLink} from '../WishlistsLink';
 import type {Collection} from '@shopify/hydrogen/storefront-api-types';
 import type {Menu, MenuItem} from './types';
 
-// ✅ SHOPIFY URLs - Only addition needed
+// ✅ SHOPIFY URLs 
 const SHOP_ID = '90088112507';
 const SHOPIFY_ACCOUNT_URL = `https://shopify.com/${SHOP_ID}/account`;
 const SHOPIFY_ORDERS_URL = `https://shopify.com/${SHOP_ID}/account/orders`;
-const SHOPIFY_LOGIN_URL = `https://shopify.com/${SHOP_ID}/account/orders`;
 
 interface MobileMenuFullscreenProps {
   isOpen: boolean;
   onClose: () => void;
   shop: any;
-  isLoggedIn: boolean;
   popularCollections?: Collection[];
   menu?: Menu | null;
   primaryDomainUrl?: string;
@@ -50,7 +47,6 @@ export function MobileMenuFullscreen({
   isOpen,
   onClose,
   shop,
-  isLoggedIn,
   popularCollections = [],
   menu,
   primaryDomainUrl = '',
@@ -136,7 +132,7 @@ export function MobileMenuFullscreen({
       {/* Full-screen menu with slide animation */}
       <div className="fixed inset-0 bg-white transform transition-transform duration-300 ease-in-out overflow-hidden">
         
-        {/* ✅ FIXED BRAND HEADER - Centered Logo */}
+        {/* Brand Header - Centered Logo */}
         <div className="mobile-brand-header">
           {/* Left spacer to balance the close button */}
           <div style={{ width: '48px' }}></div>
@@ -168,7 +164,7 @@ export function MobileMenuFullscreen({
           </button>
         </div>
 
-        {/* Navigation Screens Container - Below fixed header */}
+        {/* Navigation Screens Container */}
         <div className="mobile-nav-container">
           <div className="relative h-full overflow-hidden">
             
@@ -179,7 +175,6 @@ export function MobileMenuFullscreen({
               }`}
             >
               <MainMenuScreen
-                isLoggedIn={isLoggedIn}
                 menu={menu}
                 onClose={handleClose}
                 onNavigateToLevel2={navigateToLevel2}
@@ -226,14 +221,12 @@ export function MobileMenuFullscreen({
 
 // Main Menu Screen Component
 function MainMenuScreen({
-  isLoggedIn,
   menu,
   onClose,
   onNavigateToLevel2,
   getUrl,
   popularCollections,
 }: {
-  isLoggedIn: boolean;
   menu?: Menu | null;
   onClose: () => void;
   onNavigateToLevel2: (item: MenuItem) => void;
@@ -256,14 +249,22 @@ function MainMenuScreen({
         <PopularGrid collections={popularCollections} onClose={onClose} />
       </div>
 
-      {/* Account Links - At bottom with LOGIN FIRST */}
+      {/* Account Links - Simple, always shows "Mitt Konto" */}
       <div className="border-t border-gray-200 bg-white">
-        {/* ✅ LOGIN MOVED TO FOOTER AS FIRST ITEM */}
-        <Suspense fallback={<UserGreetingFallback />}>
-          <Await resolve={isLoggedIn}>
-            {(isLoggedIn) => <UserGreeting isLoggedIn={isLoggedIn} onClose={onClose} />}
-          </Await>
-        </Suspense>
+        {/* Always shows "Mitt Konto" - Shopify handles login/account logic */}
+        <a
+          href={SHOPIFY_ACCOUNT_URL}
+          onClick={onClose}
+          className="flex items-center justify-between px-4 py-4 hover:bg-gray-50 transition-colors bg-white"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+              <User size={14} className="text-white" />
+            </div>
+            <span className="text-gray-900 font-medium">Mitt Konto</span>
+          </div>
+          <ChevronRight size={20} style={{ color: 'var(--color-primary)' }} />
+        </a>
 
         <WishlistsLink className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors">
           <div className="flex items-center gap-3">
@@ -432,8 +433,6 @@ function DynamicMainNavigation({
     return null;
   }
 
-  // ✅ FILTER: Only show menu items that have sub-items (Level 2)
-  // Items without sub-items like "Erbjudanden" will be linked in Popular section
   const menuItemsWithSubItems = menu.items
     .filter((item) => item.items && item.items.length > 0)
     .slice(0, 6);
@@ -459,57 +458,7 @@ function DynamicMainNavigation({
   );
 }
 
-// Helper Components
-function UserGreetingFallback() {
-  return (
-    <div className="flex items-center justify-between px-4 py-4 bg-white">
-      <div className="flex items-center gap-3">
-        <div className="w-6 h-6 bg-gray-200 rounded-full animate-pulse" />
-        <div className="h-4 w-20 bg-gray-200 rounded animate-pulse" />
-      </div>
-    </div>
-  );
-}
-
-// ✅ CHANGED: Updated to use Shopify URLs instead of internal routes
-function UserGreeting({isLoggedIn, onClose}: {isLoggedIn: boolean; onClose: () => void}) {
-  if (isLoggedIn) {
-    const customerName = 'Kund';
-    return (
-      <a
-        href={SHOPIFY_ACCOUNT_URL}
-        onClick={onClose}
-        className="flex items-center justify-between px-4 py-4 hover:bg-gray-50 transition-colors bg-white"
-      >
-        <div className="flex items-center gap-3">
-          <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
-            <User size={14} className="text-white" />
-          </div>
-          <span className="text-gray-900 font-medium">Hej, {customerName}</span>
-        </div>
-        <ChevronRight size={20} style={{ color: 'var(--color-primary)' }} />
-      </a>
-    );
-  }
-
-  return (
-    <a
-      href={SHOPIFY_LOGIN_URL}
-      onClick={onClose}
-      className="flex items-center justify-between px-4 py-4 hover:bg-gray-50 transition-colors bg-white"
-    >
-      <div className="flex items-center gap-3">
-        <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
-          <LogIn size={14} className="text-white" />
-        </div>
-        <span className="text-gray-900 font-medium">Logga in</span>
-      </div>
-      <ChevronRight size={20} style={{ color: 'var(--color-primary)' }} />
-    </a>
-  );
-}
-
-// ✅ PRODUCTION-READY: PopularGrid with mobile_menu_image support (debug removed)
+// PopularGrid component
 function PopularGrid({
   collections,
   onClose,
@@ -567,7 +516,6 @@ function PopularGrid({
   return (
     <div className="grid grid-cols-3 gap-1 px-1">
       {displayItems.map((item) => {
-        // ✅ TYPESCRIPT FIX: Check if item has metafields (is a Collection vs fallback item)
         const customImageUrl = 'metafields' in item ? getMetafieldValue(
           item.metafields,
           'mobile_menu_image'
@@ -609,7 +557,7 @@ function PopularGrid({
   );
 }
 
-// ✅ CHANGED: Updated to handle both internal and external links
+// Helper for account links
 function AccountLink({
   href,
   icon: Icon,

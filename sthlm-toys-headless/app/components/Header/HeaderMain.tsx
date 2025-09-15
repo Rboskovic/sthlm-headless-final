@@ -1,13 +1,12 @@
 // FILE: app/components/Header/HeaderMain.tsx
-// ✅ FIXED: Simplified for Shopify hosted account system
+// ✅ SIMPLIFIED: Always shows "Mitt Konto" - Shopify handles login/account logic
 
-import {useState} from 'react';
 import {Link} from 'react-router';
-import {Menu, User, FileText, HelpCircle, ChevronDown} from 'lucide-react';
+import {Menu, User, FileText, HelpCircle} from 'lucide-react';
 import {SearchBar} from './SearchBar';
 import {CartToggle} from './CartToggle';
 import {Logo} from './Logo';
-import {WishlistIcon} from '~/components/WishlistIcon'; // ✅ Session wishlist integration
+import {WishlistIcon} from '~/components/WishlistIcon';
 import type {HeaderMainProps} from './types';
 
 interface HeaderMainPropsUpdated extends HeaderMainProps {
@@ -18,23 +17,12 @@ interface HeaderMainPropsUpdated extends HeaderMainProps {
 const SHOP_ID = '90088112507';
 const SHOPIFY_ACCOUNT_URL = `https://shopify.com/${SHOP_ID}/account`;
 const SHOPIFY_ORDERS_URL = `https://shopify.com/${SHOP_ID}/account/orders`;
-const SHOPIFY_LOGIN_URL = `https://shopify.com/${SHOP_ID}/account/orders`;
 
 export function HeaderMain({
   shop,
   cart,
-  isLoggedIn,
   onMobileMenuToggle,
 }: HeaderMainPropsUpdated) {
-  const [isAccountDropdownOpen, setIsAccountDropdownOpen] = useState(false);
-
-  const toggleAccountDropdown = () => {
-    setIsAccountDropdownOpen(!isAccountDropdownOpen);
-  };
-
-  const closeAccountDropdown = () => {
-    setIsAccountDropdownOpen(false);
-  };
 
   return (
     <div
@@ -55,83 +43,23 @@ export function HeaderMain({
               paddingBottom: '4px',
             }}
           >
-            {/* Account section with dropdown - ✅ FIXED: No Promise wrapper */}
-            <div className="relative">
-              {isLoggedIn ? (
-                <>
-                  <button
-                    onClick={toggleAccountDropdown}
-                    className="flex items-center text-white hover:bg-white/10 transition-colors"
-                    style={{
-                      fontSize: '14px',
-                      fontWeight: 500,
-                      lineHeight: '18px',
-                      gap: '6px',
-                      padding: '6px 10px',
-                      borderRadius: '4px',
-                    }}
-                  >
-                    <User size={15} className="text-white" />
-                    <span className="text-white">
-                      Mitt konto
-                    </span>
-                    <ChevronDown
-                      size={14}
-                      className={`text-white transition-transform ${
-                        isAccountDropdownOpen ? 'rotate-180' : ''
-                      }`}
-                    />
-                  </button>
-
-                  {/* Account Dropdown */}
-                  {isAccountDropdownOpen && (
-                    <>
-                      <div
-                        className="fixed inset-0 z-10"
-                        onClick={closeAccountDropdown}
-                      />
-                      <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg py-2 z-20 min-w-[180px]">
-                        <a
-                          href={SHOPIFY_ACCOUNT_URL}
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                        >
-                          Mitt konto
-                        </a>
-                        <a
-                          href={SHOPIFY_ORDERS_URL}
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                        >
-                          Mina beställningar
-                        </a>
-                        <a
-                          href={SHOPIFY_ACCOUNT_URL}
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                        >
-                          Logga ut
-                        </a>
-                      </div>
-                    </>
-                  )}
-                </>
-              ) : (
-                <a
-                  href={SHOPIFY_LOGIN_URL}
-                  className="flex items-center text-white hover:bg-white/10 transition-colors"
-                  style={{
-                    fontSize: '14px',
-                    fontWeight: 500,
-                    lineHeight: '18px',
-                    gap: '6px',
-                    textDecoration: 'none',
-                    padding: '6px 10px',
-                    borderRadius: '4px',
-                  }}
-                >
-                  <User size={15} className="text-white" />
-                  <span className="text-white">Logga in</span>
-                </a>
-              )}
-            </div>
+            {/* Account section - Simple, always goes to Shopify account */}
+            <a
+              href={SHOPIFY_ACCOUNT_URL}
+              className="flex items-center text-white hover:bg-white/10 transition-colors"
+              style={{
+                fontSize: '14px',
+                fontWeight: 500,
+                lineHeight: '18px',
+                gap: '6px',
+                textDecoration: 'none',
+                padding: '6px 10px',
+                borderRadius: '4px',
+              }}
+            >
+              <User size={15} className="text-white" />
+              <span className="text-white">Mitt Konto</span>
+            </a>
 
             {/* Orders Link */}
             <a
@@ -199,7 +127,7 @@ export function HeaderMain({
             <SearchBar />
           </div>
 
-          {/* Right Actions - ✅ UPDATED: Session wishlist with text */}
+          {/* Right Actions - Session wishlist with text */}
           <div
             className="flex items-center"
             style={{
@@ -208,7 +136,7 @@ export function HeaderMain({
               justifyContent: 'flex-end',
             }}
           >
-            {/* ✅ Session Wishlist with Swedish text */}
+            {/* Session Wishlist with Swedish text */}
             <div className="flex items-center text-white hover:bg-white/10 transition-colors" style={{
               padding: '6px 10px',
               borderRadius: '6px',
@@ -264,7 +192,7 @@ export function HeaderMain({
         </div>
       </div>
 
-      {/* Mobile Header - ✅ UPDATED: Session wishlist */}
+      {/* Mobile Header */}
       <div className="lg:hidden">
         <div
           className="relative flex items-center"
@@ -289,7 +217,7 @@ export function HeaderMain({
             </button>
           </div>
 
-          {/* Right: Wishlist, Cart - ✅ UPDATED: Session wishlist icon only */}
+          {/* Right: Wishlist, Cart */}
           <div className="absolute right-4 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
             <div 
               className="text-white hover:bg-white/10 transition-colors"
