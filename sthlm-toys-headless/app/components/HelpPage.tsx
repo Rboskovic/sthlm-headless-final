@@ -52,7 +52,7 @@ const fallbackFAQs: FAQ[] = [
     id: 'faq-4',
     question: 'Hur överför jag mitt medlemskap till ett annat konto?',
     answer:
-      'Kontakta vår kundservice på order@sthlmtoysgames.se så hjälper vi dig att överföra ditt medlemskap till ett nytt konto. Vi behöver verifiering av båda kontona.',
+      'Kontakta vår kundservice på info@klosslabbet.se så hjälper vi dig att överföra ditt medlemskap till ett nytt konto. Vi behöver verifiering av båda kontona.',
   },
   {
     id: 'faq-5',
@@ -102,7 +102,7 @@ export function HelpPage({helpPage, contactInfo}: HelpPageProps) {
   // Get contact information from metafields or use fallback
   const supportEmail =
     getMetafieldValue(contactInfo?.metafields, 'support_email') ||
-    'order@sthlmtoysgames.se';
+    'info@klosslabbet.se';
   const supportPhone =
     getMetafieldValue(contactInfo?.metafields, 'support_phone') ||
     '+46 8 123 456 78';

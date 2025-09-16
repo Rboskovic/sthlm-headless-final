@@ -36,7 +36,8 @@ export function WishlistButton({
   size = 'md',
   isInWishlist: initialIsInWishlist = false
 }: WishlistButtonProps) {
-  const {isLoggedIn, customer} = useRootLoaderData();
+  const data = useRootLoaderData();
+  const isLoggedIn = data?.isLoggedIn;
   const {isInWishlist: hookIsInWishlist, addToWishlist, removeFromWishlist} = useWishlist();
   const [isInWishlist, setIsInWishlist] = useState(initialIsInWishlist);
   const fetcher = useFetcher();
@@ -63,7 +64,6 @@ export function WishlistButton({
       return;
     }
 
-    if (!customer?.id) return;
 
     // Optimistic UI update
     setIsInWishlist(!isInWishlist);
