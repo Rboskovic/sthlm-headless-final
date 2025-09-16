@@ -7,11 +7,17 @@ import {useLoaderData, Link} from 'react-router';
 import type {Collection} from '@shopify/hydrogen/storefront-api-types';
 import {Image} from '@shopify/hydrogen';
 import {useState} from 'react';
+import { getCanonicalUrlForPath } from '~/lib/canonical';
 
 export const meta: MetaFunction = () => {
   return [
     {title: 'Handla LEGO®-set efter pris - Klosslabbet'},
     {name: 'description', content: 'LEGO®-set är perfekta julklappar för både barn och vuxna, oavsett budget. Hitta det perfekta tillskottet till din LEGO-samling eller välj den bästa födelsedags- eller säsongsgåvan till vänner, familj eller nära och kära.'},
+    {
+      tagName: 'link',
+      rel: 'canonical',
+      href: getCanonicalUrlForPath('/handla-efter-pris'),
+    },
   ];
 };
 

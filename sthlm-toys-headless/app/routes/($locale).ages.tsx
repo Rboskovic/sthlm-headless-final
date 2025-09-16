@@ -7,11 +7,17 @@ import {useLoaderData, Link} from 'react-router';
 import type {Collection} from '@shopify/hydrogen/storefront-api-types';
 import {Image} from '@shopify/hydrogen';
 import {useState} from 'react';
+import { getCanonicalUrlForPath } from '~/lib/canonical';
 
 export const meta: MetaFunction = () => {
   return [
     {title: 'LEGO® Sets efter ålder och gåvor för alla åldrar - Klosslabbet'},
     {name: 'description', content: 'Vi har LEGO® sets perfekt för barn och vuxna i alla åldrar. Från småbarn till tonåringar, det finns gott om att upptäcka med vårt breda sortiment av intressen och budgetar.'},
+    {
+      tagName: 'link',
+      rel: 'canonical',
+      href: getCanonicalUrlForPath('/ages'),
+    },
   ];
 };
 

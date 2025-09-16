@@ -10,10 +10,16 @@ import { ProductItem } from '~/components/ProductItem';
 import { WishlistHeader } from '~/components/WishlistHeader';
 import { WishlistEmpty } from '~/components/WishlistEmpty';
 import { MOBILE_MENU_COLLECTIONS_QUERY } from '~/lib/fragments';
+import { getCanonicalUrlForPath } from '~/lib/canonical';
 
 export const meta: MetaFunction = () => [
   { title: 'Min Önskelista | Klosslabbet' },
   { name: 'description', content: 'Dina sparade favoritprodukter' },
+  {
+    tagName: 'link',
+    rel: 'canonical',
+    href: getCanonicalUrlForPath('/wishlist'),
+  },
 ];
 
 export async function loader({ context }: LoaderFunctionArgs) {

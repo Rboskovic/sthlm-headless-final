@@ -43,6 +43,7 @@ export function links() {
   return [
     { rel: "preconnect", href: "https://cdn.shopify.com" },
     { rel: "preconnect", href: "https://shop.app" },
+    { rel: "dns-prefetch", href: "https://monorail-edge.shopifysvc.com" },
     { rel: "icon", type: "image/svg+xml", href: favicon },
     { rel: "stylesheet", href: designSystemStyles },
   ];
