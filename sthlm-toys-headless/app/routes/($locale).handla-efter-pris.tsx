@@ -1,6 +1,5 @@
 // FILE: app/routes/($locale).handla-efter-pris.tsx
-// ✅ PRODUCTION READY: Price-based shopping page with blog carousel
-// ✅ PERFORMANCE: Fetches 100 collections efficiently via GraphQL
+// ✅ FIXED: Square image cards + hardcoded image header
 
 import {type LoaderFunctionArgs, type MetaFunction} from '@shopify/remix-oxygen';
 import {useLoaderData, Link} from 'react-router';
@@ -95,12 +94,15 @@ export default function HandlaEfterPrisPage() {
 
   return (
     <div className="bg-white">
-      {/* ✅ Hero section */}
+      {/* ✅ FIXED: Hardcoded Image Header */}
       <div className="container py-6">
-        <div className="text-black py-2 px-6 rounded-xl" style={{backgroundColor: '#FFD42B'}}>
-          <h1 className="text-2xl md:text-3xl font-bold text-center text-black">
-            Handla LEGO®-set efter pris
-          </h1>
+        <div className="rounded-xl overflow-hidden">
+          <img
+            src="https://cdn.shopify.com/s/files/1/0900/8811/2507/files/allAID25166eeP2GL_LOBS_2025_Price_Section_Header_3000x200_45df9a12-4fb2-4521-8641-9df855dfdb6a.png?v=1758234887"
+            alt="Handla LEGO®-set efter pris"
+            className="w-full h-auto"
+            loading="eager"
+          />
         </div>
       </div>
 
@@ -139,21 +141,7 @@ export default function HandlaEfterPrisPage() {
         <BlogCarouselSection articles={discountArticles} />
       )}
 
-      {/* ✅ Blog placeholder (fallback if no articles) */}
-      {(!discountArticles || discountArticles.length === 0) && (
-        <div className="bg-gray-50 py-16">
-          <div className="container text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Tips för budgetmedveten LEGO-shopping</h2>
-            <p className="text-gray-600 mb-8">Här kommer vi snart visa artiklar och tips för smart LEGO-shopping inom olika budgetar.</p>
-            <Link 
-              to="/blogs" 
-              className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              Se alla bloggar →
-            </Link>
-          </div>
-        </div>
-      )}
+      {/* ✅ REMOVED: Blog placeholder section - show nothing if no articles */}
     </div>
   );
 }
@@ -262,7 +250,7 @@ function BlogCarouselSection({articles}: {articles: any[]}) {
 }
 
 /**
- * Blog Article Card Component
+ * ✅ FIXED: Blog Article Card Component - Square Images for 750x750
  */
 function BlogArticleCard({article}: {article: any}) {
   const publishedDate = new Intl.DateTimeFormat('sv-SE', {
@@ -274,12 +262,12 @@ function BlogArticleCard({article}: {article: any}) {
   return (
     <article className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow">
       <Link to={`/blogs/${article.blogHandle}/${article.handle}`}>
-        {/* Article Image */}
-        <div className="relative w-full" style={{ aspectRatio: '4/3' }}>
+        {/* ✅ FIXED: Square Image Container for 750x750 Blog Images */}
+        <div className="relative w-full" style={{ aspectRatio: '1/1' }}>
           {article.image ? (
             <Image
               data={article.image}
-              aspectRatio="4/3"
+              aspectRatio="1/1"
               className="w-full h-full object-cover"
               loading="lazy"
               sizes="(min-width: 1024px) 25vw, (min-width: 768px) 50vw, 100vw"
@@ -316,7 +304,7 @@ function BlogArticleCard({article}: {article: any}) {
 }
 
 /**
- * Price Card Component - Same as AgeCard but for price collections
+ * ✅ REVERTED: Price Card Component - Back to Original Rectangle Format
  */
 function PriceCard({collection}: {collection: Collection}) {
   // Extract metafield values with proper namespace checking
@@ -352,7 +340,7 @@ function PriceCard({collection}: {collection: Collection}) {
   return (
     <Link to={`/collections/${collection.handle}`} className="group">
       <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-        {/* Lifestyle Image */}
+        {/* ✅ REVERTED: Original Rectangle Format for Price Cards */}
         <div className="relative w-full bg-gray-100" style={{ aspectRatio: '420/200' }}>
           {lifestyleImageUrl ? (
             <img
