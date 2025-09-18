@@ -80,19 +80,21 @@ export default function Article() {
 
   return (
     <div className="bg-white min-h-screen">
-      {/* Breadcrumb Navigation */}
+      {/* ✅ FIXED: Breadcrumb Navigation - Aligned with content */}
       <div className="container py-4">
-        <nav className="flex items-center space-x-2 text-sm text-gray-600">
-          <Link to="/blogs" className="hover:text-blue-600 transition-colors">
-            Bloggar
-          </Link>
-          <span>/</span>
-          <Link to={`/blogs/${blogHandle}`} className="hover:text-blue-600 transition-colors">
-            {blogTitle}
-          </Link>
-          <span>/</span>
-          <span className="text-gray-900 font-medium">{title}</span>
-        </nav>
+        <div className="max-w-4xl mx-auto">
+          <nav className="flex items-center space-x-2 text-sm text-gray-600">
+            <Link to="/blogs" className="hover:text-blue-600 transition-colors">
+              Bloggar
+            </Link>
+            <span>/</span>
+            <Link to={`/blogs/${blogHandle}`} className="hover:text-blue-600 transition-colors">
+              {blogTitle}
+            </Link>
+            <span>/</span>
+            <span className="text-gray-900 font-medium">{title}</span>
+          </nav>
+        </div>
       </div>
 
       {/* Article Container */}
