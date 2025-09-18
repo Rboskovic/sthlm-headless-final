@@ -230,7 +230,7 @@ export default function Product() {
   
   // Shop-wide shipping information
   const freeShippingText = getMetafieldValue(shop?.metafields, 'free_shipping_text') || 
-    'Fri frakt på beställningar över 949 kr*';
+    'Fri frakt på beställningar över 1299 kr*';
   
   const freeShippingNote = getMetafieldValue(shop?.metafields, 'free_shipping_note') || 
     '*Erbjudandet gäller standardfrakt till upphämtningsställe i Sverige. Leverans vid dörren tar vanligtvis 3 till 4 dagar och kostar 299 kr.';
