@@ -49,7 +49,7 @@ export function CartMain({layout, cart: originalCart, popularCollections}: CartM
                   scrollbarColor: '#9CA3AF #F3F4F6'
                 }}
               >
-                <div className="px-4 py-2 pb-20"> {/* ✅ FIXED: Added pb-20 for checkout area clearance */}
+                <div className="px-4 py-2 pb-32"> {/* ✅ FIXED: Added pb-20 for checkout area clearance */}
                   <div className="space-y-0">
                     {(cart?.lines?.nodes ?? []).map((line, index) => (
                       <CartLineItem
@@ -112,34 +112,34 @@ function CartEmpty({layout, popularCollections}: {layout: CartLayout; popularCol
 
   return (
     <div className="h-full flex flex-col">
-      {/* Empty Cart Message - Centered at top */}
-      <div className="flex flex-col items-center text-center pt-8 pb-6 px-6">
+      {/* ✅ OPTIMIZED: Smaller icon but proper padding */}
+      <div className="flex flex-col items-center text-center pt-8 pb-6 px-6 flex-shrink-0">
         <ShoppingBag 
-          size={64} 
+          size={48} 
           className="text-gray-300 mb-4" 
         />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">
+        <h3 className="text-base font-medium text-gray-900 mb-2">
           Din kundvagn är tom
         </h3>
-        <p className="text-gray-600 max-w-sm mb-6">
+        <p className="text-gray-600 max-w-sm mb-6 text-sm">
           Det verkar som att du inte har lagt till några artiklar i din kundvagn än. Börja handla för att fylla den!
         </p>
 
-        {/* Continue Shopping Button */}
+        {/* Continue Shopping Button - Original padding */}
         <Link
           to="/collections/lego"
           onClick={layout === 'aside' ? close : undefined}
-          className="inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-8 rounded-xl mt-6 mb-6 transition-colors"
+          className="inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-8 rounded-xl mt-4 mb-0 transition-colors"
           style={{ color: 'white' }}
         >
           Fortsätt handla
         </Link>
       </div>
 
-      {/* Popular Categories Section */}
-      <div className="px-6 pb-6">
+      {/* ✅ RESTORED: Original popular categories section size */}
+      <div className="px-6 pb-6 flex-1">
         <div className="mb-4">
-          <h4 className="text-base font-medium text-gray-900 text-center">Populära</h4>
+          <h4 className="text-sm font-medium text-gray-900 text-center">Populära</h4>
         </div>
         
         <PopularCategoriesGrid 
