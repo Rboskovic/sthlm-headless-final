@@ -58,7 +58,7 @@ const fallbackFAQs: FAQ[] = [
     id: 'faq-5',
     question: 'Vad är returpolicyn?',
     answer:
-      'Vi erbjuder 30 dagars öppet köp på alla produkter. Produkterna ska vara oanvända och i originalförpackning. Kontakta kundservice för att initiera en retur.',
+      'Vi erbjuder 14 dagars öppet köp på alla produkter. Produkterna ska vara oanvända och i originalförpackning. Kontakta kundservice för att initiera en retur.',
   },
 ];
 

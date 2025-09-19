@@ -35,7 +35,7 @@ export const meta: MetaFunction<typeof loader> = ({data}) => {
     {title: `${product?.title ?? ''} | Klosslabbet`},
     {
       name: 'description', 
-      content: `Köp ${product?.title} hos Klosslabbet. ${product?.description?.substring(0, 150)}... ✓ Fri frakt över 989 kr ✓ Säker betalning`
+      content: `Köp ${product?.title} hos Klosslabbet. ${product?.description?.substring(0, 150)}... ✓ Fri frakt över 1299 kr ✓ Säker betalning`
     },
     {
       tagName: 'link',

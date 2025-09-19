@@ -7,7 +7,7 @@ export function HeaderBanner() {
       <div className="mx-auto flex justify-center text-sm font-medium max-w-[1272px] px-3 py-2">
         <div className="flex items-center gap-2">
           <Truck size={16} className="text-blue-600" />
-          <span>Fri frakt på beställningar över 989 kr</span>
+          <span>Fri frakt på beställningar över 1299 kr</span>
         </div>
       </div>
     </div>
