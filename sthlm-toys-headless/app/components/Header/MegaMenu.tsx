@@ -1,4 +1,4 @@
-// app/components/Header/MegaMenu.tsx - Fixed for flexible number of sections
+// app/components/Header/MegaMenu.tsx - Clean Final Version
 import {Link} from 'react-router';
 import type {MegaMenuProps} from './types';
 
@@ -56,7 +56,7 @@ export function MegaMenu({
   level2Items.forEach((item) => {
     const level3Items = item.items || [];
     if (level3Items.length > 0) {
-      sectionsWithChildren[item.title] = level3Items.slice(0, 8);
+      sectionsWithChildren[item.title] = level3Items;
     } else {
       directItems.push(item);
     }

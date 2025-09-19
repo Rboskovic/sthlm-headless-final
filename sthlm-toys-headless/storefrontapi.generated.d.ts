@@ -901,7 +901,7 @@ export type AgeCollectionsQuery = {
       > & {
         metafields: Array<
           StorefrontAPI.Maybe<
-            Pick<StorefrontAPI.Metafield, 'key' | 'value' | 'namespace'>
+            Pick<StorefrontAPI.Metafield, 'id' | 'key' | 'value' | 'namespace'>
           >
         >;
       }
@@ -932,7 +932,10 @@ export type AgeBlogsQuery = {
               >;
               metafields: Array<
                 StorefrontAPI.Maybe<
-                  Pick<StorefrontAPI.Metafield, 'key' | 'value' | 'namespace'>
+                  Pick<
+                    StorefrontAPI.Metafield,
+                    'id' | 'key' | 'value' | 'namespace'
+                  >
                 >
               >;
             }
@@ -960,12 +963,6 @@ export type ArticleQuery = {
         > & {
           author?: StorefrontAPI.Maybe<
             Pick<StorefrontAPI.ArticleAuthor, 'name'>
-          >;
-          image?: StorefrontAPI.Maybe<
-            Pick<
-              StorefrontAPI.Image,
-              'id' | 'altText' | 'url' | 'width' | 'height'
-            >
           >;
           seo?: StorefrontAPI.Maybe<
             Pick<StorefrontAPI.Seo, 'description' | 'title'>
@@ -2256,15 +2253,15 @@ interface GeneratedQueryTypes {
     return: NewProductsQuery;
     variables: NewProductsQueryVariables;
   };
-  '#graphql\n  query AgeCollections($country: CountryCode, $language: LanguageCode)\n    @inContext(country: $country, language: $language) {\n    collections(first: 100, sortKey: UPDATED_AT, reverse: true) {\n      nodes {\n        id\n        title\n        handle\n        description\n        metafields(identifiers: [\n          {namespace: "custom", key: "age_collection"},\n          {namespace: "app", key: "age_collection"},\n          {namespace: "custom", key: "age_lifestyle_image"},\n          {namespace: "app", key: "age_lifestyle_image"},\n          {namespace: "custom", key: "sort_order"},\n          {namespace: "app", key: "sort_order"}\n        ]) {\n          key\n          value\n          namespace\n        }\n      }\n    }\n  }\n': {
+  '#graphql\n  query AgeCollections($country: CountryCode, $language: LanguageCode)\n    @inContext(country: $country, language: $language) {\n    collections(first: 100, sortKey: UPDATED_AT, reverse: true) {\n      nodes {\n        id\n        title\n        handle\n        description\n        metafields(identifiers: [\n          {namespace: "custom", key: "age_collection"},\n          {namespace: "app", key: "age_collection"},\n          {namespace: "custom", key: "age_lifestyle_image"},\n          {namespace: "app", key: "age_lifestyle_image"},\n          {namespace: "custom", key: "sort_order"},\n          {namespace: "app", key: "sort_order"}\n        ]) {\n          id\n          key\n          value\n          namespace\n        }\n      }\n    }\n  }\n': {
     return: AgeCollectionsQuery;
     variables: AgeCollectionsQueryVariables;
   };
-  '#graphql\n  query AgeBlogs($country: CountryCode, $language: LanguageCode)\n    @inContext(country: $country, language: $language) {\n    blogs(first: 10) {\n      nodes {\n        handle\n        articles(first: 50) {\n          nodes {\n            id\n            title\n            handle\n            excerpt\n            publishedAt\n            image {\n              id\n              altText\n              url\n              width\n              height\n            }\n            metafields(identifiers: [\n              {namespace: "custom", key: "age_page"},\n              {namespace: "app", key: "age_page"}\n            ]) {\n              key\n              value\n              namespace\n            }\n          }\n        }\n      }\n    }\n  }\n': {
+  '#graphql\n  query AgeBlogs($country: CountryCode, $language: LanguageCode)\n    @inContext(country: $country, language: $language) {\n    blogs(first: 10) {\n      nodes {\n        handle\n        articles(first: 50) {\n          nodes {\n            id\n            title\n            handle\n            excerpt\n            publishedAt\n            image {\n              id\n              altText\n              url\n              width\n              height\n            }\n            metafields(identifiers: [\n              {namespace: "custom", key: "age_page"},\n              {namespace: "app", key: "age_page"}\n            ]) {\n              id\n              key\n              value\n              namespace\n            }\n          }\n        }\n      }\n    }\n  }\n': {
     return: AgeBlogsQuery;
     variables: AgeBlogsQueryVariables;
   };
-  '#graphql\n  query Article(\n    $articleHandle: String!\n    $blogHandle: String!\n    $country: CountryCode\n    $language: LanguageCode\n  ) @inContext(language: $language, country: $country) {\n    blog(handle: $blogHandle) {\n      handle\n      title\n      articleByHandle(handle: $articleHandle) {\n        handle\n        title\n        contentHtml\n        publishedAt\n        author: authorV2 {\n          name\n        }\n        image {\n          id\n          altText\n          url\n          width\n          height\n        }\n        seo {\n          description\n          title\n        }\n      }\n    }\n  }\n': {
+  '#graphql\n  query Article(\n    $articleHandle: String!\n    $blogHandle: String!\n    $country: CountryCode\n    $language: LanguageCode\n  ) @inContext(language: $language, country: $country) {\n    blog(handle: $blogHandle) {\n      handle\n      title\n      articleByHandle(handle: $articleHandle) {\n        handle\n        title\n        contentHtml\n        publishedAt\n        author: authorV2 {\n          name\n        }\n        seo {\n          description\n          title\n        }\n      }\n    }\n  }\n': {
     return: ArticleQuery;
     variables: ArticleQueryVariables;
   };

@@ -307,7 +307,7 @@ function Level2Screen({
 }) {
   if (!currentItem) return null;
 
-  const level2Items = currentItem.items ? currentItem.items.slice(0, 8) : [];
+  const level2Items = currentItem.items ? currentItem.items : [];
 
   return (
     <div className="mobile-screen-content">
@@ -376,7 +376,7 @@ function Level3Screen({
 }) {
   if (!currentItem) return null;
 
-  const level3Items = currentItem.items ? currentItem.items.slice(0, 8) : [];
+  const level3Items = currentItem.items ? currentItem.items : [];
 
   return (
     <div className="mobile-screen-content">
@@ -435,7 +435,6 @@ function DynamicMainNavigation({
 
   const menuItemsWithSubItems = menu.items
     .filter((item) => item.items && item.items.length > 0)
-    .slice(0, 6);
 
   if (menuItemsWithSubItems.length === 0) {
     return null;

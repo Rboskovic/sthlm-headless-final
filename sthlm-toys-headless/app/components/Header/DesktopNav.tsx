@@ -40,9 +40,6 @@ export function DesktopNav({
   // Use actual Shopify menu data - NO hardcoded fallbacks
   const menuItems = menu.items;
 
-  // Limit to max 6 Level 1 items for UI constraints
-  const displayMenuItems = menuItems.slice(0, 6);
-
   return (
     <div
       className="hidden lg:block w-full bg-blue-900 relative"
@@ -57,7 +54,7 @@ export function DesktopNav({
             gap: '0px',
           }}
         >
-          {displayMenuItems.map((item: any, index: number) => {
+          {menuItems.map((item: any, index: number) => {
             const hasSubItems = item.items && item.items.length > 0;
             const isGiftFinder =
               item.title?.toLowerCase().includes('gift') ||
@@ -65,7 +62,7 @@ export function DesktopNav({
 
             // Calculate adaptive padding based on number of items
             const basePadding = 32;
-            const itemCount = displayMenuItems.length;
+            const itemCount = menuItems.length;
             const adaptivePadding = Math.max(20, Math.min(50, basePadding * (7 - itemCount) / 6));
             const finalPadding = Math.round(adaptivePadding * 1.1);
 
