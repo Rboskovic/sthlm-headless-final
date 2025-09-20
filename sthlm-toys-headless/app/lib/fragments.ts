@@ -142,7 +142,7 @@ const MENU_FRAGMENT = `#graphql
   }
 ` as const;
 
-// Shop fragment
+// Shop fragment - ✅ UPDATED: Added metafields for free shipping banner
 const SHOP_FRAGMENT = `#graphql
   fragment Shop on Shop {
     id
@@ -157,6 +157,13 @@ const SHOP_FRAGMENT = `#graphql
           url
         }
       }
+    }
+    metafields(identifiers: [
+      {namespace: "custom", key: "free_shipping_banner"}
+    ]) {
+      key
+      value
+      namespace
     }
   }
 ` as const;

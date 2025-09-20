@@ -1,4 +1,4 @@
-// app/components/Header/index.tsx - Enhanced to pass customer data to HeaderMain
+// app/components/Header/index.tsx - Updated to pass shop data to HeaderBanner
 import {useState} from 'react';
 import {HeaderBanner} from './HeaderBanner';
 import {HeaderMain} from './HeaderMain';
@@ -41,8 +41,8 @@ export function Header({
           publicStoreDomain={publicStoreDomain}
         />
 
-        {/* 3. Announcement Banner - Below navigation like Smyths */}
-        <HeaderBanner />
+        {/* 3. Announcement Banner - Now with shop metafield support */}
+        <HeaderBanner shop={header.shop} />
       </header>
 
       {/* Fullscreen Mobile Navigation - Drill-down with Shopify menu */}

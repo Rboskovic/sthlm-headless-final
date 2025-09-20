@@ -1,4 +1,4 @@
-// app/components/Header/types.ts - Updated with fixed mobile menu props + customer data
+// app/components/Header/types.ts - Updated with metafields support
 import type {CartApiQueryFragment} from 'storefrontapi.generated';
 import type {Collection} from '@shopify/hydrogen/storefront-api-types';
 
@@ -26,6 +26,12 @@ export interface Shop {
       };
     };
   } | null;
+  // ✅ NEW: Added metafields support for shop-level data like free shipping banner
+  metafields?: Array<{
+    key: string;
+    value: string;
+    namespace: string;
+  } | null> | null;
 }
 
 export interface Menu {
