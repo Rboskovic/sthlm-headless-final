@@ -10,8 +10,8 @@ export function ContactUs() {
       </p>
       <p>
         Ring oss:{" "}
-        <a href="tel:0768686263" className="underline">
-          076-868-62-63
+        <a href="tel:0760-07 09 87" className="underline">
+          0760-07 09 87
         </a>
       </p>
     </div>

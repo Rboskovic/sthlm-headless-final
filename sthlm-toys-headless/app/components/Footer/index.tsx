@@ -62,7 +62,7 @@ export function Footer({
                 </li>
                 <li>
                   <a 
-                    href="tel:0768686263" 
+                    href="tel:0760-07 09 87" 
                     className="text-sm transition-colors"
                     style={{color: 'white', textDecoration: 'none'}}
                     onMouseEnter={(e) => {
@@ -72,7 +72,7 @@ export function Footer({
                       (e.target as HTMLElement).style.color = 'white';
                     }}
                   >
-                    Ring oss: 076-868-62-63
+                    Ring oss: 0760-07 09 87
                   </a>
                 </li>
               </ul>
@@ -149,7 +149,7 @@ export function Footer({
                   </li>
                   <li>
                     <a 
-                      href="tel:0768686263" 
+                      href="tel:0760-07 09 87" 
                       className="text-sm transition-colors"
                       style={{color: 'white', textDecoration: 'none'}}
                       onMouseEnter={(e) => {
@@ -159,7 +159,7 @@ export function Footer({
                         (e.target as HTMLElement).style.color = 'white';
                       }}
                     >
-                      Ring oss: 076-868-62-63
+                      Ring oss: 0760-07 09 87
                     </a>
                   </li>
                 </ul>
