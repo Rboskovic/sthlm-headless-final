@@ -281,9 +281,9 @@ function MainMenuScreen({
           onClose={onClose}
         />
         <AccountLink
-          href="/pages/kundservice"
+          href="/pages/hjalp"
           icon={HelpCircle}
-          title="Kundservice"
+          title="Hjälp & Support"
           onClose={onClose}
         />
       </div>

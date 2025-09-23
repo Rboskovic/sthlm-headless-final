@@ -73,7 +73,7 @@ export function WishlistsLink({
 
   return (
     <Link 
-      to="/account/wishlist" 
+      to="/wishlist" 
       className={`wishlist-link ${className}`}
       style={{
         position: 'relative',
