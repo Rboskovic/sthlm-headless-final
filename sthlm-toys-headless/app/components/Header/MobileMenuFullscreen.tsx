@@ -235,7 +235,7 @@ function MainMenuScreen({
   popularCollections: Collection[];
 }) {
   return (
-    <div className="mobile-screen-content">
+    <div className="mobile-screen-content" style={{ WebkitOverflowScrolling: 'touch' }}>
       {/* Dynamic Main Navigation */}
       <DynamicMainNavigation
         menu={menu}
