@@ -122,7 +122,7 @@ function CartEmpty({layout, popularCollections}: {layout: CartLayout; popularCol
           Din kundvagn är tom
         </h3>
         <p className="text-gray-600 max-w-sm mb-6 text-sm">
-          Det verkar som att du inte har lagt till några artiklar i din kundvagn än. Börja handla för att fylla den!
+          Du har inte lagt till några varor i din varukorg än. Börja handla för att fylla den!
         </p>
 
         {/* Continue Shopping Button - Original padding */}
