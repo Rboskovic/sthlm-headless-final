@@ -41,7 +41,7 @@ export function PaginatedResourceSection<NodesType>({
                 className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-10 rounded-full transition-colors duration-200"
                 style={{ color: 'white' }}
               >
-                {isLoading ? 'Loading...' : 'Show more'}
+                {isLoading ? 'Belastning...' : 'Visa mer'}
               </NextLink>
             </div>
           </div>
