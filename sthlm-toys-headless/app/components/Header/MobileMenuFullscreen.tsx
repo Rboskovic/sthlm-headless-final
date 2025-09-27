@@ -122,15 +122,19 @@ export function MobileMenuFullscreen({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 lg:hidden">
+    <div className="mobile-menu-fullscreen fixed inset-0 z-[60] lg:hidden">
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-black bg-opacity-50 transition-opacity duration-300"
         onClick={handleClose}
+        style={{ touchAction: 'none' }}
       />
 
       {/* Full-screen menu with slide animation */}
-      <div className="fixed inset-0 bg-white transform transition-transform duration-300 ease-in-out overflow-hidden">
+      <div 
+        className="fixed inset-0 bg-white transform transition-transform duration-300 ease-in-out overflow-hidden"
+        style={{ touchAction: 'none' }}
+      >
         
         {/* Brand Header - Centered Logo */}
         <div className="mobile-brand-header">
@@ -166,7 +170,7 @@ export function MobileMenuFullscreen({
 
         {/* Navigation Screens Container */}
         <div className="mobile-nav-container">
-          <div className="relative h-full overflow-hidden">
+          <div className="relative h-full overflow-hidden bg-white">
             
             {/* Main Menu Screen */}
             <div
