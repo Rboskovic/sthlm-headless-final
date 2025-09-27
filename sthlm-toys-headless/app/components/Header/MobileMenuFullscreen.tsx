@@ -131,10 +131,7 @@ export function MobileMenuFullscreen({
       />
 
       {/* Full-screen menu with slide animation */}
-      <div 
-        className="fixed inset-0 bg-white transform transition-transform duration-300 ease-in-out overflow-hidden"
-        style={{ touchAction: 'none' }}
-      >
+      <div className="fixed inset-0 bg-white transform transition-transform duration-300 ease-in-out overflow-hidden">
         
         {/* Brand Header - Centered Logo */}
         <div className="mobile-brand-header">
