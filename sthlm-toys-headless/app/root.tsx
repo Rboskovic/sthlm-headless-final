@@ -1,4 +1,4 @@
-// app/root.tsx - Fixed login state sync while keeping deployment working
+// app/root.tsx - Production-ready version without console.log statements
 import { Analytics, getShopAnalytics, useNonce } from "@shopify/hydrogen";
 import { type LoaderFunctionArgs } from "@shopify/remix-oxygen";
 import {
@@ -82,11 +82,6 @@ export async function loader({ context }: LoaderFunctionArgs) {
     // Check for Shopify login redirect parameter
     const url = new URL((context.request as Request).url);
     const loggedInParam = url.searchParams.get('logged_in');
-    
-      url: url.toString(),
-      loggedInParam,
-      hasShopifyRedirect: loggedInParam === 'true'
-    });
     
     // Always sync auth status first (this is critical for login redirects)
     await customerAccount.handleAuthStatus();
