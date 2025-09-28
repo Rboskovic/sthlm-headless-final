@@ -25,7 +25,7 @@ export function PaginatedResourceSection<NodesType>({
           <div>
             {/* Previous Link - Hidden by default, only show if needed */}
             <PreviousLink className="hidden">
-              {isLoading ? 'Loading...' : <span>↑ Load previous</span>}
+              {isLoading ? 'Belastning...' : <span>↑ Load previous</span>}
             </PreviousLink>
             
             {/* Resources Grid */}

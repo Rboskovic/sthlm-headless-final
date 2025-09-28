@@ -110,7 +110,7 @@ function SearchAside() {
             const {articles, collections, pages, products, queries} = items;
 
             if (state === 'loading' && term.current) {
-              return <div className="p-4 text-gray-600">Loading...</div>;
+              return <div className="p-4 text-gray-600">Belastning...</div>;
             }
 
             if (!total) {

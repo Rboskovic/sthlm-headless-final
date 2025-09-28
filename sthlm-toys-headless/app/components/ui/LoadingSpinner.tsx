@@ -63,7 +63,7 @@ export function LoadingSpinner({
       role="status"
       aria-label={text || 'Loading'}
     >
-      <span className="sr-only">{text || 'Loading...'}</span>
+      <span className="sr-only">{text || 'Belastning...'}</span>
     </div>
   );
 

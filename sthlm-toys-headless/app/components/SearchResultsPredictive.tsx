@@ -298,7 +298,7 @@ function SearchResultsPredictiveQueries({
   // Otherwise render as visible suggestions
   return (
     <div className="predictive-search-result mb-6" key="queries">
-      <h5 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-3">Suggestions</h5>
+      <h5 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-3">Förslag</h5>
       <ul className="space-y-1">
         {queries.map((suggestion) => {
           if (!suggestion) return null;
@@ -338,7 +338,7 @@ function SearchResultsPredictiveEmpty({
   return (
     <div className="p-4 text-center">
       <p className="text-sm text-gray-600">
-        No results found for <strong>"{term.current}"</strong>
+        Inga resultat för <strong>"{term.current}"</strong>
       </p>
     </div>
   );

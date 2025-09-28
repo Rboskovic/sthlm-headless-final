@@ -126,7 +126,7 @@ export const ShopButton = forwardRef<HTMLButtonElement, ShopButtonProps>(
         {loading ? (
           <>
             <LoadingIcon className="animate-spin mr-2" />
-            <span>Loading...</span>
+            <span>Belastning....</span>
           </>
         ) : (
           <>
