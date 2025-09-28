@@ -56,19 +56,19 @@ export function ProductItem({
   const {open} = useAside();
 
   const variant = product.selectedOrFirstAvailableVariant || 
-    (product.priceRange ? {
+    ((product as any).priceRange ? {
       id: product.id,
       availableForSale: true,
-      price: product.priceRange.minVariantPrice,
+      price: (product as any).priceRange.minVariantPrice,
       compareAtPrice: null,
     } : null);
 
   const image = product.selectedOrFirstAvailableVariant?.image || 
-                product.featuredImage || 
+                (product as any).featuredImage || 
                 null;
 
   const price = product.selectedOrFirstAvailableVariant?.price || 
-                product.priceRange?.minVariantPrice || 
+                (product as any).priceRange?.minVariantPrice || 
                 null;
 
   const compareAtPrice = product.selectedOrFirstAvailableVariant?.compareAtPrice;
@@ -171,7 +171,7 @@ export function ProductItem({
                   productGid: product.id,
                   variantGid: variant.id,
                   name: product.title,
-                  variantName: variant.title || product.title,
+                  variantName: (variant as any).title || product.title,
                   brand: product.vendor,
                   price: price.amount,
                   quantity: 1,
