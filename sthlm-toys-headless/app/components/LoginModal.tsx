@@ -66,7 +66,7 @@ export function LoginModal({
       case 'account':
         return {
           icon: <User size={48} className="text-purple-500 mb-4" />,
-          title: 'Mitt STHLM Toys konto',
+          title: 'Mitt Klosslabbet konto',
           description: 'Logga in för att komma åt ditt konto och alla funktioner.',
           benefits: [
             'Se orderhistorik',

@@ -77,7 +77,7 @@ export function CartMain({layout, cart: originalCart, popularCollections}: CartM
                     Din kundvagn ({cart?.totalQuantity || 0})
                   </h2>
                   <p className="text-sm text-gray-600 mt-1">
-                    Fri frakt på beställningar över €20
+                    Fri frakt på beställningar över 1299kr
                   </p>
                 </div>
 
