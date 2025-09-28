@@ -44,7 +44,7 @@ function SearchResultsArticles({
 
   return (
     <div className="search-result">
-      <h2 className="text-2xl font-bold mb-6 text-gray-900">Articles</h2>
+      <h2 className="text-2xl font-bold mb-6 text-gray-900">Artiklar</h2>
       <div className="grid gap-6">
         {articles?.nodes?.map((article) => {
           const articleUrl = urlWithTrackingParams({
@@ -77,7 +77,7 @@ function SearchResultsPages({term, pages}: PartialSearchResult<'pages'>) {
 
   return (
     <div className="search-result">
-      <h2 className="text-2xl font-bold mb-6 text-gray-900">Pages</h2>
+      <h2 className="text-2xl font-bold mb-6 text-gray-900">Sidor</h2>
       <div className="grid gap-6">
         {pages?.nodes?.map((page) => {
           const pageUrl = urlWithTrackingParams({
@@ -115,7 +115,7 @@ function SearchResultsProducts({
 
   return (
     <div className="search-result">
-      <h2 className="text-2xl font-bold mb-8 text-gray-900">Products</h2>
+      <h2 className="text-2xl font-bold mb-8 text-gray-900">Produkter</h2>
       
       {/* Products with Pagination */}
       <Pagination connection={products}>

@@ -312,7 +312,7 @@ SearchResults.Pages = function({
   }
   return (
     <div className="search-result">
-      <h2>Pages</h2>
+      <h2>Sidor</h2>
 +     <div className="flex">
         {pages?.nodes?.map((page) => {
           const pageUrl = urlWithTrackingParams({

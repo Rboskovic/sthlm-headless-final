@@ -63,7 +63,7 @@ function CartAside({cart, popularCollections}: {
 }) {
   return (
     <Aside type="cart" heading="KUNDVAGN">
-      <Suspense fallback={<p>Loading cart ...</p>}>
+      <Suspense fallback={<p>Laddar kundvagn...</p>}>
         <Await resolve={cart}>
           {(cart) => {
             return <CartMain cart={cart} layout="aside" popularCollections={popularCollections} />;

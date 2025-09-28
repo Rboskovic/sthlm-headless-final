@@ -90,7 +90,7 @@ function SearchResultsPredictiveArticles({
 
   return (
     <div className="predictive-search-result mb-6" key="articles">
-      <h5 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-3">Articles</h5>
+      <h5 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-3">Artiklar</h5>
       <ul className="space-y-2">
         {articles.map((article) => {
           const articleUrl = urlWithTrackingParams({
