@@ -647,17 +647,6 @@ export type ProductsCountQuery = {
   };
 };
 
-export type CollectionsCountQueryVariables = StorefrontAPI.Exact<{
-  [key: string]: never;
-}>;
-
-export type CollectionsCountQuery = {
-  collections: {
-    edges: Array<{node: Pick<StorefrontAPI.Collection, 'id'>}>;
-    pageInfo: Pick<StorefrontAPI.PageInfo, 'hasNextPage'>;
-  };
-};
-
 export type ProductsPaginationQueryVariables = StorefrontAPI.Exact<{
   first: StorefrontAPI.Scalars['Int']['input'];
   after?: StorefrontAPI.InputMaybe<StorefrontAPI.Scalars['String']['input']>;
@@ -2230,10 +2219,6 @@ interface GeneratedQueryTypes {
   '#graphql\n  query ProductsCount {\n    products(first: 250) {\n      edges {\n        node {\n          id\n        }\n      }\n      pageInfo {\n        hasNextPage\n      }\n    }\n  }\n': {
     return: ProductsCountQuery;
     variables: ProductsCountQueryVariables;
-  };
-  '#graphql\n  query CollectionsCount {\n    collections(first: 250) {\n      edges {\n        node {\n          id\n        }\n      }\n      pageInfo {\n        hasNextPage\n      }\n    }\n  }\n': {
-    return: CollectionsCountQuery;
-    variables: CollectionsCountQueryVariables;
   };
   '#graphql\n        query ProductsPagination($first: Int!, $after: String) {\n          products(first: $first, after: $after) {\n            edges {\n              node {\n                id\n              }\n            }\n            pageInfo {\n              hasNextPage\n              endCursor\n            }\n          }\n        }\n      ': {
     return: ProductsPaginationQuery;

@@ -3,6 +3,7 @@
 // ✅ UPDATED: Now uses ProductItem for recommended products
 // ✅ FIXED: All TypeScript errors resolved
 // ✅ FIXED: React Hooks rules compliance
+// ✅ FIXED: Default Title URL parameters
 
 import {redirect, type LoaderFunctionArgs} from '@shopify/remix-oxygen';
 import {useLoaderData, type MetaFunction, Await} from 'react-router';
@@ -194,16 +195,28 @@ export default function Product() {
     selectedOrFirstAvailableVariant: selectedVariant,
   });
 
-  // ✅ CRITICAL FIX: Always call the hook to comply with React Rules of Hooks
-  const hasVariantOptions = productOptions.some(option => option.optionValues.length > 1);
+  // ✅ FIXED: Enhanced filtering to prevent Default Title URL parameters
+  const hasRealVariantOptions = productOptions.some(option => 
+    option.optionValues.length > 1 && 
+    !(option.name === 'Title' && option.optionValues.length === 1 && option.optionValues[0].name === 'Default Title')
+  );
+
   const meaningfulSelectedOptions = selectedVariant?.selectedOptions?.filter(
-    (option: any) => !(option.name === 'Title' && option.value === 'Default Title')
+    (option: any) => {
+      // Filter out Default Title options completely
+      if (option.name === 'Title' && option.value === 'Default Title') {
+        return false;
+      }
+      // Only include options that have multiple values available
+      const correspondingProductOption = productOptions.find(po => po.name === option.name);
+      return correspondingProductOption && correspondingProductOption.optionValues.length > 1;
+    }
   ) || [];
 
-  // Always call the hook, but pass empty array when no meaningful options
-  const optionsToSync = (hasVariantOptions && meaningfulSelectedOptions.length > 0) 
+  // ✅ CRITICAL FIX: Only sync URL parameters for products with real variant options
+  const optionsToSync = hasRealVariantOptions && meaningfulSelectedOptions.length > 0 
     ? meaningfulSelectedOptions 
-    : [];
+    : []; // Empty array = no URL parameters added
   
   useSelectedOptionInUrlParam(optionsToSync);
 

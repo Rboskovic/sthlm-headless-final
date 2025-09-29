@@ -1,23 +1,11 @@
+// FILE: app/routes/($locale).[sitemap.xml].tsx
+// ✅ SEO OPTIMIZED: New sitemap structure following best practices
+
 import type {LoaderFunctionArgs} from '@shopify/remix-oxygen';
 
 const PRODUCTS_COUNT_QUERY = `#graphql
   query ProductsCount {
     products(first: 250) {
-      edges {
-        node {
-          id
-        }
-      }
-      pageInfo {
-        hasNextPage
-      }
-    }
-  }
-`;
-
-const COLLECTIONS_COUNT_QUERY = `#graphql
-  query CollectionsCount {
-    collections(first: 250) {
       edges {
         node {
           id
@@ -38,19 +26,11 @@ export async function loader({
   const baseUrl = `${url.protocol}//${url.host}`;
   
   try {
-    // Get counts for products and collections
-    const [productsResponse, collectionsResponse] = await Promise.all([
-      storefront.query(PRODUCTS_COUNT_QUERY),
-      storefront.query(COLLECTIONS_COUNT_QUERY)
-    ]);
-
-    // Calculate total items and pages needed
-    const itemsPerPage = 250;
-    
-    // Count products (fetch all to get accurate count)
+    // Count total products for pagination
     let totalProducts = 0;
     let hasNextProducts = true;
     let cursor = null;
+    const itemsPerPage = 250;
     
     while (hasNextProducts) {
       const response: any = await storefront.query(`#graphql
@@ -79,27 +59,31 @@ export async function loader({
       cursor = response.products.pageInfo.endCursor;
     }
 
-    // Count collections (usually fewer, so simpler approach)
-    const totalCollections = collectionsResponse.collections.edges.length;
-    
     // Calculate pages needed
     const productPages = Math.ceil(totalProducts / itemsPerPage);
-    const collectionPages = Math.max(1, Math.ceil(totalCollections / itemsPerPage));
 
-    // Generate sitemap index XML
+    // ✅ NEW: SEO-optimized sitemap structure
     let sitemapEntries = '';
     
-    // Add product sitemaps
+    // 1. Homepage sitemap (highest priority)
+    sitemapEntries += `  <sitemap>
+    <loc>${baseUrl}/sitemap/homepage/1.xml</loc>
+  </sitemap>\n`;
+    
+    // 2. Static pages sitemap (shopping pages)
+    sitemapEntries += `  <sitemap>
+    <loc>${baseUrl}/sitemap/static-pages/1.xml</loc>
+  </sitemap>\n`;
+    
+    // 3. Collections sitemap (all collections in one file)
+    sitemapEntries += `  <sitemap>
+    <loc>${baseUrl}/sitemap/collections/1.xml</loc>
+  </sitemap>\n`;
+    
+    // 4. Product sitemaps (paginated)
     for (let i = 1; i <= productPages; i++) {
       sitemapEntries += `  <sitemap>
     <loc>${baseUrl}/sitemap/products/${i}.xml</loc>
-  </sitemap>\n`;
-    }
-    
-    // Add collection sitemaps
-    for (let i = 1; i <= collectionPages; i++) {
-      sitemapEntries += `  <sitemap>
-    <loc>${baseUrl}/sitemap/collections/${i}.xml</loc>
   </sitemap>\n`;
     }
 
@@ -117,14 +101,20 @@ ${sitemapEntries}</sitemapindex>`;
   } catch (error) {
     console.error('Sitemap index generation error:', error);
     
-    // Fallback sitemap index with basic structure
+    // ✅ IMPROVED: Fallback sitemap with all sections
     const fallbackSitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <sitemap>
-    <loc>${url.protocol}//${url.host}/sitemap/products/1.xml</loc>
+    <loc>${url.protocol}//${url.host}/sitemap/homepage/1.xml</loc>
+  </sitemap>
+  <sitemap>
+    <loc>${url.protocol}//${url.host}/sitemap/static-pages/1.xml</loc>
   </sitemap>
   <sitemap>
     <loc>${url.protocol}//${url.host}/sitemap/collections/1.xml</loc>
+  </sitemap>
+  <sitemap>
+    <loc>${url.protocol}//${url.host}/sitemap/products/1.xml</loc>
   </sitemap>
 </sitemapindex>`;
     

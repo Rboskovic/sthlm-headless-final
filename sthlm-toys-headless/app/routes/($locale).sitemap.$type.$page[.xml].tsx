@@ -1,3 +1,6 @@
+// FILE: app/routes/($locale).sitemap.$type.$page[.xml].tsx
+// ✅ SEO OPTIMIZED: Updated handler for new sitemap structure
+
 import type {LoaderFunctionArgs} from '@shopify/remix-oxygen';
 
 const STOREFRONT_PRODUCTS_QUERY = `#graphql
@@ -45,95 +48,199 @@ export async function loader({
   const page = params.page ? parseInt(params.page) : 1;
   const itemsPerPage = 250;
   
-  let allItems: any[] = [];
-  let hasNextPage = true;
-  let cursor = null;
-  let query: string;
-  let urlPrefix: string;
-  
-  // Determine query and URL prefix based on type
-  switch (type) {
-    case 'collections':
-      query = STOREFRONT_COLLECTIONS_QUERY;
-      urlPrefix = 'collections';
-      break;
-    case 'pages':
-    case 'blogs':
-      // Return empty sitemap for unsupported types
-      const emptySitemap = `<?xml version="1.0" encoding="UTF-8"?>
+  // ✅ NEW: Handle homepage sitemap (when type=homepage and page=1)
+  if (type === 'homepage' && page === 1) {
+    const homepageSitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://www.klosslabbet.se/</loc>
+    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
 </urlset>`;
-      return new Response(emptySitemap, {
-        headers: {
-          'Content-Type': 'application/xml; charset=utf-8',
-          'Cache-Control': 'public, max-age=3600',
-        },
-      });
-    case 'products':
-    default:
-      query = STOREFRONT_PRODUCTS_QUERY;
-      urlPrefix = 'products';
-      break;
+
+    return new Response(homepageSitemap, {
+      headers: {
+        'Content-Type': 'application/xml; charset=utf-8',
+        'Cache-Control': 'public, max-age=3600',
+      },
+    });
   }
-  
-  try {
-    // Fetch all items with pagination
+
+  // ✅ NEW: Handle static pages sitemap (when type=static-pages and page=1)
+  if (type === 'static-pages' && page === 1) {
+    const staticPages = [
+      {
+        handle: 'themes',
+        lastmod: new Date().toISOString().split('T')[0],
+        priority: '0.8',
+        changefreq: 'weekly'
+      },
+      {
+        handle: 'handla-efter-pris',
+        lastmod: new Date().toISOString().split('T')[0], 
+        priority: '0.8',
+        changefreq: 'weekly'
+      },
+      {
+        handle: 'handla-efter-alder',
+        lastmod: new Date().toISOString().split('T')[0],
+        priority: '0.8', 
+        changefreq: 'weekly'
+      },
+      {
+        handle: 'search',
+        lastmod: new Date().toISOString().split('T')[0],
+        priority: '0.6',
+        changefreq: 'daily'
+      },
+      {
+        handle: 'pages/hjalp',
+        lastmod: new Date().toISOString().split('T')[0],
+        priority: '0.5',
+        changefreq: 'monthly'
+      }
+    ];
+
+    const staticPagesSitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${staticPages
+  .map((page) => {
+    return `  <url>
+    <loc>https://www.klosslabbet.se/${page.handle}</loc>
+    <lastmod>${page.lastmod}</lastmod>
+    <changefreq>${page.changefreq}</changefreq>
+    <priority>${page.priority}</priority>
+  </url>`;
+  })
+  .join('\n')}
+</urlset>`;
+
+    return new Response(staticPagesSitemap, {
+      headers: {
+        'Content-Type': 'application/xml; charset=utf-8',
+        'Cache-Control': 'public, max-age=3600',
+      },
+    });
+  }
+
+  // ✅ UPDATED: Handle collections sitemap with priority collections
+  if (type === 'collections' && page === 1) {
+    let allCollections: any[] = [];
+    let hasNextPage = true;
+    let cursor = null;
+    
+    // ✅ HIGH PRIORITY COLLECTIONS
+    const highPriorityCollections = [
+      'lego-prylar',
+      'alla-erbjudanden', 
+      'for-vuxna-experter',
+      'for-de-yngsta',
+      'film-tv-spel'
+    ];
+    
+    // Fetch all collections
     while (hasNextPage) {
-      const response: any = await storefront.query(query, {
+      const response: any = await storefront.query(STOREFRONT_COLLECTIONS_QUERY, {
         variables: {
           first: itemsPerPage,
           after: cursor,
         },
       });
       
-      const dataKey = type === 'collections' ? 'collections' : 'products';
-      const items = response[dataKey].edges.map((edge: any) => edge.node);
-      allItems = [...allItems, ...items];
+      const collections = response.collections.edges.map((edge: any) => edge.node);
+      allCollections = [...allCollections, ...collections];
       
-      hasNextPage = response[dataKey].pageInfo.hasNextPage;
-      cursor = response[dataKey].pageInfo.endCursor;
+      hasNextPage = response.collections.pageInfo.hasNextPage;
+      cursor = response.collections.pageInfo.endCursor;
     }
     
-    // Calculate pagination
-    const startIndex = (page - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const pageItems = allItems.slice(startIndex, endIndex);
-    
-    // Generate XML sitemap
-    const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+    const collectionsSitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${pageItems
-  .map((item) => {
-    const lastmod = new Date(item.updatedAt).toISOString().split('T')[0];
+${allCollections
+  .map((collection) => {
+    const lastmod = new Date(collection.updatedAt).toISOString().split('T')[0];
+    // ✅ DYNAMIC PRIORITY: Higher for important collections
+    const priority = highPriorityCollections.includes(collection.handle) ? '0.9' : '0.7';
+    
     return `  <url>
-    <loc>https://www.klosslabbet.se/${urlPrefix}/${item.handle}</loc>
+    <loc>https://www.klosslabbet.se/collections/${collection.handle}</loc>
     <lastmod>${lastmod}</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <priority>${priority}</priority>
   </url>`;
   })
   .join('\n')}
 </urlset>`;
 
-    return new Response(sitemap, {
+    return new Response(collectionsSitemap, {
       headers: {
         'Content-Type': 'application/xml; charset=utf-8',
         'Cache-Control': 'public, max-age=3600',
       },
     });
+  }
+  
+  // ✅ EXISTING: Handle products sitemap (paginated)
+  if (type === 'products') {
+    let allProducts: any[] = [];
+    let hasNextPage = true;
+    let cursor = null;
     
-  } catch (error) {
-    console.error(`Sitemap generation error for ${type}:`, error);
+    // Fetch all products
+    while (hasNextPage) {
+      const response: any = await storefront.query(STOREFRONT_PRODUCTS_QUERY, {
+        variables: {
+          first: itemsPerPage,
+          after: cursor,
+        },
+      });
+      
+      const products = response.products.edges.map((edge: any) => edge.node);
+      allProducts = [...allProducts, ...products];
+      
+      hasNextPage = response.products.pageInfo.hasNextPage;
+      cursor = response.products.pageInfo.endCursor;
+    }
     
-    const emptySitemap = `<?xml version="1.0" encoding="UTF-8"?>
+    // Calculate pagination
+    const startIndex = (page - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const pageProducts = allProducts.slice(startIndex, endIndex);
+    
+    const productsSitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${pageProducts
+  .map((product) => {
+    const lastmod = new Date(product.updatedAt).toISOString().split('T')[0];
+    return `  <url>
+    <loc>https://www.klosslabbet.se/products/${product.handle}</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>`;
+  })
+  .join('\n')}
 </urlset>`;
-    
-    return new Response(emptySitemap, {
+
+    return new Response(productsSitemap, {
       headers: {
         'Content-Type': 'application/xml; charset=utf-8',
-        'Cache-Control': 'public, max-age=300',
+        'Cache-Control': 'public, max-age=3600',
       },
     });
   }
+
+  // ✅ FALLBACK: Return empty sitemap for unknown types
+  const emptySitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+</urlset>`;
+  
+  return new Response(emptySitemap, {
+    headers: {
+      'Content-Type': 'application/xml; charset=utf-8',
+      'Cache-Control': 'public, max-age=300',
+    },
+  });
 }
