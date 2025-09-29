@@ -1,4 +1,4 @@
-// app/components/Header/types.ts - Updated with metafields support
+// app/components/Header/types.ts - Simplified without isLoggedIn
 import type {CartApiQueryFragment} from 'storefrontapi.generated';
 import type {Collection} from '@shopify/hydrogen/storefront-api-types';
 
@@ -47,7 +47,6 @@ export interface HeaderData {
 export interface HeaderProps {
   header: HeaderData;
   cart: Promise<CartApiQueryFragment | null>;
-  isLoggedIn: boolean;
   publicStoreDomain: string;
   popularCollections?: Collection[];
 }
@@ -55,7 +54,6 @@ export interface HeaderProps {
 export interface HeaderMainProps {
   shop: Shop;
   cart: Promise<CartApiQueryFragment | null>;
-  isLoggedIn: boolean;
   onMobileMenuToggle?: () => void;
 }
 
@@ -94,7 +92,6 @@ export interface MobileMenuFullscreenProps {
   isOpen: boolean;
   onClose: () => void;
   shop: Shop;
-  isLoggedIn: boolean;
   popularCollections?: Collection[];
   menu?: Menu | null;
   primaryDomainUrl?: string;

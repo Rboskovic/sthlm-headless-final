@@ -1,4 +1,4 @@
-// app/root.tsx - Production-ready version without console.log statements
+// app/root.tsx - Simplified version for Classic Customer Accounts
 import { Analytics, getShopAnalytics, useNonce } from "@shopify/hydrogen";
 import { type LoaderFunctionArgs } from "@shopify/remix-oxygen";
 import {
@@ -49,9 +49,9 @@ export function links() {
   ];
 }
 
-// ✅ FIXED: Login state sync without customer data fetching
+// ✅ SIMPLIFIED: No Customer Account API - using Classic Accounts
 export async function loader({ context }: LoaderFunctionArgs) {
-  const { storefront, env, customerAccount, cart } = context;
+  const { storefront, env, cart } = context;
 
   // --- Critical data ---
   const [header, mobileMenuCollections] = await Promise.all([
@@ -75,32 +75,6 @@ export async function loader({ context }: LoaderFunctionArgs) {
       return null;
     });
 
-  // ✅ ENHANCED: Properly handle Shopify login redirects and sync state
-  let isLoggedIn = false;
-  
-  try {
-    // Check for Shopify login redirect parameter
-    const url = new URL((context.request as Request).url);
-    const loggedInParam = url.searchParams.get('logged_in');
-    
-    // Always sync auth status first (this is critical for login redirects)
-    await customerAccount.handleAuthStatus();
-    
-    // Then check login status
-    isLoggedIn = await customerAccount.isLoggedIn();
-
-    // If we have the logged_in parameter but still not logged in, force another sync
-    if (loggedInParam === 'true' && !isLoggedIn) {
-      await customerAccount.handleAuthStatus();
-      isLoggedIn = await customerAccount.isLoggedIn();
-    }
-    
-  } catch (error) {
-    // Gracefully handle any auth errors
-    console.error("❌ Auth status check failed:", error);
-    isLoggedIn = false;
-  }
-
   return {
     header,
     popularCollections: (mobileMenuCollections?.collections?.nodes || []) as any,
@@ -118,8 +92,6 @@ export async function loader({ context }: LoaderFunctionArgs) {
       language: storefront.i18n.language,
     },
     publicStoreDomain: env.PUBLIC_STORE_DOMAIN,
-    // ✅ Properly synced login status
-    isLoggedIn,
   };
 }
 

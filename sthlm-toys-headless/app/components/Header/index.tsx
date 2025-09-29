@@ -1,4 +1,4 @@
-// app/components/Header/index.tsx - Updated to pass shop data to HeaderBanner
+// app/components/Header/index.tsx - Simplified without isLoggedIn
 import {useState} from 'react';
 import {HeaderBanner} from './HeaderBanner';
 import {HeaderMain} from './HeaderMain';
@@ -9,7 +9,6 @@ import type {HeaderProps} from './types';
 export function Header({
   header,
   cart,
-  isLoggedIn,
   publicStoreDomain,
   popularCollections = [],
 }: HeaderProps) {
@@ -30,7 +29,6 @@ export function Header({
         <HeaderMain
           shop={header.shop}
           cart={cart}
-          isLoggedIn={isLoggedIn}
           onMobileMenuToggle={handleMobileMenuToggle}
         />
 
@@ -50,7 +48,6 @@ export function Header({
         isOpen={isMobileMenuOpen}
         onClose={handleMobileMenuClose}
         shop={header.shop}
-        isLoggedIn={isLoggedIn}
         popularCollections={popularCollections}
         menu={header.menu}
         primaryDomainUrl={header.shop.primaryDomain.url}

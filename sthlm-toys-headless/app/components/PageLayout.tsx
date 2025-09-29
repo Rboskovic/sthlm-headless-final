@@ -1,4 +1,4 @@
-// app/components/PageLayout.tsx - Enhanced with customer data for header dropdown + FIXED SearchAside
+// app/components/PageLayout.tsx - Simplified without isLoggedIn prop
 import {Await, Link, useRouteLoaderData} from 'react-router';
 import {Suspense, useId} from 'react';
 import type {CartApiQueryFragment} from 'storefrontapi.generated';
@@ -17,7 +17,6 @@ interface PageLayoutProps {
   cart: Promise<CartApiQueryFragment | null>;
   footer: Promise<any>;
   header: any;
-  isLoggedIn: boolean;
   publicStoreDomain: string;
   children?: React.ReactNode;
   popularCollections?: Collection[];
@@ -28,7 +27,6 @@ export function PageLayout({
   children = null,
   footer,
   header,
-  isLoggedIn,
   publicStoreDomain,
   popularCollections = [],
 }: PageLayoutProps) {
@@ -42,7 +40,6 @@ export function PageLayout({
         <Header
           header={header}
           cart={cart}
-          isLoggedIn={isLoggedIn}
           publicStoreDomain={publicStoreDomain}
           popularCollections={popularCollections}
         />
@@ -62,8 +59,8 @@ function CartAside({cart, popularCollections}: {
   popularCollections?: Collection[];
 }) {
   return (
-    <Aside type="cart" heading="KUNDVAGN">
-      <Suspense fallback={<p>Laddar kundvagn...</p>}>
+    <Aside type="cart" heading="CART">
+      <Suspense fallback={<p>Loading cart ...</p>}>
         <Await resolve={cart}>
           {(cart) => {
             return <CartMain cart={cart} layout="aside" popularCollections={popularCollections} />;
@@ -75,42 +72,34 @@ function CartAside({cart, popularCollections}: {
 }
 
 function SearchAside() {
-  // ✅ FIXED: Proper SearchAside implementation from working code
-  const queriesDatalistId = useId();
+  const id = useId();
   return (
-    <Aside type="search" heading="SÖK">
+    <Aside type="search" heading="SEARCH">
       <div className="predictive-search">
         <br />
         <SearchFormPredictive>
           {({fetchResults, goToSearch, inputRef}) => (
-            <>
+            <div>
               <input
                 name="q"
                 onChange={fetchResults}
                 onFocus={fetchResults}
-                placeholder="Sök"
+                placeholder="Search"
                 ref={inputRef}
                 type="search"
-                list={queriesDatalistId}
-                className="w-full p-2 border border-gray-300 rounded"
+                id={id}
               />
               &nbsp;
-              <button
-                onClick={goToSearch}
-                className="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-              >
-                Sök
-              </button>
-            </>
+              <button onClick={goToSearch}>Search</button>
+            </div>
           )}
         </SearchFormPredictive>
-
         <SearchResultsPredictive>
           {({items, total, term, state, closeSearch}) => {
             const {articles, collections, pages, products, queries} = items;
 
             if (state === 'loading' && term.current) {
-              return <div className="p-4 text-gray-600">Belastning...</div>;
+              return <div>Loading...</div>;
             }
 
             if (!total) {
@@ -118,10 +107,11 @@ function SearchAside() {
             }
 
             return (
-              <div className="space-y-4">
+              <>
                 <SearchResultsPredictive.Queries
                   queries={queries}
-                  queriesDatalistId={queriesDatalistId}
+                  closeSearch={closeSearch}
+                  term={term}
                 />
                 <SearchResultsPredictive.Products
                   products={products}
@@ -147,7 +137,6 @@ function SearchAside() {
                   <Link
                     onClick={closeSearch}
                     to={`${SEARCH_ENDPOINT}?q=${term.current}`}
-                    className="block p-2 text-blue-600 hover:text-blue-800"
                   >
                     <p>
                       View all results for <q>{term.current}</q>
@@ -155,7 +144,7 @@ function SearchAside() {
                     </p>
                   </Link>
                 ) : null}
-              </div>
+              </>
             );
           }}
         </SearchResultsPredictive>
