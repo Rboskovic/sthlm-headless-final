@@ -95,7 +95,7 @@ export function Footer({
 
               {/* Copyright */}
               <div className="text-white text-sm">
-                Klosslabbet.se drivs av STHLM Toys och Games AB, Org.nr 559517-5646, Filgränd 8, 13738 Västerhaninge
+                Klosslabbet.se drivs av STHLM Toys och Games AB, Org.nr 559517-5646, Momsreg.nr SE559517564601 Filgränd 8, 13738 Västerhaninge
               </div>
             </div>
           </div>
@@ -184,7 +184,7 @@ export function Footer({
               <FooterLogo shop={header.shop as any} />
             </div>
             <div className="text-white text-sm">
-              Klosslabbet.se drivs av STHLM Toys och Games AB, Org.nr 559517-5646, Filgränd 8, 13738 Västerhaninge
+              Klosslabbet.se drivs av STHLM Toys och Games AB, Org.nr 559517-5646, Momsreg.nr SE559517564601 Filgränd 8, 13738 Västerhaninge
             </div>
           </div>
         </div>
