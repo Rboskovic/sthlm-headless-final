@@ -4,9 +4,10 @@
 // ✅ FIXED: All TypeScript errors resolved
 // ✅ FIXED: React Hooks rules compliance
 // ✅ FIXED: Default Title URL parameters
+// ✅ UPDATED: Added campaign notice for discounted products
 
 import {redirect, type LoaderFunctionArgs} from '@shopify/remix-oxygen';
-import {useLoaderData, type MetaFunction, Await} from 'react-router';
+import {useLoaderData, type MetaFunction, Await, Link} from 'react-router';
 import {Suspense} from 'react';
 import {
   getSelectedProductOptions,
@@ -251,6 +252,9 @@ export default function Product() {
   // ✅ NEW: Parse shipping text into bullet points
   const shippingBulletPoints = parseShippingText(freeShippingText);
 
+  // ✅ NEW: Check if product has discount for campaign notice
+  const hasDiscount = selectedVariant?.compareAtPrice && 
+    parseFloat(selectedVariant.compareAtPrice.amount) > parseFloat(selectedVariant.price.amount);
 
   return (
     <div className="w-full bg-white min-h-screen">
@@ -360,6 +364,21 @@ export default function Product() {
                 </div>
               )}
             </div>
+
+            {/* ✅ NEW: Campaign Notice - Only shown for discounted products */}
+            {hasDiscount && (
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                <p className="text-sm text-amber-900">
+                  Erbjudandet gäller från 01.10.2025 till 01.11.2025.{' '}
+                  <Link 
+                    to="/pages/kampanj-villkor" 
+                    className="font-medium text-amber-900 underline hover:text-amber-700 transition-colors"
+                  >
+                    Se kampanjvillkor
+                  </Link>
+                </p>
+              </div>
+            )}
 
             {/* Why They'll Love It Section */}
             {whyTheyLoveItItems && whyTheyLoveItItems.length > 0 && (
