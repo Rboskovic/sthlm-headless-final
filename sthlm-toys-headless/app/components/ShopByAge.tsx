@@ -197,7 +197,6 @@ export function ShopByAge({brands}: ShopByBrandProps) {
 
   return (
     <section className="w-full bg-white">
-      {/* Container matching Smyths layout */}
       <div
         className="mx-auto relative"
         style={{

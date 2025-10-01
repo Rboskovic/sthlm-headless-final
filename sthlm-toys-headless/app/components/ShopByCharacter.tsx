@@ -155,7 +155,6 @@ export function ShopByCharacter({characters}: ShopByCharacterProps) {
 
   return (
     <section className="w-full bg-white">
-      {/* Container matching Smyths layout */}
       <div
         className="mx-auto relative"
         style={{

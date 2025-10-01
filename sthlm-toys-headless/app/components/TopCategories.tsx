@@ -22,7 +22,6 @@ interface CollectionFragment {
   }>;
 }
 
-// Category colors matching the Smyths theme
 const categoryColors: Record<string, string> = {
   'leksaker': '#FF6B6B',
   'pussel': '#4ECDC4', 
@@ -185,7 +184,6 @@ export function TopCategories({collections}: TopCategoriesProps) {
 
   return (
     <section className="w-full bg-white">
-      {/* Container matching Smyths layout */}
       <div
         className="mx-auto relative"
         style={{

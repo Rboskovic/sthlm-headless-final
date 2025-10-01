@@ -61,7 +61,6 @@ export function NewsletterSignup({isMobile = false}: NewsletterSignupProps) {
           .
         </p>
 
-        {/* Submit Button - Smyths Style */}
         <button
           type="submit"
           className="bg-white text-blue-600 font-bold py-3 px-8 rounded-full hover:bg-gray-100 transition-colors mt-3"
