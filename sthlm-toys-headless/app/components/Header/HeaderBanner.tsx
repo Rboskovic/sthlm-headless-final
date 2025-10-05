@@ -29,7 +29,7 @@ function getMetafieldValue(
 export function HeaderBanner({shop}: HeaderBannerProps) {
   // Get the banner text from metafield with fallback to current hardcoded text
   const bannerText = getMetafieldValue(shop?.metafields, 'free_shipping_banner') || 
-    'Fri frakt på beställningar över 1299 kr';
+    'Fri frakt till utlämningsställe över 1299 kr | Hemleverans 249 kr';
 
   return (
     <div className="w-full bg-gray-100 text-black border-b border-gray-200">

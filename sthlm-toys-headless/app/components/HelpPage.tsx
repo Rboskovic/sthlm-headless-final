@@ -40,7 +40,7 @@ const fallbackFAQs: FAQ[] = [
     id: 'faq-2',
     question: 'Vad ingår i gratis frakt?',
     answer:
-      'Vi erbjuder gratis frakt på alla beställningar över €20 inom Sverige. Leveranstiden är vanligtvis 2-5 arbetsdagar beroende på var du bor.',
+      'Vi erbjuder gratis frakt till utlämningsställe på beställningar över 1299 kr inom Sverige. Hemleverans kostar 249 kr. Leveranstiden är vanligtvis 2-5 arbetsdagar beroende på var du bor.',
   },
   {
     id: 'faq-3',
