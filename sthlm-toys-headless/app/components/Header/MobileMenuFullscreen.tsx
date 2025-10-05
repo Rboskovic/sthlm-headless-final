@@ -292,7 +292,7 @@ function MainMenuScreen({
         <AccountLink
           href="/pages/hjalp"
           icon={HelpCircle}
-          title="Hjälp & Support"
+          title="Hjälp & FAQS"
           onClose={onClose}
         />
       </div>

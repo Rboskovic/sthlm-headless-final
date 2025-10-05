@@ -138,7 +138,7 @@ export function HelpPage({helpPage, contactInfo}: HelpPageProps) {
               color: 'rgb(32, 34, 35)',
             }}
           >
-            {helpPage?.title || 'Hjälp & Support'}
+            {helpPage?.title || 'Hjälp & FAQ'}
           </h1>
 
           {helpPage?.body && (

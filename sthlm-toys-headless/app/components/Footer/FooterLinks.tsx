@@ -8,7 +8,7 @@ const FALLBACK_FOOTER_SECTIONS = [
     title: 'Support',
     links: [
       {id: 'about', title: 'Om oss', url: '/pages/om-oss'},
-      {id: 'help', title: 'Hjälp & Support', url: '/pages/hjalp'},
+      {id: 'help', title: 'Hjälp & FAQ', url: '/pages/hjalp'},
       {id: 'terms', title: 'Köpvillkor', url: '/pages/kopvillkor'},
       {id: 'returns', title: 'Returpolicy', url: '/pages/returpolicy'},
       {id: 'privacy', title: 'Integritetspolicy', url: '/pages/integritetspolicy'},
