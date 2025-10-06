@@ -29,7 +29,7 @@ export const meta: MetaFunction = () => {
     {title: 'Klosslabbet - Sveriges bästa LEGO-leksaksbutik'},
     {
       name: 'description', 
-      content: 'Handla LEGO och leksaker online hos Klosslabbet. Fri frakt till utlämningsställe över 1299 kr. Säkert köp och konkurrenskraftiga priser.'
+      content: 'Handla LEGO och leksaker online hos Klosslabbet. Fri frakt till ombud över 1299 kr. Säkert köp och konkurrenskraftiga priser.'
     },
     {
       tagName: 'link',
