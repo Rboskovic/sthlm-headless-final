@@ -26,6 +26,11 @@ export function Logo({shop, className = '', style = {}}: LogoProps) {
   const logoAlt = shop?.brand?.logo?.image?.altText || shop?.name || 'Klosslabbet';
   const shopName = shop?.name || 'Klosslabbet';
 
+  // Optimize logo URL with Shopify CDN parameters
+  const optimizedLogoUrl = logoUrl 
+    ? (logoUrl.includes('?') ? `${logoUrl}&width=288` : `${logoUrl}?width=288`)
+    : undefined;
+
   // Default styling that can be overridden
   const defaultStyle: React.CSSProperties = {
     height: '50px',
@@ -42,15 +47,16 @@ export function Logo({shop, className = '', style = {}}: LogoProps) {
       className={`flex items-center hover:opacity-90 transition-opacity ${className}`}
       aria-label={`Go to ${shopName} homepage`}
     >
-      {logoUrl ? (
+      {optimizedLogoUrl ? (
         <img
-          src={logoUrl}
+          src={optimizedLogoUrl}
           alt={logoAlt}
           style={defaultStyle}
-          loading="eager" // Logo should load immediately
+          loading="eager"
+          fetchpriority="high"
           onError={(e) => {
             // Fallback if logo fails to load
-            console.warn('Logo failed to load:', logoUrl);
+            console.warn('Logo failed to load:', optimizedLogoUrl);
             e.currentTarget.style.display = 'none';
             // Show fallback text logo
             const fallback = e.currentTarget.nextElementSibling as HTMLElement;
@@ -68,7 +74,7 @@ export function Logo({shop, className = '', style = {}}: LogoProps) {
           height: style.height || '50px',
           maxWidth: style.maxWidth || '200px',
           justifyContent: 'center',
-          display: logoUrl ? 'none' : 'flex',
+          display: optimizedLogoUrl ? 'none' : 'flex',
           ...style,
         }}
       >

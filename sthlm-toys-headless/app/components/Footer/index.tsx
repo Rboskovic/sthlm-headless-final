@@ -72,7 +72,7 @@ export function Footer({
                       (e.target as HTMLElement).style.color = 'white';
                     }}
                   >
-                    Ring oss: 0760-07 09 87
+                    Ring oss:+46760070987
                   </a>
                 </li>
               </ul>
@@ -159,7 +159,7 @@ export function Footer({
                         (e.target as HTMLElement).style.color = 'white';
                       }}
                     >
-                      Ring oss: 0760-07 09 87
+                      Ring oss:+46760070987
                     </a>
                   </li>
                 </ul>

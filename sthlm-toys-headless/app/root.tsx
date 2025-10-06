@@ -99,11 +99,59 @@ export function Layout({ children }: { children?: React.ReactNode }) {
   const nonce = useNonce();
   const data = useRouteLoaderData<RootLoader>("root");
 
+  // ✅ Organization Schema for Google Merchant Center compliance
+  const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Klosslabbet",
+    "legalName": "STHLM Toys och Games AB",
+    "url": "https://www.klosslabbet.se",
+    "logo": "https://cdn.shopify.com/s/files/1/0900/8811/2507/files/logo-klosslabbet.se2.png?v=1755724329",
+    "description": "Sveriges ledande leksaksbutik online - LEGO, pussel, spel och mer!",
+    "telephone": "+46760070987",
+    "email": "info@klosslabbet.se",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "Filgränd 8",
+      "addressLocality": "Västerhaninge",
+      "postalCode": "13738",
+      "addressCountry": "SE"
+    },
+    "vatID": "SE559517564601",
+    "taxID": "559517-5646",
+    "foundingDate": "2025",
+    "sameAs": [
+      "https://www.youtube.com/@klosslabbet",
+      "https://www.instagram.com/klosslabbet.se/",
+      "https://www.facebook.com/profile.php?id=61573161414339",
+      "http://www.tiktok.com/@klosslabbet"
+    ],
+    "contactPoint": [
+      {
+        "@type": "ContactPoint",
+        "telephone": "+46760070987",
+        "contactType": "customer service",
+        "email": "info@klosslabbet.se",
+        "availableLanguage": ["Swedish"],
+        "areaServed": "SE"
+      }
+    ]
+  };
+
   return (
     <html lang="sv">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width,initial-scale=1" />
+        
+        {/* ✅ CRITICAL: Organization Schema for Google Merchant Center */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(organizationSchema),
+          }}
+        />
+        
         <link rel="stylesheet" href={tailwindCss} />
         <link rel="stylesheet" href={resetStyles} />
         <link rel="stylesheet" href={appStyles} />

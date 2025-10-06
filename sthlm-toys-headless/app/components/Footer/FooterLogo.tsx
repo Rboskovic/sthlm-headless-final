@@ -12,13 +12,21 @@ interface Shop {
 }
 
 export function FooterLogo({shop}: {shop: Shop}) {
+  const logoUrl = shop?.brand?.logo?.image?.url;
+  
+  // Optimize footer logo URL with Shopify CDN parameters
+  const optimizedLogoUrl = logoUrl 
+    ? (logoUrl.includes('?') ? `${logoUrl}&width=144` : `${logoUrl}?width=144`)
+    : undefined;
+
   return (
     <Link to="/" className="flex items-center">
-      {shop?.brand?.logo?.image?.url ? (
+      {optimizedLogoUrl ? (
         <img
-          src={shop.brand.logo.image.url}
+          src={optimizedLogoUrl}
           alt={shop.name}
           className="h-12 w-auto"
+          loading="lazy"
         />
       ) : (
         <span className="text-white font-bold text-lg">
