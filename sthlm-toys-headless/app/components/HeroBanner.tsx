@@ -1,5 +1,5 @@
 // FILE: app/components/HeroBanner.tsx
-// ✅ LEGO-STYLE: Full-width background with constrained content
+// ✅ PERFORMANCE FIX: Converted CSS backgrounds to <img> tags for faster LCP
 
 import {ShopLinkButton} from '~/components/ui/ShopButton';
 
@@ -14,11 +14,6 @@ interface HeroBannerProps {
   textColor?: string;
 }
 
-/**
- * HeroBanner Component - LEGO Style
- * ✅ FIXED: Full-width background, constrained content
- * ✅ CONSISTENT: Same container width as other components
- */
 export function HeroBanner({
   title = 'Bygg, skapa & föreställ dig',
   subtitle = 'Upptäck oändliga möjligheter med vår fantastiska LEGO-kollektion',
@@ -29,27 +24,50 @@ export function HeroBanner({
   backgroundColor = '#FFD42B',
   textColor = '#1F2937',
 }: HeroBannerProps) {
+  // ✅ PERFORMANCE: Optimize image URLs with Shopify CDN
+  const getOptimizedImageUrl = (url: string, width: number): string => {
+    if (!url) return url;
+    return url.includes('?') 
+      ? url.split('?')[0] + `?width=${width}` 
+      : `${url}?width=${width}`;
+  };
+
+  const optimizedMobileImage = getOptimizedImageUrl(mobileBackgroundImage, 750);
+  const optimizedDesktopImage = getOptimizedImageUrl(backgroundImage, 1040);
+
   return (
     <div className="hero-banner">
-      {/* ✅ MOBILE: Full-width edge-to-edge background */}
+      {/* ✅ MOBILE: Optimized with <img> tag instead of CSS background */}
       <div
-        className="block lg:hidden relative"
+        className="block lg:hidden relative overflow-hidden"
         style={{
           aspectRatio: '375 / 244',
           backgroundColor: backgroundColor,
-          backgroundImage: mobileBackgroundImage
-            ? `url(${mobileBackgroundImage})`
-            : undefined,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          /* ✅ EDGE-TO-EDGE: Same technique as desktop */
           width: '100vw',
           marginLeft: '50%',
           transform: 'translateX(-50%)',
         }}
       >
-        {/* Mobile Text Overlay - Uses design system container */}
+        {/* Background Image - Proper <img> tag */}
+        {mobileBackgroundImage && (
+          <img
+            src={optimizedMobileImage}
+            alt=""
+            fetchPriority="high"
+            loading="eager"
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              objectPosition: 'center',
+            }}
+          />
+        )}
+
+        {/* Mobile Text Overlay */}
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="container text-center">
             <h1
@@ -71,7 +89,7 @@ export function HeroBanner({
         </div>
       </div>
 
-      {/* Mobile CTA Button - Uses container for consistency */}
+      {/* Mobile CTA Button */}
       <div
         className="block lg:hidden text-center py-4"
         style={{
@@ -87,8 +105,8 @@ export function HeroBanner({
             size="lg"
             className="rounded-full"
             style={{
-              backgroundColor: '#2563eb', /* Blue background */
-              color: 'white',              /* White text */
+              backgroundColor: '#2563eb',
+              color: 'white',
               border: 'none',
               fontSize: '16px',
               fontWeight: 600,
@@ -104,22 +122,20 @@ export function HeroBanner({
         </div>
       </div>
 
-      {/* ✅ DESKTOP: LEGO-style full-width background with constrained content */}
+      {/* ✅ DESKTOP: Optimized with <img> tag */}
       <div
         className="hidden lg:block relative w-full"
         style={{
           backgroundColor: backgroundColor,
           minHeight: '440px',
-          /* ✅ FULL-WIDTH: Background goes edge-to-edge */
           width: '100vw',
           marginLeft: '50%',
           transform: 'translateX(-50%)',
         }}
       >
-        {/* ✅ CONSTRAINED CONTENT: Uses design system container for consistency */}
         <div className="container flex items-center relative h-full" style={{ minHeight: '440px' }}>
           
-          {/* ✅ Left Content - Text and CTA */}
+          {/* Left Content - Text and CTA */}
           <div
             className="flex-1 z-10"
             style={{
@@ -129,7 +145,6 @@ export function HeroBanner({
               paddingRight: '32px',
             }}
           >
-            {/* Title - Matching LEGO typography */}
             <h1
               className="mb-4"
               style={{
@@ -145,7 +160,6 @@ export function HeroBanner({
               {title}
             </h1>
 
-            {/* Subtitle */}
             <p
               className="mb-8"
               style={{
@@ -161,7 +175,6 @@ export function HeroBanner({
               {subtitle}
             </p>
 
-            {/* CTA Button */}
             <ShopLinkButton
               to={buttonLink}
               variant="secondary"
@@ -187,7 +200,7 @@ export function HeroBanner({
             </ShopLinkButton>
           </div>
 
-          {/* ✅ Right Image - Properly contained */}
+          {/* Right Image - Proper <img> tag */}
           <div
             className="flex-1 flex justify-end items-center"
             style={{
@@ -197,15 +210,17 @@ export function HeroBanner({
             }}
           >
             {backgroundImage ? (
-              <div
+              <img
+                src={optimizedDesktopImage}
+                alt={title}
+                fetchPriority="high"
+                loading="eager"
                 style={{
                   width: '100%',
                   height: '380px',
                   maxWidth: '520px',
-                  backgroundImage: `url(${backgroundImage})`,
-                  backgroundSize: 'contain',
-                  backgroundPosition: 'center right',
-                  backgroundRepeat: 'no-repeat',
+                  objectFit: 'contain',
+                  objectPosition: 'center right',
                 }}
               />
             ) : (
