@@ -1,4 +1,6 @@
-// app/components/Header/MegaMenu.tsx - Clean Final Version
+// app/components/Header/MegaMenu.tsx
+// ✅ PERFORMANCE FIX: Optimized banner images
+
 import {Link} from 'react-router';
 import type {MegaMenuProps} from './types';
 
@@ -21,6 +23,14 @@ export function MegaMenu({
     return url;
   };
 
+  // ✅ PERFORMANCE: Optimize banner image URLs
+  const getOptimizedImageUrl = (url: string): string => {
+    if (!url) return url;
+    return url.includes('?') 
+      ? url.split('?')[0] + '?width=560'
+      : `${url}?width=560`;
+  };
+
   const activeMenuItem = activeMenu
     ? menu?.items?.find((item: any) => item.id === activeMenu)
     : null;
@@ -29,15 +39,12 @@ export function MegaMenu({
   const isGiftFinder = activeMenuItem?.title?.toLowerCase().includes('gift') ||
                       activeMenuItem?.title?.toLowerCase().includes('presentguide');
 
-  // Don't show mega menu for gift finder or if no active menu or no sub-items
   if (!activeMenuItem || !hasSubItems || isGiftFinder) {
     return null;
   }
 
-  // Show all Level 2 items (no limit)
   const level2Items = activeMenuItem.items || [];
 
-  // Real LEGO promotional banners
   const trendingBanners = [
     {
       id: 'duplo-characters',
@@ -49,7 +56,6 @@ export function MegaMenu({
 
   const displayBanners = trendingBanners.slice(0, 1);
 
-  // Group Level 2 items that have Level 3 children vs those that don't
   const sectionsWithChildren: { [key: string]: any[] } = {};
   const directItems: any[] = [];
 
@@ -62,7 +68,6 @@ export function MegaMenu({
     }
   });
 
-  // If we have no sections with children, treat all items as one section
   if (Object.keys(sectionsWithChildren).length === 0 && directItems.length > 0) {
     sectionsWithChildren[activeMenuItem.title] = directItems;
   }
@@ -70,12 +75,11 @@ export function MegaMenu({
   const sectionEntries = Object.entries(sectionsWithChildren);
   const numberOfSections = sectionEntries.length;
 
-  // Dynamic grid based on number of sections (max 4 content + 1 trending = 5 total)
   const getGridCols = (sections: number) => {
-    if (sections === 1) return 'grid-cols-2'; // 1 content + 1 trending
-    if (sections === 2) return 'grid-cols-3'; // 2 content + 1 trending  
-    if (sections === 3) return 'grid-cols-4'; // 3 content + 1 trending
-    return 'grid-cols-5'; // 4 content + 1 trending
+    if (sections === 1) return 'grid-cols-2';
+    if (sections === 2) return 'grid-cols-3';
+    if (sections === 3) return 'grid-cols-4';
+    return 'grid-cols-5';
   };
 
   return (
@@ -98,15 +102,12 @@ export function MegaMenu({
           minHeight: '320px',
         }}
       >
-        {/* Dynamic Grid Layout */}
         <div className={`grid ${getGridCols(numberOfSections)} gap-8`}>
           
-          {/* Content Sections */}
           {sectionEntries.map(([sectionTitle, sectionItems]) => (
             <div key={sectionTitle} className="flex flex-col space-y-8">
               <div className="flex flex-col">
                 
-                {/* Level 1 Header with Underline */}
                 <h3 
                   className="font-bold text-gray-900 mb-4 pb-2 border-b-2 border-blue-600"
                   style={{
@@ -121,7 +122,6 @@ export function MegaMenu({
                   {sectionTitle}
                 </h3>
 
-                {/* Level 2/3 Items List */}
                 <div className="flex flex-col space-y-2 mb-4">
                   {sectionItems.map((item: any) => (
                     <Link
@@ -141,7 +141,6 @@ export function MegaMenu({
                   ))}
                 </div>
 
-                {/* Shop Full Range Button */}
                 <Link
                   to={getUrl(
                     level2Items.find(item => item.title === sectionTitle)?.url || 
@@ -166,7 +165,6 @@ export function MegaMenu({
             </div>
           ))}
 
-          {/* Trending Column */}
           <div className="flex flex-col space-y-6">
             <h3 
               className="font-bold text-gray-900 mb-4 pb-2 border-b-2 border-blue-600"
@@ -182,7 +180,6 @@ export function MegaMenu({
               Trending
             </h3>
 
-            {/* LEGO Banner */}
             <div className="space-y-4">
               {displayBanners.map((banner) => (
                 <Link
@@ -200,9 +197,10 @@ export function MegaMenu({
                     }}
                   >
                     <img
-                      src={banner.image}
+                      src={getOptimizedImageUrl(banner.image)}
                       alt={banner.title}
                       className="w-full h-full object-contain"
+                      loading="lazy"
                       style={{
                         objectFit: 'contain',
                         objectPosition: 'center',

@@ -1,5 +1,5 @@
 // FILE: app/components/ProductItem.tsx
-// ✅ FIXED: Consistent card heights with centered, fully visible images
+// ✅ PERFORMANCE FIX: Optimized product images
 
 import {Link} from 'react-router';
 import {Image} from '@shopify/hydrogen';
@@ -85,6 +85,18 @@ export function ProductItem({
 
   const productUrl = `/products/${product.handle}`;
 
+  // ✅ PERFORMANCE: Optimize image URL
+  const getOptimizedImage = (img: any) => {
+    if (!img?.url) return img;
+    const optimizedUrl = img.url.includes('?') 
+      ? `${img.url.split('?')[0]}?width=560`
+      : `${img.url}?width=560`;
+    return {
+      ...img,
+      url: optimizedUrl
+    };
+  };
+
   return (
     <div className="h-full bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow duration-300 flex flex-col">
       {/* Image Container - FIXED HEIGHT with centered image */}
@@ -111,7 +123,7 @@ export function ProductItem({
         <Link to={productUrl} className="block w-full h-full flex items-center justify-center p-4">
           {image ? (
             <Image
-              data={image}
+              data={getOptimizedImage(image)}
               alt={image.altText || product.title}
               loading={loading}
               className="max-w-full max-h-full object-contain"
