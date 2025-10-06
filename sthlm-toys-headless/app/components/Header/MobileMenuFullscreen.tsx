@@ -1,5 +1,5 @@
 // FILE: app/components/Header/MobileMenuFullscreen.tsx
-// ✅ SIMPLIFIED: Always shows "Mitt Konto" - no auth logic needed
+// ✅ PERFORMANCE FIX: Optimized collection images (saves ~200 KiB)
 
 import {useState} from 'react';
 import {Link} from 'react-router';
@@ -18,7 +18,6 @@ import {WishlistsLink} from '../WishlistsLink';
 import type {Collection} from '@shopify/hydrogen/storefront-api-types';
 import type {Menu, MenuItem} from './types';
 
-// ✅ SHOPIFY URLs 
 const SHOP_ID = '90088112507';
 const SHOPIFY_ACCOUNT_URL = `https://shopify.com/${SHOP_ID}/account`;
 const SHOPIFY_ORDERS_URL = `https://shopify.com/${SHOP_ID}/account/orders`;
@@ -33,7 +32,6 @@ interface MobileMenuFullscreenProps {
   publicStoreDomain?: string;
 }
 
-// Navigation state types
 type NavigationLevel = 'main' | 'level2' | 'level3';
 
 interface NavigationState {
@@ -59,7 +57,6 @@ export function MobileMenuFullscreen({
     breadcrumb: [],
   });
 
-  // Reset navigation state when menu closes
   const handleClose = () => {
     setNavigationState({
       level: 'main',
@@ -82,7 +79,6 @@ export function MobileMenuFullscreen({
     return url;
   };
 
-  // Navigation handlers
   const navigateToLevel2 = (item: MenuItem) => {
     setNavigationState({
       level: 'level2',
@@ -123,22 +119,17 @@ export function MobileMenuFullscreen({
 
   return (
     <div className="mobile-menu-fullscreen fixed inset-0 z-[60] lg:hidden">
-      {/* Backdrop */}
       <div
         className="fixed inset-0 bg-black bg-opacity-50 transition-opacity duration-300"
         onClick={handleClose}
         style={{ touchAction: 'none' }}
       />
 
-      {/* Full-screen menu with slide animation */}
       <div className="fixed inset-0 bg-white transform transition-transform duration-300 ease-in-out overflow-hidden">
         
-        {/* Brand Header - Centered Logo */}
         <div className="mobile-brand-header">
-          {/* Left spacer to balance the close button */}
           <div style={{ width: '48px' }}></div>
           
-          {/* Centered Logo */}
           <div style={{ 
             flex: 1, 
             display: 'flex', 
@@ -154,7 +145,6 @@ export function MobileMenuFullscreen({
             />
           </div>
           
-          {/* Close button */}
           <button
             onClick={handleClose}
             className="p-2 text-gray-600 hover:text-gray-900 transition-colors"
@@ -165,11 +155,9 @@ export function MobileMenuFullscreen({
           </button>
         </div>
 
-        {/* Navigation Screens Container */}
         <div className="mobile-nav-container">
           <div className="relative h-full overflow-hidden bg-white">
             
-            {/* Main Menu Screen */}
             <div
               className={`mobile-nav-screen ${
                 navigationState.level === 'main' ? 'translate-x-0' : '-translate-x-full'
@@ -184,7 +172,6 @@ export function MobileMenuFullscreen({
               />
             </div>
 
-            {/* Level 2 Screen */}
             <div
               className={`mobile-nav-screen ${
                 navigationState.level === 'level2' ? 'translate-x-0' : 'translate-x-full'
@@ -199,7 +186,6 @@ export function MobileMenuFullscreen({
               />
             </div>
 
-            {/* Level 3 Screen */}
             <div
               className={`mobile-nav-screen ${
                 navigationState.level === 'level3' ? 'translate-x-0' : 'translate-x-full'
@@ -220,7 +206,6 @@ export function MobileMenuFullscreen({
   );
 }
 
-// Main Menu Screen Component
 function MainMenuScreen({
   menu,
   onClose,
@@ -244,7 +229,6 @@ function MainMenuScreen({
         position: 'relative'
       }}
     >
-      {/* Dynamic Main Navigation */}
       <DynamicMainNavigation
         menu={menu}
         onNavigateToLevel2={onNavigateToLevel2}
@@ -252,15 +236,12 @@ function MainMenuScreen({
         onClose={onClose}
       />
 
-      {/* Popular Categories section */}
       <div className="bg-gray-50 px-4 py-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Populära LEGO® set</h3>
         <PopularGrid collections={popularCollections} onClose={onClose} />
       </div>
 
-      {/* Account Links - Simple, always shows "Mitt Konto" */}
       <div className="border-t border-gray-200 bg-white">
-        {/* Always shows "Mitt Konto" - Shopify handles login/account logic */}
         <a
           href={SHOPIFY_ACCOUNT_URL}
           onClick={onClose}
@@ -300,7 +281,6 @@ function MainMenuScreen({
   );
 }
 
-// Level 2 Drill-Down Screen
 function Level2Screen({
   currentItem,
   onBack,
@@ -320,7 +300,6 @@ function Level2Screen({
 
   return (
     <div className="mobile-screen-content">
-      {/* NAVIGATION LEVEL HEADER */}
       <div className="mobile-nav-level-header">
         <button
           onClick={onBack}
@@ -339,7 +318,6 @@ function Level2Screen({
         </Link>
       </div>
 
-      {/* Level 2 Navigation Items */}
       <div className="bg-white">
         {level2Items.map((item) => {
           const hasSubItems = item.items && item.items.length > 0;
@@ -371,7 +349,6 @@ function Level2Screen({
   );
 }
 
-// Level 3 Drill-Down Screen
 function Level3Screen({
   currentItem,
   onBack,
@@ -389,7 +366,6 @@ function Level3Screen({
 
   return (
     <div className="mobile-screen-content">
-      {/* NAVIGATION LEVEL HEADER */}
       <div className="mobile-nav-level-header">
         <button
           onClick={onBack}
@@ -408,7 +384,6 @@ function Level3Screen({
         </Link>
       </div>
 
-      {/* Level 3 Navigation Items - All direct links */}
       <div className="bg-white">
         {level3Items.map((item) => (
           <div key={item.id} className="mobile-nav-item">
@@ -426,7 +401,6 @@ function Level3Screen({
   );
 }
 
-// Dynamic Main Navigation
 function DynamicMainNavigation({
   menu,
   onNavigateToLevel2,
@@ -466,7 +440,6 @@ function DynamicMainNavigation({
   );
 }
 
-// PopularGrid component
 function PopularGrid({
   collections,
   onClose,
@@ -492,6 +465,15 @@ function PopularGrid({
       normalizedValue === '1' ||
       normalizedValue === 'yes'
     );
+  };
+
+  // ✅ PERFORMANCE FIX: Optimize image URL with Shopify CDN
+  const getOptimizedImageUrl = (url: string | undefined): string | undefined => {
+    if (!url) return undefined;
+    // Display: 140px max, 2x retina = 280px needed
+    return url.includes('?') 
+      ? `${url}&width=280` 
+      : `${url}?width=280`;
   };
 
   const featuredCollections =
@@ -529,7 +511,8 @@ function PopularGrid({
           'mobile_menu_image'
         ) : null;
         
-        const imageUrl = customImageUrl || item.image?.url;
+        const rawImageUrl = customImageUrl || item.image?.url;
+        const optimizedImageUrl = getOptimizedImageUrl(rawImageUrl);
 
         return (
           <Link
@@ -539,13 +522,13 @@ function PopularGrid({
             className="flex flex-col items-center text-center"
           >
             <div className="w-full aspect-[3/2] flex items-center justify-center overflow-hidden mb-1 bg-gray-50 rounded-lg max-w-[140px] mx-auto">
-              {imageUrl ? (
+              {optimizedImageUrl ? (
                 <Image
                   data={{
-                    url: imageUrl,
+                    url: optimizedImageUrl,
                     altText: item.title,
-                    width: 160,
-                    height: 107,
+                    width: 280,
+                    height: 187,
                   }}
                   sizes="(max-width: 380px) 110px, (max-width: 500px) 130px, 140px"
                   className="w-full h-full object-contain rounded-lg"
@@ -565,7 +548,6 @@ function PopularGrid({
   );
 }
 
-// Helper for account links
 function AccountLink({
   href,
   icon: Icon,

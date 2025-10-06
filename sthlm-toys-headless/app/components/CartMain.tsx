@@ -1,5 +1,5 @@
 // FILE: app/components/CartMain.tsx
-// ✅ FIXED: Proper scrolling with height constraints
+// ✅ PERFORMANCE FIX: Optimized collection images in empty cart
 
 import {useOptimisticCart} from '@shopify/hydrogen';
 import {Link} from 'react-router';
@@ -19,13 +19,7 @@ export type CartMainProps = {
   popularCollections?: Collection[];
 };
 
-/**
- * Huvudkomponenten för kundvagnen som visar kundvagnens artiklar och sammanfattning.
- * Används av både /cart-rutten och kundvagnens aside-dialog.
- */
 export function CartMain({layout, cart: originalCart, popularCollections}: CartMainProps) {
-  // useOptimisticCart-hooken tillämpar väntande åtgärder på kundvagnen
-  // så att användaren omedelbart ser feedback när de modifierar kundvagnen.
   const cart = useOptimisticCart(originalCart);
 
   const linesCount = Boolean(cart?.lines?.nodes?.length || 0);
@@ -38,18 +32,16 @@ export function CartMain({layout, cart: originalCart, popularCollections}: CartM
       ) : (
         <>
           {layout === 'aside' ? (
-            // ✅ FIXED: Proper scrollable layout with height constraints
             <>
-              {/* ✅ FIXED: Products area with maximum height to force scrolling */}
               <div 
                 className="overflow-y-auto"
                 style={{
-                  maxHeight: 'calc(100vh - 180px)', // Force height limit
+                  maxHeight: 'calc(100vh - 180px)',
                   scrollbarWidth: 'thin',
                   scrollbarColor: '#9CA3AF #F3F4F6'
                 }}
               >
-                <div className="px-4 py-2 pb-32"> {/* ✅ FIXED: Added pb-20 for checkout area clearance */}
+                <div className="px-4 py-2 pb-32">
                   <div className="space-y-0">
                     {(cart?.lines?.nodes ?? []).map((line, index) => (
                       <CartLineItem
@@ -62,16 +54,13 @@ export function CartMain({layout, cart: originalCart, popularCollections}: CartM
                 </div>
               </div>
 
-              {/* ✅ FIXED: Checkout area ALWAYS fixed at bottom */}
               <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-4 shadow-lg z-50">
                 <CartSummary cart={cart} layout={layout} />
               </div>
             </>
           ) : (
-            // Page layout - no changes needed
             <div className="lg:grid lg:grid-cols-12 lg:gap-x-12 lg:items-start">
               <section className="lg:col-span-7">
-                {/* Kundvagnshuvud */}
                 <div className="mb-6">
                   <h2 className="text-2xl font-bold text-gray-900">
                     Din kundvagn ({cart?.totalQuantity || 0})
@@ -81,7 +70,6 @@ export function CartMain({layout, cart: originalCart, popularCollections}: CartM
                   </p>
                 </div>
 
-                {/* Kundvagnens artikellista */}
                 <div className="space-y-6">
                   {(cart?.lines?.nodes ?? []).map((line, index) => (
                     <CartLineItem
@@ -93,7 +81,6 @@ export function CartMain({layout, cart: originalCart, popularCollections}: CartM
                 </div>
               </section>
 
-              {/* Kundvagnssammanfattning - Sidopanel */}
               <section className="lg:col-span-5 mt-10 lg:mt-0">
                 <div className="bg-gray-50 rounded-lg p-6 sticky top-8">
                   <CartSummary cart={cart} layout={layout} />
@@ -112,33 +99,30 @@ function CartEmpty({layout, popularCollections}: {layout: CartLayout; popularCol
 
   return (
     <div className="h-full flex flex-col">
-      {/* ✅ OPTIMIZED: Smaller icon but proper padding */}
-      <div className="flex flex-col items-center text-center pt-8 pb-6 px-6 flex-shrink-0">
+      <div className="flex flex-col items-center text-center pt-6 pb-4 px-4 flex-shrink-0">
         <ShoppingBag 
           size={48} 
-          className="text-gray-300 mb-4" 
+          className="text-gray-300 mb-3 hidden min-[375px]:block" 
         />
         <h3 className="text-base font-medium text-gray-900 mb-2">
           Din kundvagn är tom
         </h3>
-        <p className="text-gray-600 max-w-sm mb-6 text-sm">
+        <p className="text-gray-600 max-w-sm mb-4 text-sm">
           Du har inte lagt till några varor i din varukorg än. Börja handla för att fylla den!
         </p>
 
-        {/* Continue Shopping Button - Original padding */}
         <Link
           to="/collections/lego"
           onClick={layout === 'aside' ? close : undefined}
-          className="inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-8 rounded-xl mt-4 mb-0 transition-colors"
+          className="inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-xl transition-colors"
           style={{ color: 'white' }}
         >
           Fortsätt handla
         </Link>
       </div>
 
-      {/* ✅ RESTORED: Original popular categories section size */}
-      <div className="px-6 pb-6 flex-1">
-        <div className="mb-4">
+      <div className="px-4 pb-6 flex-1">
+        <div className="mb-3">
           <h4 className="text-sm font-medium text-gray-900 text-center">Populära</h4>
         </div>
         
@@ -151,9 +135,6 @@ function CartEmpty({layout, popularCollections}: {layout: CartLayout; popularCol
   );
 }
 
-/**
- * Popular Categories Grid Component
- */
 function PopularCategoriesGrid({
   collections,
   onClose,
@@ -161,7 +142,6 @@ function PopularCategoriesGrid({
   collections?: Collection[];
   onClose?: () => void;
 }) {
-  // Helper functions from mobile menu
   const getMetafieldValue = (
     metafields: Array<{key: string; value: string; namespace: string} | null> | null | undefined,
     key: string
@@ -182,7 +162,15 @@ function PopularCategoriesGrid({
     );
   };
 
-  // Get featured collections from metafields
+  // ✅ PERFORMANCE FIX: Optimize image URLs
+  const getOptimizedImageUrl = (url: string | undefined): string | undefined => {
+    if (!url) return undefined;
+    // Display: 80px (5rem), 2x retina = 160px needed
+    return url.includes('?') 
+      ? `${url}&width=160` 
+      : `${url}?width=160`;
+  };
+
   const featuredCollections =
     collections
       ?.filter((collection) => {
@@ -194,7 +182,6 @@ function PopularCategoriesGrid({
       })
       ?.slice(0, 9) || [];
 
-  // Fallback items
   const fallbackItems = [
     {id: 'deals', title: 'Erbjudanden', image: null, handle: 'deals'},
     {id: 'new', title: 'Nytt & Populärt', image: null, handle: 'new'},
@@ -211,35 +198,36 @@ function PopularCategoriesGrid({
     featuredCollections.length > 0 ? featuredCollections : fallbackItems;
 
   return (
-    <div className="mobile-menu-popular-grid">
+    <div className="grid grid-cols-3 gap-2 sm:gap-3">
       {displayItems.map((item) => {
         const customImageUrl = 'metafields' in item ? getMetafieldValue(
           item.metafields,
           'mobile_menu_image'
         ) : null;
         
-        const imageUrl = customImageUrl || item.image?.url;
+        const rawImageUrl = customImageUrl || item.image?.url;
+        const optimizedImageUrl = getOptimizedImageUrl(rawImageUrl);
 
         return (
           <Link
             key={item.id}
             to={`/collections/${item.handle}`}
             onClick={onClose}
-            className="mobile-menu-popular-item"
+            className="flex flex-col items-center text-center"
           >
             <div
-              className="w-20 h-20 bg-gray-200 rounded-xl flex items-center justify-center overflow-hidden mb-2"
+              className="w-full aspect-square bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden mb-1.5"
               style={{
-                width: '5rem',
-                height: '5rem',
-                backgroundColor: imageUrl ? 'transparent' : '#f3f4f6',
+                maxWidth: '5rem',
+                backgroundColor: optimizedImageUrl ? 'transparent' : '#f3f4f6',
               }}
             >
-              {imageUrl ? (
+              {optimizedImageUrl ? (
                 <img
-                  src={imageUrl}
+                  src={optimizedImageUrl}
                   alt={item.title}
                   className="w-full h-full object-cover"
+                  loading="lazy"
                 />
               ) : (
                 <span className="text-gray-500 font-medium text-xs text-center px-1 leading-tight">
