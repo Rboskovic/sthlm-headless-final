@@ -1,4 +1,5 @@
 // app/root.tsx - Simplified version for Classic Customer Accounts
+// ✅ PERFORMANCE OPTIMIZED: CSS loading strategy improved for better LCP/FCP
 import { Analytics, getShopAnalytics, useNonce } from "@shopify/hydrogen";
 import { type LoaderFunctionArgs } from "@shopify/remix-oxygen";
 import {
@@ -39,12 +40,24 @@ export const shouldRevalidate: ShouldRevalidateFunction = ({
   return false;
 };
 
+// ✅ OPTIMIZED: Proper CSS loading order with preload hints
 export function links() {
   return [
-    { rel: "preconnect", href: "https://cdn.shopify.com" },
+    // Preconnect to CDN domains first (highest priority)
+    { rel: "preconnect", href: "https://cdn.shopify.com", crossOrigin: "anonymous" },
     { rel: "preconnect", href: "https://shop.app" },
     { rel: "dns-prefetch", href: "https://monorail-edge.shopifysvc.com" },
+    
+    // Favicon
     { rel: "icon", type: "image/svg+xml", href: favicon },
+    
+    // ✅ CRITICAL CSS: Load in optimal order with preload hints
+    // Order matters: reset → tailwind → app → design-system
+    { rel: "preload", href: resetStyles, as: "style" },
+    { rel: "preload", href: tailwindCss, as: "style" },
+    { rel: "stylesheet", href: resetStyles },
+    { rel: "stylesheet", href: tailwindCss },
+    { rel: "stylesheet", href: appStyles },
     { rel: "stylesheet", href: designSystemStyles },
   ];
 }
@@ -152,9 +165,7 @@ export function Layout({ children }: { children?: React.ReactNode }) {
           }}
         />
         
-        <link rel="stylesheet" href={tailwindCss} />
-        <link rel="stylesheet" href={resetStyles} />
-        <link rel="stylesheet" href={appStyles} />
+        {/* ✅ REMOVED: CSS links now handled by links() function above */}
         <Meta />
         <Links />
       </head>
