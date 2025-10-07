@@ -178,7 +178,7 @@ export default function Cart() {
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-1">Nöjd kund-garanti</h3>
               <p className="text-gray-600 text-sm">
-                30 dagar öppet köp på alla produkter
+                14 dagar öppet köp på alla produkter
               </p>
             </div>
           </div>

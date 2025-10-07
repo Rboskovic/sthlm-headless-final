@@ -66,7 +66,7 @@ export function CartMain({layout, cart: originalCart, popularCollections}: CartM
                     Din kundvagn ({cart?.totalQuantity || 0})
                   </h2>
                   <p className="text-sm text-gray-600 mt-1">
-                    Fri upphämtning över 1299 kr
+                    Fri frakt till ombud över 1299 kr
                   </p>
                 </div>
 

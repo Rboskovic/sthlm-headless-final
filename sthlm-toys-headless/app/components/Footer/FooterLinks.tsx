@@ -9,10 +9,13 @@ const FALLBACK_FOOTER_SECTIONS = [
     links: [
       {id: 'about', title: 'Om oss', url: '/pages/om-oss'},
       {id: 'help', title: 'Hjälp & FAQ', url: '/pages/hjalp'},
+      {id: 'help', title: 'Kontakta oss', url: '/pages/kontakta-oss'},
       {id: 'terms', title: 'Köpvillkor', url: '/pages/kopvillkor'},
-      {id: 'returns', title: 'Returpolicy', url: '/pages/returpolicy'},
+      {id: 'help', title: 'Leveranspolicy', url: '/pages/leveranspolicy'},
+      {id: 'returns', title: 'Retur och återbetalningspolicy', url: '/pages/returpolicy'},
       {id: 'privacy', title: 'Integritetspolicy', url: '/pages/integritetspolicy'},
       {id: 'cookies', title: 'Cookies', url: '/pages/cookies'},
+      {id: 'cookies', title: 'Rättsligt meddelande', url: '/pages/rattsligt-meddelande'},
     ],
   },
   {
