@@ -1,5 +1,5 @@
 // FILE: app/components/HeroBanner.tsx
-// ✅ PERFORMANCE FIX: Converted CSS backgrounds to <img> tags for faster LCP
+// ✅ PERFORMANCE OPTIMIZED: Responsive images with srcset for proper image delivery
 
 import {ShopLinkButton} from '~/components/ui/ShopButton';
 
@@ -24,7 +24,7 @@ export function HeroBanner({
   backgroundColor = '#FFD42B',
   textColor = '#1F2937',
 }: HeroBannerProps) {
-  // ✅ PERFORMANCE: Optimize image URLs with Shopify CDN
+  // ✅ PERFORMANCE: Generate responsive image URLs
   const getOptimizedImageUrl = (url: string, width: number): string => {
     if (!url) return url;
     return url.includes('?') 
@@ -32,12 +32,25 @@ export function HeroBanner({
       : `${url}?width=${width}`;
   };
 
-  const optimizedMobileImage = getOptimizedImageUrl(mobileBackgroundImage, 750);
-  const optimizedDesktopImage = getOptimizedImageUrl(backgroundImage, 1040);
+  // ✅ RESPONSIVE: Generate srcset for mobile (multiple sizes)
+  const mobileImageBase = mobileBackgroundImage.split('?')[0];
+  const mobileSrcSet = [
+    `${mobileImageBase}?width=375 375w`,
+    `${mobileImageBase}?width=425 425w`,
+    `${mobileImageBase}?width=640 640w`,
+  ].join(', ');
+
+  // ✅ RESPONSIVE: Generate srcset for desktop (multiple sizes)
+  const desktopImageBase = backgroundImage.split('?')[0];
+  const desktopSrcSet = [
+    `${desktopImageBase}?width=520 520w`,
+    `${desktopImageBase}?width=640 640w`,
+    `${desktopImageBase}?width=768 768w`,
+  ].join(', ');
 
   return (
     <div className="hero-banner">
-      {/* ✅ MOBILE: Optimized with <img> tag instead of CSS background */}
+      {/* ✅ MOBILE: Responsive image with srcset */}
       <div
         className="block lg:hidden relative overflow-hidden"
         style={{
@@ -48,10 +61,12 @@ export function HeroBanner({
           transform: 'translateX(-50%)',
         }}
       >
-        {/* Background Image - Proper <img> tag */}
+        {/* Background Image - Responsive with srcset */}
         {mobileBackgroundImage && (
           <img
-            src={optimizedMobileImage}
+            src={getOptimizedImageUrl(mobileBackgroundImage, 425)}
+            srcSet={mobileSrcSet}
+            sizes="100vw"
             alt=""
             fetchPriority="high"
             loading="eager"
@@ -122,7 +137,7 @@ export function HeroBanner({
         </div>
       </div>
 
-      {/* ✅ DESKTOP: Optimized with <img> tag */}
+      {/* ✅ DESKTOP: Responsive image with srcset */}
       <div
         className="hidden lg:block relative w-full"
         style={{
@@ -200,7 +215,7 @@ export function HeroBanner({
             </ShopLinkButton>
           </div>
 
-          {/* Right Image - Proper <img> tag */}
+          {/* Right Image - Responsive with srcset */}
           <div
             className="flex-1 flex justify-end items-center"
             style={{
@@ -211,7 +226,9 @@ export function HeroBanner({
           >
             {backgroundImage ? (
               <img
-                src={optimizedDesktopImage}
+                src={getOptimizedImageUrl(backgroundImage, 640)}
+                srcSet={desktopSrcSet}
+                sizes="(min-width: 1024px) 520px, 100vw"
                 alt={title}
                 fetchPriority="high"
                 loading="eager"
