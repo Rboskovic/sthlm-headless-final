@@ -1,5 +1,4 @@
 import {Link} from 'react-router';
-import {Image} from '@shopify/hydrogen';
 import {useState, useRef} from 'react';
 
 // ✅ TYPESCRIPT FIX: Local interface matching the structure we need
@@ -24,7 +23,7 @@ interface DiscountCollection {
 
 interface ShopByDiscountProps {
   variant?: 'homepage' | 'collection';
-  discounts?: any[] | null; // Accept any array to avoid type conflicts
+  discounts?: any[] | null;
 }
 
 // ✅ TYPESCRIPT FIX: Local interface for price ranges with color
@@ -50,12 +49,12 @@ interface PriceRangeWithColor {
 
 // Price range color mapping for fallbacks
 const priceColors: Record<string, string> = {
-  'under-100': '#4CAF50',    // Green for affordable
-  'under-250': '#2196F3',    // Blue for mid-range
-  'under-500': '#FF9800',    // Orange for higher
-  'under-1000': '#9C27B0',   // Purple for premium
-  'over-1000': '#607D8B',    // Gray for luxury
-  'best-value': '#F44336',   // Red for best value
+  'under-100': '#4CAF50',
+  'under-250': '#2196F3',
+  'under-500': '#FF9800',
+  'under-1000': '#9C27B0',
+  'over-1000': '#607D8B',
+  'best-value': '#F44336',
 };
 
 // ✅ TYPESCRIPT FIX: Fallback price ranges with proper typing
@@ -104,42 +103,52 @@ const fallbackPriceRanges: PriceRangeWithColor[] = [
   },
 ];
 
+// ✅ PERFORMANCE: Helper functions for responsive images
+const getOptimizedImageUrl = (url: string, width: number): string => {
+  if (!url) return url;
+  return url.includes('?') 
+    ? url.split('?')[0] + `?width=${width}` 
+    : `${url}?width=${width}`;
+};
+
+const generateSrcSet = (url: string, displaySize: number): string => {
+  if (!url) return '';
+  const baseUrl = url.split('?')[0];
+  return [
+    `${baseUrl}?width=${displaySize} ${displaySize}w`,
+    `${baseUrl}?width=${displaySize * 2} ${displaySize * 2}w`,
+  ].join(', ');
+};
+
 export function ShopByDiscount({
   discounts,
   variant = 'homepage',
 }: ShopByDiscountProps) {
   const mobileScrollRef = useRef<HTMLDivElement>(null);
   
-  // ✅ IMPROVED: Better drag detection with threshold
   const [isDragging, setIsDragging] = useState(false);
   const [hasActuallyDragged, setHasActuallyDragged] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
   
-  // Drag threshold in pixels - only disable pointer events after this distance
   const DRAG_THRESHOLD = 10;
 
-  // ✅ TYPESCRIPT FIX: Helper function for metafield extraction
   const getMetafieldValue = (metafields: any[] | undefined, key: string): string | null => {
     if (!metafields || !Array.isArray(metafields)) return null;
     
-    // Handle both Shopify's metafield structure and our local structure
     const metafield = metafields.find((field: any) => {
       if (!field) return false;
       
-      // Check if it's a Shopify metafield with nested structure
       if (field.key && field.value && field.namespace) {
         return field.key === key && (field.namespace === 'custom' || field.namespace === 'app');
       }
       
-      // Check if it's our simplified structure
       return field.key === key;
-    }) as any; // Explicit any cast to avoid TypeScript confusion
+    }) as any;
     
     return metafield && metafield.value ? metafield.value : null;
   };
 
-  // Helper function to check if a value represents "true"
   const isTrueValue = (value: string | null): boolean => {
     if (!value) return false;
     const normalizedValue = value.toLowerCase().trim();
@@ -150,7 +159,6 @@ export function ShopByDiscount({
     );
   };
 
-  // ✅ TYPESCRIPT FIX: Safe conversion from any input to our local type
   const convertToDiscountCollection = (item: any): DiscountCollection => {
     return {
       id: item.id || '',
@@ -167,20 +175,17 @@ export function ShopByDiscount({
     };
   };
 
-  // Filter featured price ranges from Shopify data
   const featuredPriceRanges =
     discounts && discounts.length > 0
       ? discounts
-          .map(convertToDiscountCollection) // Convert to our safe type
+          .map(convertToDiscountCollection)
           .filter((discount) => {
-            // Check all possible metafield variations
             const featuredValue =
               getMetafieldValue(discount.metafields, 'featured-discount') ||
               getMetafieldValue(discount.metafields, 'featured_discount');
             const isFeatured = isTrueValue(featuredValue);
             
-            // DEBUG: Log each collection for troubleshooting (can be disabled)
-            const DEBUG_LOGS = false; // Set to false to disable logs
+            const DEBUG_LOGS = false;
             if (DEBUG_LOGS) {
               console.log(`💰 Price Collection: ${discount.title}`, {
                 metafields: discount.metafields,
@@ -193,20 +198,17 @@ export function ShopByDiscount({
             return isFeatured;
           })
           .sort((a, b) => {
-            // Sort by sort_order metafield, then alphabetically as fallback
             const sortOrderA = parseInt(getMetafieldValue(a.metafields, 'sort_order') || '999');
             const sortOrderB = parseInt(getMetafieldValue(b.metafields, 'sort_order') || '999');
             
             if (sortOrderA !== sortOrderB) {
-              return sortOrderA - sortOrderB; // Numeric sort
+              return sortOrderA - sortOrderB;
             }
             
-            // Fallback to alphabetical if no sort_order
             return a.title.localeCompare(b.title);
           })
       : [];
 
-  // ✅ TYPESCRIPT FIX: Convert to PriceRangeWithColor safely
   const displayPriceRanges: PriceRangeWithColor[] =
     featuredPriceRanges.length > 0 
       ? featuredPriceRanges.map((range): PriceRangeWithColor => ({
@@ -219,10 +221,8 @@ export function ShopByDiscount({
         }))
       : fallbackPriceRanges;
 
-  // Desktop: Show only first 6 price ranges (no scrolling/pagination)
   const visiblePriceRanges = displayPriceRanges.slice(0, 6);
 
-  // ✅ IMPROVED: Better mouse drag handlers with threshold
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!mobileScrollRef.current) return;
     setIsDragging(true);
@@ -238,10 +238,9 @@ export function ShopByDiscount({
     const x = e.pageX - mobileScrollRef.current.offsetLeft;
     const dragDistance = Math.abs(x - startX);
 
-    // Only set hasActuallyDragged after threshold is exceeded
     if (dragDistance > DRAG_THRESHOLD) {
       setHasActuallyDragged(true);
-      const walk = (x - startX) * 2; // Scroll speed multiplier
+      const walk = (x - startX) * 2;
       mobileScrollRef.current.scrollLeft = scrollLeft - walk;
     }
   };
@@ -253,7 +252,6 @@ export function ShopByDiscount({
 
   return (
     <section className="w-full bg-white">
-      {/* Container matching other sections */}
       <div
         className="mx-auto relative"
         style={{
@@ -268,7 +266,6 @@ export function ShopByDiscount({
       >
         {/* Desktop Layout */}
         <div className="hidden md:block">
-          {/* ✅ ADDED: Desktop Header with centered title and right-aligned Shop All link (same as TopCategories) */}
           <div className="flex items-center justify-between mb-8">
             <div className="flex-1"></div>
             <div className="flex-1 flex justify-center">
@@ -323,10 +320,12 @@ export function ShopByDiscount({
                   }}
                 >
                   {priceRange.image?.url ? (
-                    <Image
-                      data={priceRange.image}
-                      className="w-full h-full object-cover"
+                    <img
+                      src={getOptimizedImageUrl(priceRange.image.url, 192)}
+                      srcSet={generateSrcSet(priceRange.image.url, 192)}
                       sizes="192px"
+                      alt={priceRange.image.altText || priceRange.title}
+                      className="w-full h-full object-cover"
                       loading="lazy"
                     />
                   ) : (
@@ -366,7 +365,6 @@ export function ShopByDiscount({
 
         {/* Mobile Layout */}
         <div className="block md:hidden">
-          {/* Mobile Header - Only show on homepage */}
           {variant === 'homepage' && (
             <div className="text-center mb-6">
               <h2
@@ -384,7 +382,6 @@ export function ShopByDiscount({
             </div>
           )}
 
-          {/* Mobile Scrollable Container */}
           <div
             ref={mobileScrollRef}
             className="flex gap-4 overflow-x-auto scrollbar-hide"
@@ -416,7 +413,6 @@ export function ShopByDiscount({
                 className="group block flex-shrink-0"
                 style={{
                   scrollSnapAlign: 'start',
-                  // ✅ IMPROVED: Only disable pointer events when actually dragging
                   pointerEvents: hasActuallyDragged ? 'none' : 'auto',
                 }}
               >
@@ -429,10 +425,12 @@ export function ShopByDiscount({
                   }}
                 >
                   {priceRange.image?.url ? (
-                    <Image
-                      data={priceRange.image}
-                      className="w-full h-full object-cover"
+                    <img
+                      src={getOptimizedImageUrl(priceRange.image.url, 144)}
+                      srcSet={generateSrcSet(priceRange.image.url, 144)}
                       sizes="144px"
+                      alt={priceRange.image.altText || priceRange.title}
+                      className="w-full h-full object-cover"
                       loading="lazy"
                     />
                   ) : (
@@ -450,7 +448,6 @@ export function ShopByDiscount({
                   )}
                 </div>
 
-                {/* Mobile Price Range Title */}
                 <div className="mt-2">
                   <h3
                     className="text-black font-medium leading-tight"
@@ -473,7 +470,6 @@ export function ShopByDiscount({
             ))}
           </div>
 
-          {/* ✅ ADDED: Mobile Shop All Button (same as TopCategories) */}
           <div className="flex justify-center mt-4">
             <Link
               to="/handla-efter-pris"

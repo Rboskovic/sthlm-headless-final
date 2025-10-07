@@ -1,5 +1,4 @@
 import {Link} from 'react-router';
-import {Image} from '@shopify/hydrogen';
 import {useState, useRef} from 'react';
 
 // ✅ TYPESCRIPT FIX: Create proper interface with metafields
@@ -75,29 +74,43 @@ interface AgeGroupWithColor extends CollectionFragment {
   backgroundColor?: string;
 }
 
-interface ShopByBrandProps { // → ShopByAgeProps
+interface ShopByBrandProps {
   brands: CollectionFragment[];
 }
+
+// ✅ PERFORMANCE: Helper function to generate responsive image URLs
+const getOptimizedImageUrl = (url: string, width: number): string => {
+  if (!url) return url;
+  return url.includes('?') 
+    ? url.split('?')[0] + `?width=${width}` 
+    : `${url}?width=${width}`;
+};
+
+// ✅ PERFORMANCE: Generate srcset for responsive images
+const generateSrcSet = (url: string, displaySize: number): string => {
+  if (!url) return '';
+  const baseUrl = url.split('?')[0];
+  return [
+    `${baseUrl}?width=${displaySize} ${displaySize}w`,
+    `${baseUrl}?width=${displaySize * 2} ${displaySize * 2}w`,
+  ].join(', ');
+};
 
 export function ShopByAge({brands}: ShopByBrandProps) {
   const mobileScrollRef = useRef<HTMLDivElement>(null);
   
-  // ✅ FIXED: Improved drag detection with threshold
   const [isDragging, setIsDragging] = useState(false);
   const [hasActuallyDragged, setHasActuallyDragged] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
   
-  // Drag threshold in pixels - only disable pointer events after this distance
   const DRAG_THRESHOLD = 10;
 
-  // ✅ TYPESCRIPT FIX: Helper function to extract metafield values (NAMESPACE-AWARE LIKE TOPCATEGORIES)
   const getMetafieldValue = (
     metafields: Array<{key: string; value: string; namespace: string}> | undefined,
     key: string,
   ): string | null => {
     if (!metafields) return null;
-    // Check both custom and app namespaces like TopCategories does
     const metafield = metafields.find((m) => 
       m && 
       m.key === key && 
@@ -106,7 +119,6 @@ export function ShopByAge({brands}: ShopByBrandProps) {
     return metafield ? metafield.value : null;
   };
 
-  // Helper function to check if a value represents "true"
   const isTrueValue = (value: string | null): boolean => {
     if (!value) return false;
     const normalizedValue = value.toLowerCase().trim();
@@ -117,18 +129,15 @@ export function ShopByAge({brands}: ShopByBrandProps) {
     );
   };
 
-  // Filter featured age groups from Shopify data (IMPROVED FILTERING + SORTING)
   const featuredAgeGroups =
     brands && brands.length > 0
       ? brands.filter((brand) => {
-          // Check all possible metafield variations like TopCategories does
           const featuredBrandValue =
             getMetafieldValue(brand.metafields, 'featured-brand') ||
             getMetafieldValue(brand.metafields, 'featured_brand');
           const isFeatured = isTrueValue(featuredBrandValue);
           
-          // DEBUG: Log each collection for troubleshooting (can be disabled)
-          const DEBUG_LOGS = false; // Set to false to disable logs
+          const DEBUG_LOGS = false;
           if (DEBUG_LOGS) {
             console.log(`🔍 Age Collection: ${brand.title}`, {
               metafields: brand.metafields,
@@ -138,39 +147,34 @@ export function ShopByAge({brands}: ShopByBrandProps) {
             });
           }
           
-          return isFeatured; // Don't require image like TopCategories does
+          return isFeatured;
         })
         .sort((a, b) => {
-          // Sort by sort_order metafield (underscore, not hyphen), then alphabetically as fallback
           const sortOrderA = parseInt(getMetafieldValue(a.metafields, 'sort_order') || '999');
           const sortOrderB = parseInt(getMetafieldValue(b.metafields, 'sort_order') || '999');
           
           if (sortOrderA !== sortOrderB) {
-            return sortOrderA - sortOrderB; // Numeric sort
+            return sortOrderA - sortOrderB;
           }
           
-          // Fallback to alphabetical if no sort_order
           return a.title.localeCompare(b.title);
         })
       : [];
 
-  // Combine Shopify age groups with placeholders to always show 6 items
   const shopifyAgeGroups = featuredAgeGroups.length > 0 ? featuredAgeGroups : [];
   const placeholdersNeeded = Math.max(0, 6 - shopifyAgeGroups.length);
   
   const displayAgeGroups: AgeGroupWithColor[] = [
     ...shopifyAgeGroups,
-    ...fallbackAgeGroups.slice(-placeholdersNeeded), // Add placeholders from end
-  ].slice(0, 6); // Ensure exactly 6 items
+    ...fallbackAgeGroups.slice(-placeholdersNeeded),
+  ].slice(0, 6);
 
-  // Desktop: Show all 6 age groups (no scrolling/pagination)
   const visibleAgeGroups = displayAgeGroups;
 
-  // ✅ FIXED: Improved mouse drag handlers with threshold
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!mobileScrollRef.current) return;
     setIsDragging(true);
-    setHasActuallyDragged(false); // Reset the actual drag flag
+    setHasActuallyDragged(false);
     setStartX(e.pageX - mobileScrollRef.current.offsetLeft);
     setScrollLeft(mobileScrollRef.current.scrollLeft);
   };
@@ -182,10 +186,9 @@ export function ShopByAge({brands}: ShopByBrandProps) {
     const x = e.pageX - mobileScrollRef.current.offsetLeft;
     const dragDistance = Math.abs(x - startX);
     
-    // Only set hasActuallyDragged after threshold is exceeded
     if (dragDistance > DRAG_THRESHOLD) {
       setHasActuallyDragged(true);
-      const walk = (x - startX) * 2; // Scroll speed multiplier
+      const walk = (x - startX) * 2;
       mobileScrollRef.current.scrollLeft = scrollLeft - walk;
     }
   };
@@ -210,7 +213,6 @@ export function ShopByAge({brands}: ShopByBrandProps) {
       >
         {/* Desktop Layout */}
         <div className="hidden md:block">
-          {/* ✅ ADDED: Header with centered title and right-aligned Shop All link (same as TopCategories) */}
           <div className="flex items-center justify-between mb-8">
             <div className="flex-1"></div>
             <div className="flex-1 flex justify-center">
@@ -253,7 +255,6 @@ export function ShopByAge({brands}: ShopByBrandProps) {
             {visibleAgeGroups.map((ageGroup) => (
               <div key={ageGroup.id} className="text-center">
                 {ageGroup.handle === '#' ? (
-                  // Placeholder - not clickable
                   <div className="cursor-default">
                     <div
                       className="relative overflow-hidden mb-4 opacity-50"
@@ -264,10 +265,12 @@ export function ShopByAge({brands}: ShopByBrandProps) {
                       }}
                     >
                       {ageGroup.image?.url ? (
-                        <Image
-                          data={ageGroup.image}
-                          className="w-full h-full object-cover"
+                        <img
+                          src={getOptimizedImageUrl(ageGroup.image.url, 192)}
+                          srcSet={generateSrcSet(ageGroup.image.url, 192)}
                           sizes="192px"
+                          alt={ageGroup.image.altText || ageGroup.title}
+                          className="w-full h-full object-cover"
                           loading="lazy"
                         />
                       ) : (
@@ -300,7 +303,6 @@ export function ShopByAge({brands}: ShopByBrandProps) {
                     </h3>
                   </div>
                 ) : (
-                  // Active age group - clickable
                   <Link
                     to={`/collections/${ageGroup.handle}`}
                     className="group"
@@ -314,10 +316,12 @@ export function ShopByAge({brands}: ShopByBrandProps) {
                       }}
                     >
                       {ageGroup.image?.url ? (
-                        <Image
-                          data={ageGroup.image}
-                          className="w-full h-full object-cover"
+                        <img
+                          src={getOptimizedImageUrl(ageGroup.image.url, 192)}
+                          srcSet={generateSrcSet(ageGroup.image.url, 192)}
                           sizes="192px"
+                          alt={ageGroup.image.altText || ageGroup.title}
+                          className="w-full h-full object-cover"
                           loading="lazy"
                         />
                       ) : (
@@ -358,7 +362,6 @@ export function ShopByAge({brands}: ShopByBrandProps) {
 
         {/* Mobile Layout */}
         <div className="block md:hidden">
-          {/* Mobile Title */}
           <h2
             className="text-black font-semibold text-center mb-6"
             style={{
@@ -375,7 +378,6 @@ export function ShopByAge({brands}: ShopByBrandProps) {
             Handla efter ålder
           </h2>
 
-          {/* Mobile Horizontal Scroll Container */}
           <div
             ref={mobileScrollRef}
             className="overflow-x-auto mb-6 pb-2"
@@ -415,7 +417,6 @@ export function ShopByAge({brands}: ShopByBrandProps) {
                   }}
                 >
                   {ageGroup.handle === '#' ? (
-                    // Placeholder - not clickable
                     <div
                       className="cursor-default"
                       style={{
@@ -431,10 +432,12 @@ export function ShopByAge({brands}: ShopByBrandProps) {
                         }}
                       >
                         {ageGroup.image?.url ? (
-                          <Image
-                            data={ageGroup.image}
-                            className="w-full h-full object-cover"
+                          <img
+                            src={getOptimizedImageUrl(ageGroup.image.url, 144)}
+                            srcSet={generateSrcSet(ageGroup.image.url, 144)}
                             sizes="144px"
+                            alt={ageGroup.image.altText || ageGroup.title}
+                            className="w-full h-full object-cover"
                             loading="lazy"
                           />
                         ) : (
@@ -451,7 +454,6 @@ export function ShopByAge({brands}: ShopByBrandProps) {
                         )}
                       </div>
 
-                      {/* Mobile Age Group Title */}
                       <h3
                         className="text-gray-500 font-medium leading-tight mt-2"
                         style={{
@@ -469,12 +471,10 @@ export function ShopByAge({brands}: ShopByBrandProps) {
                       </h3>
                     </div>
                   ) : (
-                    // Active age group - clickable
                     <Link
                       to={`/collections/${ageGroup.handle}`}
                       className="group"
                       style={{
-                        // ✅ FIXED: Only disable pointer events when actually dragging
                         pointerEvents: hasActuallyDragged ? 'none' : 'auto',
                       }}
                     >
@@ -487,10 +487,12 @@ export function ShopByAge({brands}: ShopByBrandProps) {
                         }}
                       >
                         {ageGroup.image?.url ? (
-                          <Image
-                            data={ageGroup.image}
-                            className="w-full h-full object-cover"
+                          <img
+                            src={getOptimizedImageUrl(ageGroup.image.url, 144)}
+                            srcSet={generateSrcSet(ageGroup.image.url, 144)}
                             sizes="144px"
+                            alt={ageGroup.image.altText || ageGroup.title}
+                            className="w-full h-full object-cover"
                             loading="lazy"
                           />
                         ) : (
@@ -507,7 +509,6 @@ export function ShopByAge({brands}: ShopByBrandProps) {
                         )}
                       </div>
 
-                      {/* Mobile Age Group Title */}
                       <h3
                         className="text-black font-medium leading-tight mt-2"
                         style={{
@@ -531,7 +532,6 @@ export function ShopByAge({brands}: ShopByBrandProps) {
             </div>
           </div>
 
-          {/* ✅ ADDED: Mobile Shop All Button (same as TopCategories) */}
           <div className="flex justify-center mt-4">
             <Link
               to="/ages"

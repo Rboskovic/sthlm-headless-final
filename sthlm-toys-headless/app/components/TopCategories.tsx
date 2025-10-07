@@ -1,5 +1,4 @@
 import {Link} from 'react-router';
-import {Image} from '@shopify/hydrogen';
 import {useState, useRef} from 'react';
 
 // ✅ TYPESCRIPT FIX: Create proper interface with metafields
@@ -89,19 +88,33 @@ interface TopCategoriesProps {
   collections: CollectionFragment[];
 }
 
+// ✅ PERFORMANCE: Helper functions for responsive images
+const getOptimizedImageUrl = (url: string, width: number): string => {
+  if (!url) return url;
+  return url.includes('?') 
+    ? url.split('?')[0] + `?width=${width}` 
+    : `${url}?width=${width}`;
+};
+
+const generateSrcSet = (url: string, displaySize: number): string => {
+  if (!url) return '';
+  const baseUrl = url.split('?')[0];
+  return [
+    `${baseUrl}?width=${displaySize} ${displaySize}w`,
+    `${baseUrl}?width=${displaySize * 2} ${displaySize * 2}w`,
+  ].join(', ');
+};
+
 export function TopCategories({collections}: TopCategoriesProps) {
   const mobileScrollRef = useRef<HTMLDivElement>(null);
   
-  // ✅ FIXED: Improved drag detection with threshold
   const [isDragging, setIsDragging] = useState(false);
   const [hasActuallyDragged, setHasActuallyDragged] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
   
-  // Drag threshold in pixels - only disable pointer events after this distance
   const DRAG_THRESHOLD = 10;
 
-  // ✅ TYPESCRIPT FIX: Helper function to extract metafield values
   const getMetafieldValue = (
     metafields: Array<{key: string; value: string; namespace: string}> | undefined,
     key: string,
@@ -111,7 +124,6 @@ export function TopCategories({collections}: TopCategoriesProps) {
     return metafield ? metafield.value : null;
   };
 
-  // Helper function to check if a value represents "true"
   const isTrueValue = (value: string | null): boolean => {
     if (!value) return false;
     const normalizedValue = value.toLowerCase().trim();
@@ -122,7 +134,6 @@ export function TopCategories({collections}: TopCategoriesProps) {
     );
   };
 
-  // Filter featured categories from Shopify data
   const featuredCategories =
     collections && collections.length > 0
       ? collections.filter((category) => {
@@ -133,31 +144,26 @@ export function TopCategories({collections}: TopCategoriesProps) {
           return isFeatured && category.image?.url;
         })
         .sort((a, b) => {
-          // Sort by sort_order metafield (underscore, not hyphen), then alphabetically as fallback
           const sortOrderA = parseInt(getMetafieldValue(a.metafields, 'sort_order') || '999');
           const sortOrderB = parseInt(getMetafieldValue(b.metafields, 'sort_order') || '999');
           
           if (sortOrderA !== sortOrderB) {
-            return sortOrderA - sortOrderB; // Numeric sort
+            return sortOrderA - sortOrderB;
           }
           
-          // Fallback to alphabetical if no sort_order
           return a.title.localeCompare(b.title);
         })
       : [];
 
-  // Use Shopify categories or fallback
   const displayCategories: CategoryWithColor[] =
     featuredCategories.length > 0 ? featuredCategories : fallbackCategories;
 
-  // Desktop: Show only first 6 categories (no scrolling/pagination)
   const visibleCategories = displayCategories.slice(0, 6);
 
-  // ✅ FIXED: Improved mouse drag handlers with threshold
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!mobileScrollRef.current) return;
     setIsDragging(true);
-    setHasActuallyDragged(false); // Reset the actual drag flag
+    setHasActuallyDragged(false);
     setStartX(e.pageX - mobileScrollRef.current.offsetLeft);
     setScrollLeft(mobileScrollRef.current.scrollLeft);
   };
@@ -169,10 +175,9 @@ export function TopCategories({collections}: TopCategoriesProps) {
     const x = e.pageX - mobileScrollRef.current.offsetLeft;
     const dragDistance = Math.abs(x - startX);
     
-    // Only set hasActuallyDragged after threshold is exceeded
     if (dragDistance > DRAG_THRESHOLD) {
       setHasActuallyDragged(true);
-      const walk = (x - startX) * 2; // Scroll speed multiplier
+      const walk = (x - startX) * 2;
       mobileScrollRef.current.scrollLeft = scrollLeft - walk;
     }
   };
@@ -197,7 +202,6 @@ export function TopCategories({collections}: TopCategoriesProps) {
       >
         {/* Desktop Layout */}
         <div className="hidden md:block">
-          {/* Header with centered title and right-aligned Shop All link */}
           <div className="flex items-center justify-between mb-8">
             <div className="flex-1"></div>
             <div className="flex-1 flex justify-center">
@@ -252,10 +256,12 @@ export function TopCategories({collections}: TopCategoriesProps) {
                   }}
                 >
                   {category.image?.url ? (
-                    <Image
-                      data={category.image}
-                      className="w-full h-full object-cover"
+                    <img
+                      src={getOptimizedImageUrl(category.image.url, 192)}
+                      srcSet={generateSrcSet(category.image.url, 192)}
                       sizes="192px"
+                      alt={category.image.altText || category.title}
+                      className="w-full h-full object-cover"
                       loading="lazy"
                     />
                   ) : (
@@ -295,7 +301,6 @@ export function TopCategories({collections}: TopCategoriesProps) {
 
         {/* Mobile Layout */}
         <div className="block md:hidden">
-          {/* Mobile Title */}
           <h2
             className="text-black font-semibold text-center mb-6"
             style={{
@@ -312,7 +317,6 @@ export function TopCategories({collections}: TopCategoriesProps) {
             Shoppa efter tema
           </h2>
 
-          {/* Mobile Horizontal Scroll Container */}
           <div
             ref={mobileScrollRef}
             className="overflow-x-auto mb-6 pb-2"
@@ -350,7 +354,6 @@ export function TopCategories({collections}: TopCategoriesProps) {
                   className="group flex-shrink-0"
                   style={{
                     scrollSnapAlign: 'start',
-                    // ✅ FIXED: Only disable pointer events when actually dragging
                     pointerEvents: hasActuallyDragged ? 'none' : 'auto',
                   }}
                 >
@@ -363,10 +366,12 @@ export function TopCategories({collections}: TopCategoriesProps) {
                     }}
                   >
                     {category.image?.url ? (
-                      <Image
-                        data={category.image}
-                        className="w-full h-full object-cover"
+                      <img
+                        src={getOptimizedImageUrl(category.image.url, 144)}
+                        srcSet={generateSrcSet(category.image.url, 144)}
                         sizes="144px"
+                        alt={category.image.altText || category.title}
+                        className="w-full h-full object-cover"
                         loading="lazy"
                       />
                     ) : (
@@ -384,7 +389,6 @@ export function TopCategories({collections}: TopCategoriesProps) {
                     )}
                   </div>
 
-                  {/* Mobile Category Title */}
                   <h3
                     className="text-black font-medium leading-tight mt-2"
                     style={{
@@ -406,7 +410,6 @@ export function TopCategories({collections}: TopCategoriesProps) {
             </div>
           </div>
 
-          {/* Mobile Shop All Button */}
           <div className="flex justify-center mt-4">
             <Link
               to="/themes"
