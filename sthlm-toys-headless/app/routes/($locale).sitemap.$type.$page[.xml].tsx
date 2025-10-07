@@ -84,7 +84,7 @@ export async function loader({
         changefreq: 'weekly'
       },
       {
-        handle: 'handla-efter-alder',
+        handle: 'ages',
         lastmod: new Date().toISOString().split('T')[0],
         priority: '0.8', 
         changefreq: 'weekly'
