@@ -166,7 +166,7 @@ export default function Cart() {
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-1">Fri frakt till ombud över 1299 kr</h3>
               <p className="text-gray-600 text-sm">
-                Beställningar över 1299 kr får fri frakt till utlämningsställe. Hemleverans kostar 249 kr.
+                Beställningar över 1299 kr får fri frakt till ombud. Hemleverans kostar 249 kr.
               </p>
             </div>
 

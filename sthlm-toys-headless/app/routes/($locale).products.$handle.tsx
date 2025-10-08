@@ -247,7 +247,7 @@ export default function Product() {
     'Fri frakt till ombud över 1299 kr*';
   
   const freeShippingNote = getMetafieldValue(shop?.metafields, 'free_shipping_note') || 
-    '*Erbjudandet gäller standardfrakt till ombud. Leverans vid dörren tar vanligtvis 2 till 7 dagar och kostar 249 kr';
+    '*Erbjudandet gäller standardfrakt till ombud. Leverans vid dörren tar vanligtvis 2 till 7 dagar och kostar 249 kr.';
 
   // ✅ NEW: Parse shipping text into bullet points
   const shippingBulletPoints = parseShippingText(freeShippingText);
