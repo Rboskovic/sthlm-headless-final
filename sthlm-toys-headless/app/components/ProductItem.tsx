@@ -1,5 +1,6 @@
 // FILE: app/components/ProductItem.tsx
-// ✅ PERFORMANCE FIX: Optimized product images
+// ✅ PERFORMANCE ENHANCED: Added WebP format + optimized width to existing code
+// ✅ PRESERVES: All existing functionality including SessionWishlistButton
 
 import {Link} from 'react-router';
 import {Image} from '@shopify/hydrogen';
@@ -85,12 +86,12 @@ export function ProductItem({
 
   const productUrl = `/products/${product.handle}`;
 
-  // ✅ PERFORMANCE: Optimize image URL
+  // ✅ PERFORMANCE ENHANCED: Added WebP format + reduced width from 560 to 280
+  // Cards display at max 280px, so loading 560px was wasting bandwidth
   const getOptimizedImage = (img: any) => {
     if (!img?.url) return img;
-    const optimizedUrl = img.url.includes('?') 
-      ? `${img.url.split('?')[0]}?width=560`
-      : `${img.url}?width=560`;
+    const base = img.url.split('?')[0];
+    const optimizedUrl = `${base}?width=280&format=webp`;
     return {
       ...img,
       url: optimizedUrl
@@ -99,7 +100,7 @@ export function ProductItem({
 
   return (
     <div className="h-full bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow duration-300 flex flex-col">
-      {/* Image Container - FIXED HEIGHT with centered image */}
+      {/* Image Container - OPTIMIZED for larger image display */}
       <div className="relative bg-gray-50" style={{ height: '280px' }}>
         {/* Sale Badge */}
         {isOnSale && discountPercentage > 0 && (
@@ -110,7 +111,7 @@ export function ProductItem({
           </div>
         )}
 
-        {/* Wishlist */}
+        {/* ✅ EXISTING: Wishlist with correct props */}
         <div className="absolute top-2 right-2 z-10">
           <SessionWishlistButton
             product={product}
@@ -119,8 +120,8 @@ export function ProductItem({
           />
         </div>
 
-        {/* Image - Centered in fixed container */}
-        <Link to={productUrl} className="block w-full h-full flex items-center justify-center p-4">
+        {/* Image - Centered in fixed container with minimal padding */}
+        <Link to={productUrl} className="block w-full h-full flex items-center justify-center p-2">
           {image ? (
             <Image
               data={getOptimizedImage(image)}
@@ -141,11 +142,11 @@ export function ProductItem({
         </Link>
       </div>
 
-      {/* Product Info - Fixed structure for consistent alignment */}
-      <div className="flex-1 p-4 flex flex-col">
-        {/* Title - Fixed min-height for alignment */}
-        <Link to={productUrl} className="block mb-3">
-          <h3 className="text-sm font-medium text-gray-900 line-clamp-2" style={{ minHeight: '40px' }}>
+      {/* Product Info - Compact structure for better space usage */}
+      <div className="flex-1 p-3 flex flex-col">
+        {/* Title - Reduced min-height for compact layout */}
+        <Link to={productUrl} className="block mb-2">
+          <h3 className="text-sm font-medium text-gray-900 line-clamp-2" style={{ minHeight: '32px' }}>
             {product.title}
           </h3>
           {product.vendor && (
@@ -154,7 +155,7 @@ export function ProductItem({
         </Link>
 
         {/* Price */}
-        <div className="mb-3">
+        <div className="mb-2">
           <div className="flex items-center gap-2">
             <span className="text-lg font-bold text-gray-900">
               SEK {Math.round(parseFloat(price.amount))}

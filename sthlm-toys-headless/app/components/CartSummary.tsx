@@ -67,7 +67,7 @@ function CartCheckoutActions({
           </div>
           <div className="flex items-center gap-1">
             <Truck size={10} className="sm:w-3 sm:h-3" />
-            <span className="whitespace-nowrap">Fri frakt över 1299kr kr</span>
+            <span className="whitespace-nowrap">Fri frakt till ombud över 1299 kr</span>
           </div>
         </div>
       )}
