@@ -1,5 +1,7 @@
 // FILE: app/routes/($locale)._index.tsx - Enhanced with all requested changes
 // ✅ SHOPIFY HYDROGEN STANDARDS: Homepage with improved UX and proper ordering
+// ✅ FIXED: Pagination dots now decorative (not interactive)
+// ✅ FIXED: Typo in gap className
 
 import {type LoaderFunctionArgs} from '@shopify/remix-oxygen';
 import {Await, useLoaderData, type MetaFunction} from 'react-router';
@@ -362,17 +364,16 @@ function ProductCarouselSection({
                 <ChevronLeft size={20} />
               </button>
 
-              <div className="flex gap-2">
+              {/* ✅ FIXED: Decorative pagination dots (not interactive) */}
+              <div className="flex gap-2" role="presentation" aria-hidden="true">
                 {[...Array(totalPages)].map((_, index) => (
-                  <button
+                  <span
                     key={index}
-                    onClick={() => changePage(index)}
-                    className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                    className={`rounded-full transition-all duration-300 ${
                       currentPage === index 
-                        ? 'bg-gray-900 w-6' 
-                        : 'bg-gray-400 hover:bg-gray-600'
+                        ? 'bg-gray-900 w-6 h-2' 
+                        : 'bg-gray-400 w-2 h-2'
                     }`}
-                    aria-label={`Page ${index + 1}`}
                   />
                 ))}
               </div>

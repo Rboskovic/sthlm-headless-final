@@ -1,12 +1,9 @@
 // FILE: app/components/FeaturedBanners.tsx
-// ✅ SHOPIFY HYDROGEN STANDARDS: Updated with homepage_banner_image approach
-// ✅ FIXED: Mobile scaling - adjusted height to match 1.75:1 image ratio
-// ✅ FIXED: TypeScript using ShopByAge pattern - NO IMAGE COMPONENT, NO IMPORT ISSUES
+// ✅ PERFORMANCE OPTIMIZED: Added responsive images with WebP format
+// ✅ ACCESSIBILITY FIXED: Alt text for decorative images with text overlays
 
 import {Link} from 'react-router';
 
-// ✅ TYPESCRIPT FIX: Create proper interface with metafields (same pattern as ShopByAge.tsx)
-// NOTE: Not importing from storefrontapi.generated - defining our own interface
 interface CollectionFragment {
   id: string;
   title: string;
@@ -22,7 +19,6 @@ interface CollectionFragment {
   metafields?: Array<{key: string; value: string; namespace: string}>;
 }
 
-// Enhanced collection with banner image
 interface CollectionWithBanner extends CollectionFragment {
   bannerImage?: {
     url: string | null;
@@ -63,7 +59,7 @@ const fallbackBanners: CollectionWithBanner[] = [
 ];
 
 export function FeaturedBanners({collections}: FeaturedBannersProps) {
-  // Helper function to extract metafield values (same pattern as ShopByAge.tsx)
+  // Helper function to extract metafield values
   const getMetafieldValue = (
     metafields: Array<{key: string; value: string; namespace: string}> | undefined,
     key: string,
@@ -73,16 +69,34 @@ export function FeaturedBanners({collections}: FeaturedBannersProps) {
     return metafield ? metafield.value : null;
   };
 
-  // ✅ NEW BANNER LOGIC: Filter collections that have homepage_banner_image metafield set
+  // ✅ PERFORMANCE: Generate responsive image URLs with WebP format
+  const getOptimizedImageUrl = (url: string, width: number): string => {
+    if (!url) return url;
+    // Check if it's a Shopify CDN URL
+    if (!url.includes('cdn.shopify.com')) return url;
+    
+    const base = url.split('?')[0];
+    return `${base}?width=${width}&format=webp`;
+  };
+
+  // ✅ PERFORMANCE: Generate srcset for responsive loading
+  const getImageSrcSet = (url: string, sizes: number[]): string => {
+    if (!url || !url.includes('cdn.shopify.com')) return '';
+    
+    const base = url.split('?')[0];
+    return sizes
+      .map(width => `${base}?width=${width}&format=webp ${width}w`)
+      .join(', ');
+  };
+
+  // Filter collections that have homepage_banner_image metafield set
   const featuredBanners: CollectionWithBanner[] =
     collections && collections.length > 0
       ? collections.filter((collection) => {
-          // Check if homepage_banner_image metafield exists and has a value
           const bannerImageUrl = getMetafieldValue(collection.metafields, 'homepage_banner_image');
           return bannerImageUrl && bannerImageUrl.trim().length > 0;
         })
         .map((collection): CollectionWithBanner => {
-          // Add the custom banner image to the collection
           const bannerImageUrl = getMetafieldValue(collection.metafields, 'homepage_banner_image');
           return {
             ...collection,
@@ -94,10 +108,8 @@ export function FeaturedBanners({collections}: FeaturedBannersProps) {
         })
       : [];
 
-  // Use Shopify banners or fallback
   const displayBanners = featuredBanners.length > 0 ? featuredBanners : fallbackBanners;
   
-  // Return null if no banners
   if (displayBanners.length === 0) return null;
 
   return (
@@ -105,197 +117,217 @@ export function FeaturedBanners({collections}: FeaturedBannersProps) {
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
         {/* Desktop Layout */}
         <div className="hidden md:block">
-          {/* Desktop Grid */}
           <div className="grid grid-cols-2 gap-4">
-            {displayBanners.slice(0, 2).map((banner) => (
-              <Link
-                key={banner.id}
-                to={`/collections/${banner.handle}`}
-                className="group block"
-              >
-                <div
-                  className="relative overflow-hidden rounded-2xl group-hover:shadow-lg transition-shadow duration-200"
-                  style={{
-                    height: '400px',
-                  }}
-                >
-                  {/* ✅ FIXED: All images use regular img tags - NO SHOPIFY IMAGE COMPONENT */}
-                  {banner.bannerImage?.url ? (
-                    <img
-                      src={banner.bannerImage.url}
-                      alt={banner.bannerImage.altText}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  ) : banner.image?.url ? (
-                    <img
-                      src={banner.image.url}
-                      alt={banner.image.altText || banner.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  ) : (
-                    /* Fallback colored background */
-                    <div
-                      className="w-full h-full flex items-center justify-center"
-                      style={{backgroundColor: '#4CAF50'}}
-                    >
-                      <div className="text-white text-sm opacity-75">Ingen bild</div>
-                    </div>
-                  )}
+            {displayBanners.slice(0, 2).map((banner) => {
+              const imageUrl = banner.bannerImage?.url || banner.image?.url;
+              const isShopifyImage = imageUrl && imageUrl.includes('cdn.shopify.com');
 
-                  {/* Content overlay */}
-                  <div className="absolute inset-0 flex flex-col justify-end p-6">
-                    <div className="text-left">
-                      {/* Collection Title */}
-                      <h3
-                        className="text-white font-bold mb-2"
-                        style={{
-                          fontSize: '28px',
-                          fontWeight: 700,
-                          lineHeight: '32px',
-                          fontFamily:
-                            "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                          textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
-                        }}
+              return (
+                <Link
+                  key={banner.id}
+                  to={`/collections/${banner.handle}`}
+                  className="group block"
+                >
+                  <div
+                    className="relative overflow-hidden rounded-2xl group-hover:shadow-lg transition-shadow duration-200"
+                    style={{height: '400px'}}
+                  >
+                    {/* ✅ OPTIMIZED: Desktop images with srcset */}
+                    {imageUrl ? (
+                      isShopifyImage ? (
+                        <picture>
+                          <source
+                            srcSet={getImageSrcSet(imageUrl, [400, 600, 800])}
+                            sizes="(min-width: 1024px) 700px, 400px"
+                            type="image/webp"
+                          />
+                          <img
+                            src={getOptimizedImageUrl(imageUrl, 700)}
+                            alt=""
+                            role="presentation"
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            loading="lazy"
+                            width="700"
+                            height="400"
+                          />
+                        </picture>
+                      ) : (
+                        <img
+                          src={imageUrl}
+                          alt=""
+                          role="presentation"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          loading="lazy"
+                        />
+                      )
+                    ) : (
+                      <div
+                        className="w-full h-full flex items-center justify-center"
+                        style={{backgroundColor: '#4CAF50'}}
                       >
-                        {banner.title}
-                      </h3>
-                      
-                      {/* Collection Description */}
-                      {banner.description && (
-                        <p
-                          className="text-white mb-8"
+                        <div className="text-white text-sm opacity-75">Ingen bild</div>
+                      </div>
+                    )}
+
+                    {/* Content overlay */}
+                    <div className="absolute inset-0 flex flex-col justify-end p-6">
+                      <div className="text-left">
+                        <h3
+                          className="text-white font-bold mb-2"
+                          style={{
+                            fontSize: '28px',
+                            fontWeight: 700,
+                            lineHeight: '32px',
+                            fontFamily: "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                            textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
+                          }}
+                        >
+                          {banner.title}
+                        </h3>
+                        
+                        {banner.description && (
+                          <p
+                            className="text-white mb-8"
+                            style={{
+                              fontSize: '16px',
+                              fontWeight: 400,
+                              lineHeight: '22px',
+                              fontFamily: "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                              marginBottom: '32px',
+                              textShadow: '1px 1px 3px rgba(0,0,0,0.8)',
+                            }}
+                            dangerouslySetInnerHTML={{ 
+                              __html: typeof banner.description === 'string' 
+                                ? banner.description 
+                                : String(banner.description || '')
+                            }}
+                          />
+                        )}
+
+                        <div
+                          className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-8 rounded-full transition-colors duration-200"
                           style={{
                             fontSize: '16px',
-                            fontWeight: 400,
-                            lineHeight: '22px',
-                            fontFamily:
-                              "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                            marginBottom: '32px',
-                            textShadow: '1px 1px 3px rgba(0,0,0,0.8)',
+                            fontWeight: 500,
+                            fontFamily: "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
                           }}
-                          dangerouslySetInnerHTML={{ 
-                            __html: typeof banner.description === 'string' 
-                              ? banner.description 
-                              : String(banner.description || '')
-                          }}
-                        />
-                      )}
-
-                      {/* CTA Button */}
-                      <div
-                        className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-8 rounded-full transition-colors duration-200"
-                        style={{
-                          fontSize: '16px',
-                          fontWeight: 500,
-                          fontFamily:
-                            "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                        }}
-                      >
-                        Handla nu
+                        >
+                          Handla nu
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              );
+            })}
           </div>
         </div>
 
         {/* Mobile Layout */}
         <div className="block md:hidden">
-          {/* Mobile Stack */}
           <div className="space-y-4">
-            {displayBanners.slice(0, 2).map((banner) => (
-              <Link
-                key={banner.id}
-                to={`/collections/${banner.handle}`}
-                className="group block"
-              >
-                <div
-                  className="relative overflow-hidden rounded-xl group-hover:shadow-lg transition-shadow duration-200"
-                  style={{
-                    height: '200px', // ✅ FIXED: Changed from 250px to 200px to match 1.75:1 ratio (~350×200)
-                  }}
-                >
-                  {/* ✅ FIXED: All images use regular img tags - NO SHOPIFY IMAGE COMPONENT */}
-                  {banner.bannerImage?.url ? (
-                    <img
-                      src={banner.bannerImage.url}
-                      alt={banner.bannerImage.altText}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  ) : banner.image?.url ? (
-                    <img
-                      src={banner.image.url}
-                      alt={banner.image.altText || banner.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  ) : (
-                    /* Fallback colored background */
-                    <div
-                      className="w-full h-full flex items-center justify-center"
-                      style={{backgroundColor: '#4CAF50'}}
-                    >
-                      <div className="text-white text-xs opacity-75">Ingen bild</div>
-                    </div>
-                  )}
+            {displayBanners.slice(0, 2).map((banner) => {
+              const imageUrl = banner.bannerImage?.url || banner.image?.url;
+              const isShopifyImage = imageUrl && imageUrl.includes('cdn.shopify.com');
 
-                  {/* Content overlay */}
-                  <div className="absolute inset-0 flex flex-col justify-end p-4">
-                    <div className="text-left">
-                      {/* Collection Title */}
-                      <h3
-                        className="text-white font-bold mb-1"
-                        style={{
-                          fontSize: '20px',
-                          fontWeight: 700,
-                          lineHeight: '24px',
-                          fontFamily:
-                            "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                          textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
-                        }}
+              return (
+                <Link
+                  key={banner.id}
+                  to={`/collections/${banner.handle}`}
+                  className="group block"
+                >
+                  <div
+                    className="relative overflow-hidden rounded-xl group-hover:shadow-lg transition-shadow duration-200"
+                    style={{height: '200px'}}
+                  >
+                    {/* ✅ OPTIMIZED: Mobile images with srcset */}
+                    {imageUrl ? (
+                      isShopifyImage ? (
+                        <picture>
+                          <source
+                            srcSet={getImageSrcSet(imageUrl, [350, 400, 500])}
+                            sizes="100vw"
+                            type="image/webp"
+                          />
+                          <img
+                            src={getOptimizedImageUrl(imageUrl, 400)}
+                            alt=""
+                            role="presentation"
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            loading="lazy"
+                            width="400"
+                            height="200"
+                          />
+                        </picture>
+                      ) : (
+                        <img
+                          src={imageUrl}
+                          alt=""
+                          role="presentation"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          loading="lazy"
+                        />
+                      )
+                    ) : (
+                      <div
+                        className="w-full h-full flex items-center justify-center"
+                        style={{backgroundColor: '#4CAF50'}}
                       >
-                        {banner.title}
-                      </h3>
-                      
-                      {/* Collection Description */}
-                      {banner.description && (
-                        <p
-                          className="text-white mb-6"
+                        <div className="text-white text-xs opacity-75">Ingen bild</div>
+                      </div>
+                    )}
+
+                    {/* Content overlay */}
+                    <div className="absolute inset-0 flex flex-col justify-end p-4">
+                      <div className="text-left">
+                        <h3
+                          className="text-white font-bold mb-1"
+                          style={{
+                            fontSize: '20px',
+                            fontWeight: 700,
+                            lineHeight: '24px',
+                            fontFamily: "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                            textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
+                          }}
+                        >
+                          {banner.title}
+                        </h3>
+                        
+                        {banner.description && (
+                          <p
+                            className="text-white mb-6"
+                            style={{
+                              fontSize: '14px',
+                              fontWeight: 400,
+                              lineHeight: '18px',
+                              fontFamily: "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
+                              textShadow: '1px 1px 3px rgba(0,0,0,0.8)',
+                              marginBottom: '24px',
+                            }}
+                            dangerouslySetInnerHTML={{ 
+                              __html: typeof banner.description === 'string' 
+                                ? banner.description 
+                                : String(banner.description || '')
+                            }}
+                          />
+                        )}
+
+                        <div
+                          className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-full transition-colors duration-200"
                           style={{
                             fontSize: '14px',
-                            fontWeight: 400,
-                            lineHeight: '18px',
-                            fontFamily:
-                              "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                            textShadow: '1px 1px 3px rgba(0,0,0,0.8)',
-                            marginBottom: '24px',
+                            fontWeight: 500,
+                            fontFamily: "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
                           }}
-                          dangerouslySetInnerHTML={{ 
-                            __html: typeof banner.description === 'string' 
-                              ? banner.description 
-                              : String(banner.description || '')
-                          }}
-                        />
-                      )}
-
-                      {/* CTA Button */}
-                      <div
-                        className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-full transition-colors duration-200"
-                        style={{
-                          fontSize: '14px',
-                          fontWeight: 500,
-                          fontFamily:
-                            "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
-                        }}
-                      >
-                        Handla nu
+                        >
+                          Handla nu
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              );
+            })}
           </div>
         </div>
       </div>
