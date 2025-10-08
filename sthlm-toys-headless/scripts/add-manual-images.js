@@ -1,8 +1,6 @@
 // FILE: scripts/add-manual-images-with-progress.js
 // Add manually uploaded Shopify CDN images to products with progress indicators
 
-const SHOP_DOMAIN = 'sthlmtoys-games.myshopify.com';
-const ACCESS_TOKEN = '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';
 
 // Your manual filename to handle mapping
 const FILENAME_TO_HANDLE = {
