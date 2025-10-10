@@ -1,31 +1,32 @@
 // FILE: app/routes/($locale).blogs.$blogHandle.$articleHandle.tsx
-// ✅ FIXED: Removed blue header and featured image, pure Shopify content
+// ✅ FIXED: Simplified breadcrumb, removed blog name
 
 import {type LoaderFunctionArgs} from '@shopify/remix-oxygen';
 import {useLoaderData, type MetaFunction, Link} from 'react-router';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
+import {getCanonicalUrlForPath} from '~/lib/canonical';
 
 export const meta: MetaFunction<typeof loader> = ({data}) => {
   return [
-    {title: `${data?.article.title ?? ''} - Klosslabbet`},
-    {name: 'description', content: data?.article.seo?.description || data?.article.title},
+    {title: `${data?.article.title ?? ''} | Klosslabbet`},
+    {
+      name: 'description',
+      content: data?.article.seo?.description || data?.article.title,
+    },
+    {
+      tagName: 'link',
+      rel: 'canonical',
+      href: getCanonicalUrlForPath(`/blogs/${data?.blogHandle}/${data?.article.handle}`),
+    },
   ];
 };
 
 export async function loader(args: LoaderFunctionArgs) {
-  // Start fetching non-critical data without blocking time to first byte
   const deferredData = loadDeferredData(args);
-
-  // Await the critical data required to render initial state of the page
   const criticalData = await loadCriticalData(args);
-
   return {...deferredData, ...criticalData};
 }
 
-/**
- * Load data necessary for rendering content above the fold. This is the critical data
- * needed to render the page. If it's unavailable, the whole page should 400 or 500 error.
- */
 async function loadCriticalData({
   context,
   request,
@@ -41,7 +42,6 @@ async function loadCriticalData({
     context.storefront.query(ARTICLE_QUERY, {
       variables: {blogHandle, articleHandle},
     }),
-    // Add other queries here, so that they are loaded in parallel
   ]);
 
   if (!blog?.articleByHandle) {
@@ -62,34 +62,25 @@ async function loadCriticalData({
 
   const article = blog.articleByHandle;
 
-  return {article, blogHandle, blogTitle: blog.title};
+  return {article, blogHandle};
 }
 
-/**
- * Load data for rendering content below the fold. This data is deferred and will be
- * fetched after the initial page load. If it's unavailable, the page should still 200.
- * Make sure to not throw any errors here, as it will cause the page to 500.
- */
 function loadDeferredData({context}: LoaderFunctionArgs) {
   return {};
 }
 
 export default function Article() {
-  const {article, blogHandle, blogTitle} = useLoaderData<typeof loader>();
-  const {title, contentHtml} = article; // ✅ Added title back for meta function
+  const {article} = useLoaderData<typeof loader>();
+  const {title, contentHtml} = article;
 
   return (
     <div className="bg-white min-h-screen">
-      {/* ✅ FIXED: Breadcrumb Navigation - Aligned with content */}
+      {/* Breadcrumb Navigation - Simplified */}
       <div className="container py-4">
         <div className="max-w-4xl mx-auto">
           <nav className="flex items-center space-x-2 text-sm text-gray-600">
             <Link to="/blogs" className="hover:text-blue-600 transition-colors">
               Bloggar
-            </Link>
-            <span>/</span>
-            <Link to={`/blogs/${blogHandle}`} className="hover:text-blue-600 transition-colors">
-              {blogTitle}
             </Link>
             <span>/</span>
             <span className="text-gray-900 font-medium">{title}</span>
@@ -100,9 +91,7 @@ export default function Article() {
       {/* Article Container */}
       <article className="container pb-16">
         <div className="max-w-4xl mx-auto">
-          {/* ✅ COMPLETELY REMOVED: All custom headers - pure Shopify content only */}
-
-          {/* ✅ PURE SHOPIFY CONTENT: All styling and content from Shopify blog editor */}
+          {/* Pure Shopify Content */}
           <div 
             className="shopify-blog-content"
             dangerouslySetInnerHTML={{__html: contentHtml}}
@@ -116,9 +105,8 @@ export default function Article() {
           {/* Article Footer */}
           <footer className="mt-12 pt-8 border-t border-gray-200">
             <div className="flex justify-center">
-              {/* Back to Blog */}
               <Link 
-                to={`/blogs/${blogHandle}`}
+                to="/blogs"
                 className="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors"
               >
                 <svg 
@@ -134,7 +122,7 @@ export default function Article() {
                     d="M15 19l-7-7 7-7" 
                   />
                 </svg>
-                Tillbaka till {blogTitle}
+                Tillbaka till bloggar
               </Link>
             </div>
           </footer>
@@ -144,7 +132,6 @@ export default function Article() {
   );
 }
 
-// NOTE: Removed image field from query since we don't need it
 const ARTICLE_QUERY = `#graphql
   query Article(
     $articleHandle: String!

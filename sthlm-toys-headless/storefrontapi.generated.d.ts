@@ -1018,7 +1018,7 @@ export type BlogQuery = {
   >;
 };
 
-export type ArticleItemFragment = Pick<
+export type ArticleItemFragmentFragment = Pick<
   StorefrontAPI.Article,
   'contentHtml' | 'handle' | 'id' | 'publishedAt' | 'title'
 > & {
@@ -1029,33 +1029,45 @@ export type ArticleItemFragment = Pick<
   blog: Pick<StorefrontAPI.Blog, 'handle'>;
 };
 
-export type BlogsQueryVariables = StorefrontAPI.Exact<{
-  country?: StorefrontAPI.InputMaybe<StorefrontAPI.CountryCode>;
-  endCursor?: StorefrontAPI.InputMaybe<
-    StorefrontAPI.Scalars['String']['input']
-  >;
-  first?: StorefrontAPI.InputMaybe<StorefrontAPI.Scalars['Int']['input']>;
+export type ArticlesQueryVariables = StorefrontAPI.Exact<{
   language?: StorefrontAPI.InputMaybe<StorefrontAPI.LanguageCode>;
+  blogHandle: StorefrontAPI.Scalars['String']['input'];
+  first?: StorefrontAPI.InputMaybe<StorefrontAPI.Scalars['Int']['input']>;
   last?: StorefrontAPI.InputMaybe<StorefrontAPI.Scalars['Int']['input']>;
   startCursor?: StorefrontAPI.InputMaybe<
     StorefrontAPI.Scalars['String']['input']
   >;
+  endCursor?: StorefrontAPI.InputMaybe<
+    StorefrontAPI.Scalars['String']['input']
+  >;
 }>;
 
-export type BlogsQuery = {
-  blogs: {
-    pageInfo: Pick<
-      StorefrontAPI.PageInfo,
-      'hasNextPage' | 'hasPreviousPage' | 'startCursor' | 'endCursor'
-    >;
-    nodes: Array<
-      Pick<StorefrontAPI.Blog, 'title' | 'handle'> & {
-        seo?: StorefrontAPI.Maybe<
-          Pick<StorefrontAPI.Seo, 'title' | 'description'>
-        >;
-      }
-    >;
-  };
+export type ArticlesQuery = {
+  blog?: StorefrontAPI.Maybe<{
+    articles: {
+      nodes: Array<
+        Pick<
+          StorefrontAPI.Article,
+          'contentHtml' | 'handle' | 'id' | 'publishedAt' | 'title'
+        > & {
+          author?: StorefrontAPI.Maybe<
+            Pick<StorefrontAPI.ArticleAuthor, 'name'>
+          >;
+          image?: StorefrontAPI.Maybe<
+            Pick<
+              StorefrontAPI.Image,
+              'id' | 'altText' | 'url' | 'width' | 'height'
+            >
+          >;
+          blog: Pick<StorefrontAPI.Blog, 'handle'>;
+        }
+      >;
+      pageInfo: Pick<
+        StorefrontAPI.PageInfo,
+        'hasPreviousPage' | 'hasNextPage' | 'endCursor' | 'startCursor'
+      >;
+    };
+  }>;
 };
 
 export type CollectionInfoQueryVariables = StorefrontAPI.Exact<{
@@ -1310,66 +1322,6 @@ export type StoreCollectionsQuery = {
     pageInfo: Pick<
       StorefrontAPI.PageInfo,
       'hasNextPage' | 'hasPreviousPage' | 'startCursor' | 'endCursor'
-    >;
-  };
-};
-
-export type MoneyCollectionItemFragment = Pick<
-  StorefrontAPI.MoneyV2,
-  'amount' | 'currencyCode'
->;
-
-export type CollectionItemFragment = Pick<
-  StorefrontAPI.Product,
-  'id' | 'handle' | 'title' | 'vendor'
-> & {
-  featuredImage?: StorefrontAPI.Maybe<
-    Pick<StorefrontAPI.Image, 'id' | 'altText' | 'url' | 'width' | 'height'>
-  >;
-  priceRange: {
-    minVariantPrice: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
-    maxVariantPrice: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
-  };
-};
-
-export type CatalogQueryVariables = StorefrontAPI.Exact<{
-  country?: StorefrontAPI.InputMaybe<StorefrontAPI.CountryCode>;
-  language?: StorefrontAPI.InputMaybe<StorefrontAPI.LanguageCode>;
-  first?: StorefrontAPI.InputMaybe<StorefrontAPI.Scalars['Int']['input']>;
-  last?: StorefrontAPI.InputMaybe<StorefrontAPI.Scalars['Int']['input']>;
-  startCursor?: StorefrontAPI.InputMaybe<
-    StorefrontAPI.Scalars['String']['input']
-  >;
-  endCursor?: StorefrontAPI.InputMaybe<
-    StorefrontAPI.Scalars['String']['input']
-  >;
-}>;
-
-export type CatalogQuery = {
-  products: {
-    nodes: Array<
-      Pick<StorefrontAPI.Product, 'id' | 'handle' | 'title' | 'vendor'> & {
-        featuredImage?: StorefrontAPI.Maybe<
-          Pick<
-            StorefrontAPI.Image,
-            'id' | 'altText' | 'url' | 'width' | 'height'
-          >
-        >;
-        priceRange: {
-          minVariantPrice: Pick<
-            StorefrontAPI.MoneyV2,
-            'amount' | 'currencyCode'
-          >;
-          maxVariantPrice: Pick<
-            StorefrontAPI.MoneyV2,
-            'amount' | 'currencyCode'
-          >;
-        };
-      }
-    >;
-    pageInfo: Pick<
-      StorefrontAPI.PageInfo,
-      'hasPreviousPage' | 'hasNextPage' | 'startCursor' | 'endCursor'
     >;
   };
 };
@@ -2260,13 +2212,13 @@ interface GeneratedQueryTypes {
     return: ArticleQuery;
     variables: ArticleQueryVariables;
   };
-  '#graphql\n  query Blog(\n    $language: LanguageCode\n    $blogHandle: String!\n    $first: Int\n    $last: Int\n    $startCursor: String\n    $endCursor: String\n  ) @inContext(language: $language) {\n    blog(handle: $blogHandle) {\n      title\n      handle\n      seo {\n        title\n        description\n      }\n      articles(\n        first: $first,\n        last: $last,\n        before: $startCursor,\n        after: $endCursor\n      ) {\n        nodes {\n          ...ArticleItem\n        }\n        pageInfo {\n          hasPreviousPage\n          hasNextPage\n          hasNextPage\n          endCursor\n          startCursor\n        }\n      }\n    }\n  }\n  fragment ArticleItem on Article {\n    author: authorV2 {\n      name\n    }\n    contentHtml\n    handle\n    id\n    image {\n      id\n      altText\n      url\n      width\n      height\n    }\n    publishedAt\n    title\n    blog {\n      handle\n    }\n  }\n': {
+  '#graphql\n  query Blog(\n    $language: LanguageCode\n    $blogHandle: String!\n    $first: Int\n    $last: Int\n    $startCursor: String\n    $endCursor: String\n  ) @inContext(language: $language) {\n    blog(handle: $blogHandle) {\n      title\n      handle\n      seo {\n        title\n        description\n      }\n      articles(\n        first: $first,\n        last: $last,\n        before: $startCursor,\n        after: $endCursor\n      ) {\n        nodes {\n          ...ArticleItemFragment\n        }\n        pageInfo {\n          hasPreviousPage\n          hasNextPage\n          endCursor\n          startCursor\n        }\n      }\n    }\n  }\n  fragment ArticleItemFragment on Article {\n    author: authorV2 {\n      name\n    }\n    contentHtml\n    handle\n    id\n    image {\n      id\n      altText\n      url\n      width\n      height\n    }\n    publishedAt\n    title\n    blog {\n      handle\n    }\n  }\n': {
     return: BlogQuery;
     variables: BlogQueryVariables;
   };
-  '#graphql\n  query Blogs(\n    $country: CountryCode\n    $endCursor: String\n    $first: Int\n    $language: LanguageCode\n    $last: Int\n    $startCursor: String\n  ) @inContext(country: $country, language: $language) {\n    blogs(\n      first: $first,\n      last: $last,\n      before: $startCursor,\n      after: $endCursor\n    ) {\n      pageInfo {\n        hasNextPage\n        hasPreviousPage\n        startCursor\n        endCursor\n      }\n      nodes {\n        title\n        handle\n        seo {\n          title\n          description\n        }\n      }\n    }\n  }\n': {
-    return: BlogsQuery;
-    variables: BlogsQueryVariables;
+  '#graphql\n  query Articles(\n    $language: LanguageCode\n    $blogHandle: String!\n    $first: Int\n    $last: Int\n    $startCursor: String\n    $endCursor: String\n  ) @inContext(language: $language) {\n    blog(handle: $blogHandle) {\n      articles(\n        first: $first,\n        last: $last,\n        before: $startCursor,\n        after: $endCursor\n      ) {\n        nodes {\n          ...ArticleItemFragment\n        }\n        pageInfo {\n          hasPreviousPage\n          hasNextPage\n          endCursor\n          startCursor\n        }\n      }\n    }\n  }\n  fragment ArticleItemFragment on Article {\n    author: authorV2 {\n      name\n    }\n    contentHtml\n    handle\n    id\n    image {\n      id\n      altText\n      url\n      width\n      height\n    }\n    publishedAt\n    title\n    blog {\n      handle\n    }\n  }\n': {
+    return: ArticlesQuery;
+    variables: ArticlesQueryVariables;
   };
   '#graphql\n  query CollectionInfo(\n    $handle: String!\n    $country: CountryCode\n    $language: LanguageCode\n  ) @inContext(country: $country, language: $language) {\n    collection(handle: $handle) {\n      id\n      title\n      description\n      descriptionHtml\n      handle\n      seo {\n        description\n        title\n      }\n      image {\n        id\n        url\n        width\n        height\n        altText\n      }\n      products(first: 1) {\n        nodes {\n          id\n        }\n        edges {\n          node {\n            id\n          }\n        }\n        filters {\n          id\n          label\n          type\n          values {\n            id\n            label\n            count\n            input\n          }\n        }\n        pageInfo {\n          hasNextPage\n          hasPreviousPage\n          startCursor\n          endCursor\n        }\n      }\n      metafields(identifiers: [\n        {namespace: "custom", key: "banner_image"},\n        {namespace: "custom", key: "collection_color"},\n        {namespace: "custom", key: "mobile_menu_featured"}\n      ]) {\n        id\n        key\n        value\n        namespace\n        type\n      }\n      updatedAt\n    }\n  }\n': {
     return: CollectionInfoQuery;
@@ -2287,10 +2239,6 @@ interface GeneratedQueryTypes {
   '#graphql\n  fragment Collection on Collection {\n    id\n    title\n    handle\n    image {\n      id\n      url\n      altText\n      width\n      height\n    }\n  }\n  query StoreCollections(\n    $country: CountryCode\n    $endCursor: String\n    $first: Int\n    $language: LanguageCode\n    $last: Int\n    $startCursor: String\n  ) @inContext(country: $country, language: $language) {\n    collections(\n      first: $first,\n      last: $last,\n      before: $startCursor,\n      after: $endCursor\n    ) {\n      nodes {\n        ...Collection\n      }\n      pageInfo {\n        hasNextPage\n        hasPreviousPage\n        startCursor\n        endCursor\n      }\n    }\n  }\n': {
     return: StoreCollectionsQuery;
     variables: StoreCollectionsQueryVariables;
-  };
-  '#graphql\n  query Catalog(\n    $country: CountryCode\n    $language: LanguageCode\n    $first: Int\n    $last: Int\n    $startCursor: String\n    $endCursor: String\n  ) @inContext(country: $country, language: $language) {\n    products(first: $first, last: $last, before: $startCursor, after: $endCursor) {\n      nodes {\n        ...CollectionItem\n      }\n      pageInfo {\n        hasPreviousPage\n        hasNextPage\n        startCursor\n        endCursor\n      }\n    }\n  }\n  #graphql\n  fragment MoneyCollectionItem on MoneyV2 {\n    amount\n    currencyCode\n  }\n  fragment CollectionItem on Product {\n    id\n    handle\n    title\n    vendor\n    featuredImage {\n      id\n      altText\n      url\n      width\n      height\n    }\n    priceRange {\n      minVariantPrice {\n        ...MoneyCollectionItem\n      }\n      maxVariantPrice {\n        ...MoneyCollectionItem\n      }\n    }\n  }\n\n': {
-    return: CatalogQuery;
-    variables: CatalogQueryVariables;
   };
   '#graphql\n  query DiscountCollections($country: CountryCode, $language: LanguageCode)\n    @inContext(country: $country, language: $language) {\n    collections(first: 100, sortKey: UPDATED_AT, reverse: true) {\n      nodes {\n        id\n        title\n        handle\n        description\n        metafields(identifiers: [\n          {namespace: "custom", key: "discountpage_collection"},\n          {namespace: "app", key: "discountpage_collection"},\n          {namespace: "custom", key: "age_lifestyle_image"},\n          {namespace: "app", key: "age_lifestyle_image"},\n          {namespace: "custom", key: "sort_order"},\n          {namespace: "app", key: "sort_order"}\n        ]) {\n          key\n          value\n          namespace\n        }\n      }\n    }\n  }\n': {
     return: DiscountCollectionsQuery;
