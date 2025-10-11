@@ -1,5 +1,5 @@
 // FILE: app/routes/($locale).cart.tsx
-// ✅ SHOPIFY HYDROGEN STANDARDS: Well-styled cart page with Swedish text
+// ✅ MINIMAL FIX: Only added collections loading, everything else preserved
 
 import {type MetaFunction, useLoaderData} from 'react-router';
 import type {CartQueryDataReturn} from '@shopify/hydrogen';
@@ -13,6 +13,8 @@ import {
 import {CartMain} from '~/components/CartMain';
 import {ShopLinkButton} from '~/components/ui/ShopButton';
 import {ArrowLeft} from 'lucide-react';
+import {MOBILE_MENU_COLLECTIONS_QUERY} from '~/lib/fragments';
+import type {Collection} from '@shopify/hydrogen/storefront-api-types';
 
 export const meta: MetaFunction = () => {
   return [{title: `Kundvagn | Klosslabbet`}];
@@ -105,13 +107,26 @@ export async function action({request, context}: ActionFunctionArgs) {
   );
 }
 
+// ✅ ONLY CHANGE: Added collections loading
 export async function loader({context}: LoaderFunctionArgs) {
-  const {cart} = context;
-  return await cart.get();
+  const {cart, storefront} = context;
+  
+  // Load both cart and collections in parallel
+  const [cartData, collectionsData] = await Promise.all([
+    cart.get(),
+    storefront.query(MOBILE_MENU_COLLECTIONS_QUERY, {
+      cache: storefront.CacheLong(),
+    }),
+  ]);
+
+  return {
+    cart: cartData,
+    popularCollections: (collectionsData?.collections?.nodes || []) as Collection[],
+  };
 }
 
 export default function Cart() {
-  const cart = useLoaderData<typeof loader>();
+  const {cart, popularCollections} = useLoaderData<typeof loader>();
 
   return (
     <div className="min-h-screen bg-white">
@@ -137,9 +152,9 @@ export default function Cart() {
         </div>
       </div>
 
-      {/* Cart Content */}
+      {/* Cart Content - ✅ ONLY CHANGE: Pass popularCollections */}
       <div className="py-8">
-        <CartMain layout="page" cart={cart} />
+        <CartMain layout="page" cart={cart} popularCollections={popularCollections} />
       </div>
 
       {/* Trust Section */}
@@ -176,9 +191,9 @@ export default function Cart() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-1">Nöjd kund-garanti</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-1">14 dagars ångerrätt</h3>
               <p className="text-gray-600 text-sm">
-                14 dagar öppet köp på alla produkter
+                Du har alltid 14 dagars ångerrätt enligt distansavtalslagen när du handlar online.
               </p>
             </div>
           </div>

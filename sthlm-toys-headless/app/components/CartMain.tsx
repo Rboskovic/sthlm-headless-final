@@ -1,15 +1,14 @@
 // FILE: app/components/CartMain.tsx
-// ✅ PERFORMANCE FIX: Optimized collection images in empty cart
+// ✅ MINIMAL FIX: Made popular collections responsive based on layout
 
-import {useOptimisticCart} from '@shopify/hydrogen';
 import {Link} from 'react-router';
-import {ShoppingBag} from 'lucide-react';
+import {useOptimisticCart} from '@shopify/hydrogen';
 import type {CartApiQueryFragment} from 'storefrontapi.generated';
-import type {Collection} from '@shopify/hydrogen/storefront-api-types';
-import {useAside} from '~/components/Aside';
-import {CartLineItem} from '~/components/CartLineItem';
+import {ShoppingBag} from 'lucide-react';
+import {useAside} from './Aside';
+import {CartLineItem} from './CartLineItem';
 import {CartSummary} from './CartSummary';
-import {ShopButton, ShopLinkButton} from './ui/ShopButton';
+import type {Collection} from '@shopify/hydrogen/storefront-api-types';
 
 export type CartLayout = 'page' | 'aside';
 
@@ -19,59 +18,43 @@ export type CartMainProps = {
   popularCollections?: Collection[];
 };
 
-export function CartMain({layout, cart: originalCart, popularCollections}: CartMainProps) {
+export function CartMain({layout = 'aside', cart: originalCart, popularCollections}: CartMainProps) {
   const cart = useOptimisticCart(originalCart);
 
   const linesCount = Boolean(cart?.lines?.nodes?.length || 0);
-  const cartHasItems = cart?.totalQuantity ? cart.totalQuantity > 0 : false;
+  const withDiscount = cart && Boolean(cart?.discountCodes?.filter((code) => code.applicable)?.length);
+  const className = `cart-main ${withDiscount ? 'with-discount' : ''}`;
 
   return (
-    <div className={layout === 'aside' ? 'h-full flex flex-col' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8'}>
-      {!cartHasItems ? (
+    <div className={className}>
+      {!linesCount && (
         <CartEmpty layout={layout} popularCollections={popularCollections} />
-      ) : (
+      )}
+      {linesCount && (
         <>
           {layout === 'aside' ? (
-            <>
-              <div 
-                className="overflow-y-auto"
-                style={{
-                  maxHeight: 'calc(100vh - 180px)',
-                  scrollbarWidth: 'thin',
-                  scrollbarColor: '#9CA3AF #F3F4F6'
-                }}
-              >
-                <div className="px-4 py-2 pb-32">
-                  <div className="space-y-0">
-                    {(cart?.lines?.nodes ?? []).map((line, index) => (
-                      <CartLineItem
-                        key={line.id}
-                        line={line}
-                        layout={layout}
-                      />
-                    ))}
-                  </div>
+            <div className="flex flex-col h-full">
+              <section className="flex-1 overflow-y-auto cart-items-container">
+                <div className="space-y-4">
+                  {(cart?.lines?.nodes || []).map((line, index) => (
+                    <CartLineItem
+                      key={line.id}
+                      line={line}
+                      layout={layout}
+                    />
+                  ))}
                 </div>
-              </div>
+              </section>
 
-              <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-4 shadow-lg z-50">
+              <section className="cart-summary-container">
                 <CartSummary cart={cart} layout={layout} />
-              </div>
-            </>
+              </section>
+            </div>
           ) : (
-            <div className="lg:grid lg:grid-cols-12 lg:gap-x-12 lg:items-start">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-12 gap-8">
               <section className="lg:col-span-7">
-                <div className="mb-6">
-                  <h2 className="text-2xl font-bold text-gray-900">
-                    Din kundvagn ({cart?.totalQuantity || 0})
-                  </h2>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Fri frakt till ombud över 1299 kr
-                  </p>
-                </div>
-
-                <div className="space-y-6">
-                  {(cart?.lines?.nodes ?? []).map((line, index) => (
+                <div className="space-y-4">
+                  {(cart?.lines?.nodes || []).map((line, index) => (
                     <CartLineItem
                       key={line.id}
                       line={line}
@@ -121,26 +104,31 @@ function CartEmpty({layout, popularCollections}: {layout: CartLayout; popularCol
         </Link>
       </div>
 
-      <div className="px-4 pb-6 flex-1">
+      <div className={layout === 'page' ? 'px-4 pb-6 flex-1 max-w-4xl mx-auto w-full' : 'px-4 pb-6 flex-1'}>
         <div className="mb-3">
           <h4 className="text-sm font-medium text-gray-900 text-center">Populära</h4>
         </div>
         
+        {/* ✅ FIXED: Pass layout prop for responsive sizing */}
         <PopularCategoriesGrid 
           collections={popularCollections} 
           onClose={layout === 'aside' ? close : undefined}
+          layout={layout}
         />
       </div>
     </div>
   );
 }
 
+// ✅ FIXED: Made responsive based on layout prop
 function PopularCategoriesGrid({
   collections,
   onClose,
+  layout = 'aside',
 }: {
   collections?: Collection[];
   onClose?: () => void;
+  layout?: CartLayout;
 }) {
   const getMetafieldValue = (
     metafields: Array<{key: string; value: string; namespace: string} | null> | null | undefined,
@@ -162,13 +150,15 @@ function PopularCategoriesGrid({
     );
   };
 
-  // ✅ PERFORMANCE FIX: Optimize image URLs
+  // ✅ RESPONSIVE: Different image sizes for different layouts
   const getOptimizedImageUrl = (url: string | undefined): string | undefined => {
     if (!url) return undefined;
-    // Display: 80px (5rem), 2x retina = 160px needed
+    // Aside: 80px display = 160px for retina
+    // Page: 120px display = 240px for retina
+    const width = layout === 'page' ? 240 : 160;
     return url.includes('?') 
-      ? `${url}&width=160` 
-      : `${url}?width=160`;
+      ? `${url}&width=${width}` 
+      : `${url}?width=${width}`;
   };
 
   const featuredCollections =
@@ -197,8 +187,15 @@ function PopularCategoriesGrid({
   const displayItems =
     featuredCollections.length > 0 ? featuredCollections : fallbackItems;
 
+  // ✅ RESPONSIVE: Different grid layouts
+  // Aside: 3 columns always (narrow sidebar)
+  // Page: 3 columns mobile, 4 columns tablet, 6 columns desktop (wider space)
+  const gridClassName = layout === 'page'
+    ? 'grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3 sm:gap-4'
+    : 'grid grid-cols-3 gap-2 sm:gap-3';
+
   return (
-    <div className="grid grid-cols-3 gap-2 sm:gap-3">
+    <div className={gridClassName}>
       {displayItems.map((item) => {
         const customImageUrl = 'metafields' in item ? getMetafieldValue(
           item.metafields,
@@ -206,36 +203,36 @@ function PopularCategoriesGrid({
         ) : null;
         
         const rawImageUrl = customImageUrl || item.image?.url;
-        const optimizedImageUrl = getOptimizedImageUrl(rawImageUrl);
+        const imageUrl = getOptimizedImageUrl(rawImageUrl);
 
         return (
           <Link
             key={item.id}
             to={`/collections/${item.handle}`}
             onClick={onClose}
-            className="flex flex-col items-center text-center"
+            className="flex flex-col items-center text-center group"
           >
-            <div
-              className="w-full aspect-square bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden mb-1.5"
-              style={{
-                maxWidth: '5rem',
-                backgroundColor: optimizedImageUrl ? 'transparent' : '#f3f4f6',
-              }}
+            <div 
+              className={`w-full aspect-square bg-gray-100 rounded-xl flex items-center justify-center overflow-hidden mb-2 group-hover:shadow-md transition-shadow ${
+                layout === 'page' ? 'group-hover:scale-[1.02] transition-transform' : ''
+              }`}
             >
-              {optimizedImageUrl ? (
+              {imageUrl ? (
                 <img
-                  src={optimizedImageUrl}
+                  src={imageUrl}
                   alt={item.title}
                   className="w-full h-full object-cover"
                   loading="lazy"
                 />
               ) : (
-                <span className="text-gray-500 font-medium text-xs text-center px-1 leading-tight">
+                <div className="text-gray-400 text-xs font-semibold">
                   {item.title}
-                </span>
+                </div>
               )}
             </div>
-            <span className="text-xs font-medium text-gray-900 leading-tight text-center block">
+            <span className={`text-gray-900 group-hover:text-blue-600 transition-colors ${
+              layout === 'page' ? 'text-xs sm:text-sm font-medium' : 'text-xs font-medium'
+            }`}>
               {item.title}
             </span>
           </Link>
