@@ -1,13 +1,9 @@
 // FILE: app/routes/($locale).products.$handle.tsx
 // ✅ SHOPIFY HYDROGEN STANDARD: Complete Product Detail Page with metafields
-// ✅ UPDATED: Now uses ProductItem for recommended products
-// ✅ FIXED: All TypeScript errors resolved
-// ✅ FIXED: React Hooks rules compliance
-// ✅ FIXED: Default Title URL parameters
-// ✅ UPDATED: Added campaign notice for discounted products
+// ✅ ONLY FIX: Button navigates instead of form POST
 
 import {redirect, type LoaderFunctionArgs} from '@shopify/remix-oxygen';
-import {useLoaderData, type MetaFunction, Await, Link} from 'react-router';
+import {useLoaderData, type MetaFunction, Await, Link, useNavigate} from 'react-router';
 import {Suspense} from 'react';
 import {
   getSelectedProductOptions,
@@ -175,6 +171,13 @@ function parseShippingText(shippingText: string | null): string[] {
     .filter(item => item.length > 0);
 }
 
+// ✅ ONLY FIX ADDED: Helper function to extract numeric ID from Shopify GID
+function extractVariantId(gid: string | undefined): string {
+  if (!gid) return '';
+  const match = gid.match(/ProductVariant\/(\d+)/);
+  return match ? match[1] : '';
+}
+
 export default function Product() {
   const {product, shop, ...deferredData} = useLoaderData<typeof loader>();
   
@@ -183,6 +186,9 @@ export default function Product() {
   
   // ✅ CART MODAL: Add useAside hook to open cart
   const {open} = useAside();
+  
+  // ✅ FIX: Add navigate hook for button navigation
+  const navigate = useNavigate();
 
   // Optimistically selects a variant with given available variant information
   const selectedVariant = useOptimisticVariant(
@@ -483,10 +489,11 @@ export default function Product() {
                 Lägg i varukorg
               </AddToCartButton>
 
-              {/* Shop Pay checkout - Wider padding */}
-              <form method="POST" action={`/cart/${selectedVariant?.id}:1`} className="w-full">
+              {/* ✅ FIX: Shop Pay checkout - Button with onClick navigation (keeps exact appearance) */}
+              <form className="w-full">
                 <button 
-                  type="submit"
+                  type="button"
+                  onClick={() => navigate(`/cart/${extractVariantId(selectedVariant?.id)}:1`)}
                   className="w-full text-white font-semibold py-4 px-12 rounded-2xl transition-colors duration-200 flex items-center justify-center gap-2"
                   style={{backgroundColor: '#5a31f4'}}
                 >
