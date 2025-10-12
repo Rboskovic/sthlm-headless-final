@@ -1,5 +1,6 @@
 // FILE: app/components/CartSummary.tsx
 // ✅ RESPONSIVE: Scales properly on all screen sizes
+// ✅ FIXED: Promo code button now has proper min-width and doesn't shrink on small screens
 
 import type {CartApiQueryFragment} from 'storefrontapi.generated';
 import type {CartLayout} from '~/components/CartMain';
@@ -144,23 +145,23 @@ function DiscountForm({discountCodes}: {discountCodes: Array<{code: string}>}) {
         
         return (
           <div className="space-y-2">
-            {/* ✅ RESPONSIVE: Promo code input optimized for very small screens */}
+            {/* ✅ RESPONSIVE: Promo code input optimized for very small screens - both input and button shrink proportionally */}
             <div className="flex rounded-lg sm:rounded-xl border border-gray-200 bg-transparent focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 overflow-hidden">
-              <div className="flex items-center pl-1.5 sm:pl-3 text-gray-400">
+              <div className="flex items-center pl-1.5 sm:pl-3 text-gray-400 flex-shrink-0">
                 <Tag size={10} className="sm:w-4 sm:h-4" />
               </div>
               <input
                 type="text"
                 name="discountCode"
                 placeholder="Rabattkod"
-                className="flex-1 px-1.5 sm:px-3 py-1.5 sm:py-3 bg-transparent border-0 text-[11px] sm:text-sm focus:outline-none focus:ring-0 focus:border-0 placeholder-gray-500"
+                className="flex-1 min-w-0 px-1.5 sm:px-3 py-1.5 sm:py-3 bg-transparent border-0 text-[11px] sm:text-sm focus:outline-none focus:ring-0 focus:border-0 placeholder-gray-500"
                 disabled={isSubmitting}
                 style={{ outline: 'none', border: 'none', boxShadow: 'none' }}
               />
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="px-2 sm:px-4 py-1.5 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white text-[10px] sm:text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-0.5 sm:gap-2 min-w-0"
+                className="flex-shrink-0 w-[85px] sm:w-[100px] px-2 sm:px-4 py-1.5 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white text-[11px] sm:text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-0.5 sm:gap-2 whitespace-nowrap"
               >
                 {isSubmitting ? (
                   <>
