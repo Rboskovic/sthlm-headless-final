@@ -1,7 +1,7 @@
-// FILE: app/routes/($locale)._index.tsx - Enhanced with all requested changes
+// FILE: app/routes/($locale)._index.tsx - Using hidden collection for featured products
 // ✅ SHOPIFY HYDROGEN STANDARDS: Homepage with improved UX and proper ordering
+// ✅ PERFORMANCE: Using hidden collection instead of fetching all products
 // ✅ FIXED: Pagination dots now decorative (not interactive)
-// ✅ FIXED: Typo in gap className
 
 import {type LoaderFunctionArgs} from '@shopify/remix-oxygen';
 import {Await, useLoaderData, type MetaFunction} from 'react-router';
@@ -84,8 +84,15 @@ async function loadCriticalData({context}: LoaderFunctionArgs) {
 
 function loadDeferredData({context}: LoaderFunctionArgs) {
   const newProducts = context.storefront
-    .query(NEW_PRODUCTS_QUERY, {
-      variables: { first: 12 }, // Load 12 for arrows functionality
+    .query(NEW_PRODUCTS_QUERY)
+    .then((response) => {
+      if (!response?.collection?.products?.nodes) return null;
+      
+      return {
+        products: {
+          nodes: response.collection.products.nodes
+        }
+      };
     })
     .catch((error) => {
       console.error('New products error:', error);
@@ -577,53 +584,55 @@ const HERO_BANNER_QUERY = `#graphql
 ` as const;
 
 const NEW_PRODUCTS_QUERY = `#graphql
-  query NewProducts($first: Int = 12) {
-    products(first: $first, sortKey: CREATED_AT, reverse: true) {
-      nodes {
-        id
-        title
-        handle
-        vendor
-        description
-        descriptionHtml
-        encodedVariantExistence
-        encodedVariantAvailability
-        updatedAt
-        featuredImage {
+  query FeaturedHomepageProducts {
+    collection(handle: "featured-homepage") {
+      products(first: 12, sortKey: MANUAL) {
+        nodes {
           id
-          url
-          altText
-          width
-          height
-        }
-        priceRange {
-          minVariantPrice {
-            amount
-            currencyCode
-          }
-        }
-        compareAtPriceRange {
-          minVariantPrice {
-            amount
-            currencyCode
-          }
-        }
-        selectedOrFirstAvailableVariant(selectedOptions: []) {
-          id
-          availableForSale
-          price {
-            amount
-            currencyCode
-          }
-          compareAtPrice {
-            amount
-            currencyCode
-          }
-          image {
+          title
+          handle
+          vendor
+          description
+          descriptionHtml
+          encodedVariantExistence
+          encodedVariantAvailability
+          updatedAt
+          featuredImage {
+            id
             url
             altText
             width
             height
+          }
+          priceRange {
+            minVariantPrice {
+              amount
+              currencyCode
+            }
+          }
+          compareAtPriceRange {
+            minVariantPrice {
+              amount
+              currencyCode
+            }
+          }
+          selectedOrFirstAvailableVariant(selectedOptions: []) {
+            id
+            availableForSale
+            price {
+              amount
+              currencyCode
+            }
+            compareAtPrice {
+              amount
+              currencyCode
+            }
+            image {
+              url
+              altText
+              width
+              height
+            }
           }
         }
       }
