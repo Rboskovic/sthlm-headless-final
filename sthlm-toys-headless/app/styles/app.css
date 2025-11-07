@@ -1,0 +1,683 @@
+/* 
+ * Klosslabbet - Clean Application Styles
+ * ✅ OPTIMIZED: Removed duplicates, consolidated styles
+ */
+
+/* Import Tailwind base styles */
+@import './tailwind.css';
+
+/* ========================================
+   CORE VARIABLES - SINGLE SOURCE OF TRUTH
+   ======================================== */
+:root {
+  /* Aside/Modal System */
+  --aside-width: 400px; /* Used for both cart and login */
+  --cart-aside-summary-height-with-discount: 300px;
+  --cart-aside-summary-height: 250px;
+  
+  /* Layout */
+  --grid-item-width: 355px;
+  --header-height: 64px;
+  
+  /* Colors */
+  --color-dark: #000;
+  --color-light: #fff;
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  
+  /* Typography */
+  --font-primary: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* ========================================
+   ASIDE/MODAL SYSTEM (Cart, Login, Search)
+   ======================================== */
+
+/* Main aside element - Used by all asides (cart, login, search) */
+aside {
+  background: var(--color-light);
+  box-shadow: 0 0 50px rgba(0, 0, 0, 0.3);
+  height: 100vh;
+  width: min(var(--aside-width), 100vw);
+  position: fixed;
+  right: calc(-1 * var(--aside-width));
+  top: 0;
+  transition: transform 200ms ease-in-out;
+  z-index: 100;
+}
+
+/* Overlay for all modals/asides */
+.overlay {
+  background: rgba(0, 0, 0, 0.2);
+  bottom: 0;
+  left: 0;
+  opacity: 0;
+  pointer-events: none;
+  position: fixed;
+  right: 0;
+  top: 0;
+  transition: opacity 400ms ease-in-out;
+  visibility: hidden;
+  z-index: 99;
+}
+
+.overlay.expanded {
+  opacity: 1;
+  pointer-events: auto;
+  visibility: visible;
+}
+
+.overlay.expanded aside {
+  transform: translateX(calc(var(--aside-width) * -1));
+}
+
+/* Prevent scroll when modal is open */
+@media (max-width: 45em) {
+  html:has(.overlay.expanded) {
+    overflow: hidden;
+  }
+}
+
+/* ========================================
+   HEADER STYLES
+   ======================================== */
+
+header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: linear-gradient(to bottom, #1f96f4, #2171e1);
+}
+
+/* ========================================
+   MOBILE MENU SYSTEM
+   ======================================== */
+
+.mobile-menu-fullscreen {
+  z-index: 60; /* Above header but below cart */
+  background-color: white;
+}
+
+/* Fixed brand header - Always visible at top */
+.mobile-brand-header {
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 20;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 12px 16px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+/* Navigation container - below fixed brand header */
+.mobile-nav-container {
+  height: calc(100vh - 64px);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Individual navigation screens */
+.mobile-nav-screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transform: translateZ(0);
+  transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  background-color: white;
+}
+
+/* Screen content area */
+.mobile-screen-content {
+  height: 100%;
+  overflow-y: auto;
+  background-color: white;
+}
+
+/* Navigation level header - Category navigation */
+.mobile-nav-level-header {
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 10;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 12px 16px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+/* Mobile navigation components */
+.mobile-back-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #2563eb;
+  font-weight: 600;
+  font-size: 16px;
+  background: none;
+  border: none;
+  padding: 0;
+  transition: color 0.2s ease;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.mobile-back-button:hover {
+  color: #1d4ed8;
+}
+
+.mobile-shop-all-link {
+  color: #2563eb;
+  font-weight: 500;
+  font-size: 14px;
+  text-decoration: none;
+  transition: color 0.2s ease;
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.mobile-shop-all-link:hover {
+  color: #1d4ed8;
+}
+
+.mobile-menu-logo {
+  font-weight: 900;
+  font-size: 20px;
+  color: #dc2626;
+  font-family: 'Arial Black', Arial, sans-serif;
+  letter-spacing: 0.5px;
+  text-shadow: 1px 1px 0px rgba(0,0,0,0.1);
+  text-decoration: none;
+}
+
+.mobile-menu-logo:hover {
+  color: #dc2626;
+  text-decoration: none;
+}
+
+/* Navigation list items */
+.mobile-nav-item {
+  border-bottom: 1px solid #f3f4f6;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+}
+
+.mobile-nav-item:last-child {
+  border-bottom: none;
+}
+
+.mobile-nav-link {
+  display: block;
+  width: 100%;
+  padding: 16px;
+  color: #111827;
+  font-weight: 500;
+  font-size: 16px;
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+}
+
+.mobile-nav-link:hover {
+  background-color: #f9fafb;
+  text-decoration: none;
+  color: #111827;
+}
+
+.mobile-nav-button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 16px;
+  background: none;
+  border: none;
+  text-align: left;
+  color: #111827;
+  font-weight: 500;
+  font-size: 16px;
+  transition: background-color 0.2s ease;
+  cursor: pointer;
+}
+
+.mobile-nav-button:hover {
+  background-color: #f9fafb;
+}
+
+/* ========================================
+   SHARED POPULAR GRID (Mobile Menu + Cart Empty)
+   ======================================== */
+
+/* Used in both mobile menu and cart empty state */
+.mobile-menu-popular-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  padding: 0 1rem;
+  justify-items: center;
+}
+
+.mobile-menu-popular-item {
+  width: 5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  cursor: pointer;
+}
+
+/* Responsive adjustments for popular grid */
+@media (max-width: 320px) {
+  .mobile-menu-popular-item {
+    width: 4rem;
+  }
+  .mobile-menu-popular-grid {
+    gap: 0.75rem;
+  }
+}
+
+@media (min-width: 375px) {
+  .mobile-menu-popular-item {
+    width: 5.5rem;
+  }
+}
+
+@media (min-width: 414px) {
+  .mobile-menu-popular-item {
+    width: 6rem;
+  }
+}
+
+/* Mobile enhancements */
+@media (max-width: 768px) {
+  .mobile-nav-item {
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+  }
+  
+  .mobile-nav-button {
+    min-height: 48px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+/* Prevent scroll on body when mobile menu is open */
+@media (max-width: 1024px) {
+  body:has(.mobile-menu-fullscreen) {
+    overflow: hidden;
+  }
+}
+
+/* ========================================
+   PRODUCT STYLES
+   ======================================== */
+
+.product-options-item {
+  padding: 0.25rem 0.5rem;
+  background-color: transparent;
+  font-size: 1rem;
+  font-family: inherit;
+}
+
+.product-option-label-swatch {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* ========================================
+   SEARCH STYLES
+   ======================================== */
+
+.predictive-search-result-item a {
+  align-items: center;
+  display: flex;
+}
+
+/* ========================================
+   CART SPECIFIC STYLES
+   ======================================== */
+
+.cart-main {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 1rem;
+}
+
+.cart-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 2rem;
+}
+
+.cart-empty-text {
+  color: #6b7280;
+  margin-bottom: 1.5rem;
+  font-size: 1rem;
+}
+
+.cart-empty-link {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.cart-empty-link:hover {
+  color: var(--color-primary-hover);
+  text-decoration: underline;
+}
+
+.cart-lines-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* Cart line item animations */
+.cart-line-item {
+  transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+}
+
+.cart-line-item.removing {
+  opacity: 0;
+  transform: translateX(100%);
+}
+
+.cart-line-item.updating {
+  opacity: 0.6;
+}
+
+/* Cart items container - enhanced scrolling */
+.cart-items-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 2rem;
+}
+
+.cart-items-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.cart-items-container::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.cart-items-container::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.cart-items-container::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Cart summary positioning */
+.cart-summary-container {
+  flex-shrink: 0;
+  padding: 2rem;
+  border-top: 1px solid #e5e7eb;
+  background: white;
+  position: sticky;
+  bottom: 0;
+}
+
+/* Sticky cart summary on larger screens */
+@media (min-width: 1024px) {
+  .cart-summary-sticky {
+    position: sticky;
+    top: 2rem;
+    max-height: calc(100vh - 4rem);
+    overflow-y: auto;
+  }
+}
+
+/* ========================================
+   FORM STYLING
+   ======================================== */
+
+/* Discount and gift card forms */
+.cart-form input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* ========================================
+   LOADING STATES
+   ======================================== */
+
+/* Loading spinner for cart operations */
+.cart-loading {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #f3f4f6;
+  border-radius: 50%;
+  border-top-color: #3b82f6;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ========================================
+   UTILITY CLASSES
+   ======================================== */
+
+/* Hide scrollbar but keep functionality */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Images */
+img {
+  border-radius: 4px;
+}
+
+/* Line clamp utilities */
+.line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.line-clamp-3 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+/* ========================================
+   TRUST BADGES
+   ======================================== */
+
+.trust-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+/* ========================================
+   ANIMATIONS
+   ======================================== */
+
+/* Success animation for added items */
+@keyframes slideInFromRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.cart-item-added {
+  animation: slideInFromRight 0.3s ease-out;
+}
+
+/* Smooth animations on all devices */
+.mobile-nav-screen * {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+
+/* Mobile optimizations */
+@media (max-width: 640px) {
+  /* Adjust cart item layout for mobile */
+  .cart-line-item-mobile {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .cart-line-item-mobile .product-info {
+    width: 100%;
+  }
+}
+
+/* Responsive aside width adjustments */
+@media (max-width: 640px) {
+  :root {
+    --aside-width: 450px; /* Slightly smaller but still wide on mobile */
+  }
+}
+
+@media (max-width: 768px) and (min-width: 641px) {
+  :root {
+    --aside-width: 480px;
+  }
+}
+
+@media (min-width: 1200px) {
+  :root {
+    --aside-width: 400px; /* Your preferred width on large screens */
+  }
+}
+
+/* ========================================
+   ACCESSIBILITY
+   ======================================== */
+
+/* Focus styles for better accessibility */
+.cart-button:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .cart-line-item {
+    border-color: #000;
+  }
+  
+  .cart-summary {
+    border-color: #000;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .cart-line-item,
+  .cart-loading {
+    animation: none;
+    transition: none;
+  }
+  
+  aside {
+    transition: none;
+  }
+}
+
+/* ========================================
+   PRODUCT GRID RESPONSIVE FIXES
+   ======================================== */
+
+/* Ensure grid items maintain consistent heights across all viewports */
+.products-grid-equal-height {
+  display: grid;
+  align-items: stretch;
+}
+
+.products-grid-equal-height > * {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ========================================
+   COLLECTION PAGE ENHANCEMENTS
+   ======================================== */
+
+/* Product title height consistency helpers */
+.product-title-desktop {
+  min-height: 3.5rem;
+  display: flex;
+  align-items: flex-start;
+}
+
+.product-title-mobile {
+  min-height: 2.5rem;
+  display: flex;
+  align-items: flex-start;
+}
+
+/* Responsive product grid adjustments */
+@media (max-width: 639px) {
+  /* Mobile: 1 column layout */
+  .collection-products-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  /* Tablet: 2 columns layout */
+  .collection-products-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  /* Desktop: 3 columns layout */
+  .collection-products-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+  }
+}
