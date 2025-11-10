@@ -11,6 +11,7 @@ import {
 import {Form, useLoaderData, useActionData, useNavigation} from 'react-router';
 import {Mail, Phone, Clock, MapPin, Send} from 'lucide-react';
 import {useState} from 'react';
+import {SocialMedia} from '~/components/Footer/SocialMedia';
 
 export const meta = () => {
   return [
@@ -208,9 +209,12 @@ export default function ContactPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">Kontakta oss</h1>
-        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+      {/* Header */}
+      <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginBottom: '64px'}}>
+        <h1 className="text-5xl font-bold text-gray-900 mb-4 tracking-tight" style={{textAlign: 'center !important'}}>
+          Kontakta oss
+        </h1>
+        <p className="text-xl text-gray-600 leading-relaxed" style={{textAlign: 'center !important', maxWidth: '672px', margin: '0 auto'}}>
           Vi finns här för att hjälpa dig med frågor om produkter,
           beställningar och leveranser.
         </p>
@@ -513,17 +517,49 @@ export default function ContactPage() {
         </div>
       </div>
 
-      <div className="mt-8 bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg p-8 text-white text-center">
-        <h3 className="text-xl font-bold mb-2">Behöver du hjälp snabbt?</h3>
-        <p className="text-blue-100 mb-4">
-          Kolla våra vanliga frågor för snabba svar på de flesta frågor
-        </p>
-        <a
-          href="/pages/hjalp"
-          className="inline-block bg-white text-blue-600 font-semibold py-3 px-8 rounded-lg hover:bg-gray-100 transition-colors"
-        >
-          Besök vår hjälpsida
-        </a>
+      {/* Enhanced Help CTA */}
+      <div className="mt-12 relative overflow-hidden bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 rounded-2xl p-12 text-white shadow-xl">
+        {/* Decorative elements */}
+        <div className="absolute top-0 right-0 -mt-4 -mr-4 w-64 h-64 bg-blue-500 rounded-full opacity-20 blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 -mb-4 -ml-4 w-48 h-48 bg-blue-400 rounded-full opacity-20 blur-3xl"></div>
+        
+        {/* Content */}
+        <div className="relative z-10 text-center max-w-3xl mx-auto">
+          <h3 className="text-3xl font-bold mb-3">
+            Behöver du hjälp snabbt?
+          </h3>
+          <p className="text-blue-100 text-lg leading-relaxed" style={{paddingBottom: '32px'}}>
+            Kolla våra vanliga frågor för snabba svar på de flesta frågor
+          </p>
+          
+          <a
+            href="/pages/hjalp"
+            className="inline-flex items-center gap-2 bg-white text-blue-600 font-semibold py-4 px-10 rounded-xl hover:bg-gray-50 hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
+          >
+            <span>Besök vår hjälpsida</span>
+            <svg 
+              className="w-5 h-5" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                strokeWidth={2} 
+                d="M13 7l5 5m0 0l-5 5m5-5H6" 
+              />
+            </svg>
+          </a>
+          
+          {/* Social Media Links */}
+          <div className="mt-10 pt-8 border-t border-white/20">
+            <p className="text-white/90 text-sm mb-4 font-medium">
+              Följ oss på sociala medier
+            </p>
+            <SocialMedia isMobile={false} />
+          </div>
+        </div>
       </div>
     </div>
   );
