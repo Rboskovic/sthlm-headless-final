@@ -74,6 +74,15 @@ export async function action({request, context}: ActionFunctionArgs) {
   try {
     const {env} = context;
 
+    // Debug logging
+    console.log('🔍 Contact Form Debug:', {
+      hasToken: !!env.PRIVATE_ADMIN_API_TOKEN,
+      hasVersion: !!env.PRIVATE_ADMIN_API_VERSION,
+      tokenPrefix: env.PRIVATE_ADMIN_API_TOKEN?.substring(0, 10),
+      version: env.PRIVATE_ADMIN_API_VERSION,
+      storeDomain: env.PUBLIC_STORE_DOMAIN,
+    });
+
     // Check for required environment variables
     if (!env.PRIVATE_ADMIN_API_TOKEN || !env.PRIVATE_ADMIN_API_VERSION) {
       throw new Error(
@@ -82,6 +91,8 @@ export async function action({request, context}: ActionFunctionArgs) {
     }
 
     const adminApiUrl = `https://${env.PUBLIC_STORE_DOMAIN}/admin/api/${env.PRIVATE_ADMIN_API_VERSION}/graphql.json`;
+
+    console.log('🔍 Admin API URL:', adminApiUrl);
 
     // GraphQL mutation to create metaobject entry
     const mutation = `
@@ -113,6 +124,8 @@ export async function action({request, context}: ActionFunctionArgs) {
       },
     };
 
+    console.log('🔍 Mutation variables:', JSON.stringify(variables, null, 2));
+
     const response = await fetch(adminApiUrl, {
       method: 'POST',
       headers: {
@@ -122,15 +135,38 @@ export async function action({request, context}: ActionFunctionArgs) {
       body: JSON.stringify({query: mutation, variables}),
     });
 
-    const result = await response.json();
+    console.log('🔍 Response status:', response.status);
 
-    if (result.errors || result.data?.metaobjectCreate?.userErrors?.length > 0) {
-      console.error('Metaobject creation error:', result);
+    const result = (await response.json()) as {
+      data?: {
+        metaobjectCreate?: {
+          metaobject?: {
+            id: string;
+            handle: string;
+          };
+          userErrors?: Array<{
+            field: string[];
+            message: string;
+          }>;
+        };
+      };
+      errors?: Array<{
+        message: string;
+      }>;
+    };
+
+    console.log('🔍 Response result:', JSON.stringify(result, null, 2));
+
+    if (result.errors || result.data?.metaobjectCreate?.userErrors?.length) {
+      console.error('❌ Metaobject creation error:', result);
       throw new Error(
         result.data?.metaobjectCreate?.userErrors?.[0]?.message ||
+          result.errors?.[0]?.message ||
           'Failed to save contact form',
       );
     }
+
+    console.log('✅ Contact form submitted successfully!');
 
     return data<ActionData>({
       success: true,
@@ -138,7 +174,7 @@ export async function action({request, context}: ActionFunctionArgs) {
         'Tack för ditt meddelande! Vi återkommer till dig inom 24 timmar.',
     });
   } catch (error) {
-    console.error('Contact form error:', error);
+    console.error('❌ Contact form error:', error);
     return data<ActionData>(
       {
         error:
