@@ -5,6 +5,7 @@ import {FooterLinks} from './FooterLinks';
 import {SocialMedia} from './SocialMedia';
 import {FooterLogo} from './FooterLogo';
 import {PaymentIcons} from './PaymentIcons';
+import {ContactUs} from './ContactUs';
 import type {FooterProps} from './types';
 
 export function Footer({
@@ -41,41 +42,9 @@ export function Footer({
               </div>
             </div>
 
-            {/* Middle - Contact Us (4 columns) */}
+            {/* Middle - Contact Us (4 columns) - NOW USING COMPONENT */}
             <div className="col-span-4">
-              <h4 className="text-white font-bold text-lg mb-4">Kontakta</h4>
-              <ul className="space-y-2">
-                <li>
-                  <a 
-                    href="mailto:info@klosslabbet.se" 
-                    className="text-sm transition-colors"
-                    style={{color: 'white', textDecoration: 'none'}}
-                    onMouseEnter={(e) => {
-                      (e.target as HTMLElement).style.color = '#FCD34D';
-                    }}
-                    onMouseLeave={(e) => {
-                      (e.target as HTMLElement).style.color = 'white';
-                    }}
-                  >
-                    Mejla oss: info@klosslabbet.se
-                  </a>
-                </li>
-                <li>
-                  <a 
-                    href="tel:+46760070987" 
-                    className="text-sm transition-colors"
-                    style={{color: 'white', textDecoration: 'none'}}
-                    onMouseEnter={(e) => {
-                      (e.target as HTMLElement).style.color = '#FCD34D';
-                    }}
-                    onMouseLeave={(e) => {
-                      (e.target as HTMLElement).style.color = 'white';
-                    }}
-                  >
-                    Ring oss: +46760070987
-                  </a>
-                </li>
-              </ul>
+              <ContactUs />
             </div>
 
             {/* Right side - Newsletter (3 columns) */}
@@ -128,42 +97,8 @@ export function Footer({
 
             {/* Second row: Kontakta and Hitta oss på */}
             <div className="grid grid-cols-2 gap-6 mt-6">
-              {/* Kontakta section */}
-              <div>
-                <h4 className="text-white font-bold text-lg mb-3">Kontakta</h4>
-                <ul className="space-y-2">
-                  <li>
-                    <a 
-                      href="mailto:info@klosslabbet.se" 
-                      className="text-sm transition-colors"
-                      style={{color: 'white', textDecoration: 'none'}}
-                      onMouseEnter={(e) => {
-                        (e.target as HTMLElement).style.color = '#FCD34D';
-                      }}
-                      onMouseLeave={(e) => {
-                        (e.target as HTMLElement).style.color = 'white';
-                      }}
-                    >
-                      Mejla oss: info@klosslabbet.se
-                    </a>
-                  </li>
-                  <li>
-                    <a 
-                      href="tel:+46760070987" 
-                      className="text-sm transition-colors"
-                      style={{color: 'white', textDecoration: 'none'}}
-                      onMouseEnter={(e) => {
-                        (e.target as HTMLElement).style.color = '#FCD34D';
-                      }}
-                      onMouseLeave={(e) => {
-                        (e.target as HTMLElement).style.color = 'white';
-                      }}
-                    >
-                      Ring oss: +46760070987
-                    </a>
-                  </li>
-                </ul>
-              </div>
+              {/* Kontakta section - NOW USING COMPONENT */}
+              <ContactUs />
 
               {/* Hitta oss på section */}
               <div>

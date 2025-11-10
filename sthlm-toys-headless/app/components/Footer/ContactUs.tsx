@@ -1,5 +1,5 @@
 // FILE: app/components/Footer/ContactUs.tsx
-// ✅ UPDATED: Added phone number per user request
+// ✅ UPDATED: Force white color with !important to override any global styles
 
 export function ContactUs() {
   return (
@@ -7,15 +7,18 @@ export function ContactUs() {
       <h3 className="font-semibold text-base">Kontakta</h3>
       <p>
         Mejla oss:{' '}
-        <a href="mailto:info@klosslabbet.se" className="underline hover:text-yellow-300">
+        <a href="mailto:info@klosslabbet.se" className="!text-white underline hover:text-yellow-300">
           info@klosslabbet.se
         </a>
       </p>
       <p>
         Ring oss:{' '}
-        <a href="tel:+46760070987" className="underline hover:text-yellow-300">
+        <a href="tel:+46760070987" className="!text-white underline hover:text-yellow-300">
           +46760070987
         </a>
+      </p>
+      <p className="text-xs text-white/80 pt-1">
+        Måndag–Fredag: 09:00–17:00
       </p>
     </div>
   );
