@@ -1,5 +1,5 @@
 // FILE: app/components/Footer/ContactUs.tsx
-// ✅ FIXED: Matches FooterLinks styling exactly with inline styles
+// ✅ FIXED: Exact DOM structure match with FooterLinks for proper alignment
 
 export function ContactUs() {
   return (
@@ -7,11 +7,11 @@ export function ContactUs() {
       <h4 className="text-white font-bold text-lg mb-4">Kontakta</h4>
       <ul className="space-y-2">
         <li>
-          <span className="text-sm" style={{color: 'white'}}>
+          <div className="flex items-center gap-2 text-sm" style={{color: 'white'}}>
             Mejla oss:{' '}
             <a 
               href="mailto:info@klosslabbet.se" 
-              className="underline transition-colors text-sm"
+              className="transition-colors"
               style={{color: 'white', textDecoration: 'underline'}}
               onMouseEnter={(e) => {
                 (e.target as HTMLElement).style.color = '#FCD34D';
@@ -22,14 +22,14 @@ export function ContactUs() {
             >
               info@klosslabbet.se
             </a>
-          </span>
+          </div>
         </li>
         <li>
-          <span className="text-sm" style={{color: 'white'}}>
+          <div className="flex items-center gap-2 text-sm" style={{color: 'white'}}>
             Ring oss:{' '}
             <a 
               href="tel:+46760070987" 
-              className="underline transition-colors text-sm"
+              className="transition-colors"
               style={{color: 'white', textDecoration: 'underline'}}
               onMouseEnter={(e) => {
                 (e.target as HTMLElement).style.color = '#FCD34D';
@@ -40,12 +40,12 @@ export function ContactUs() {
             >
               +46760070987
             </a>
-          </span>
+          </div>
         </li>
         <li>
-          <span className="text-xs" style={{color: 'rgba(255, 255, 255, 0.8)'}}>
+          <div className="flex items-center gap-2 text-sm" style={{color: 'rgba(255, 255, 255, 0.8)'}}>
             Måndag–Fredag: 09:00–17:00
-          </span>
+          </div>
         </li>
       </ul>
     </div>

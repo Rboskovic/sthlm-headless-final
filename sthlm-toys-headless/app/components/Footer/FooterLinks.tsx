@@ -1,3 +1,6 @@
+// FILE: app/components/Footer/FooterLinks.tsx
+// ✅ UPDATED: Added Garanti link to Support section
+
 import {Link} from 'react-router';
 import {Heart} from 'lucide-react';
 import type {FooterLinksProps} from './types';
@@ -9,13 +12,14 @@ const FALLBACK_FOOTER_SECTIONS = [
     links: [
       {id: 'about', title: 'Om oss', url: '/pages/om-oss'},
       {id: 'help', title: 'Hjälp & FAQ', url: '/pages/hjalp'},
-      {id: 'help', title: 'Kontakta oss', url: '/pages/kontakta-oss'},
+      {id: 'contact', title: 'Kontakta oss', url: '/pages/kontakta-oss'},
       {id: 'terms', title: 'Köpvillkor', url: '/pages/kopvillkor'},
-      {id: 'help', title: 'Leveranspolicy', url: '/pages/leveranspolicy'},
+      {id: 'shipping', title: 'Leveranspolicy', url: '/pages/leveranspolicy'},
       {id: 'returns', title: 'Retur och återbetalningspolicy', url: '/pages/returpolicy'},
+      {id: 'warranty', title: 'Garanti', url: '/pages/garanti'}, // ✅ NEW
       {id: 'privacy', title: 'Integritetspolicy', url: '/pages/integritetspolicy'},
       {id: 'cookies', title: 'Cookies', url: '/pages/cookies'},
-      {id: 'cookies', title: 'Rättsligt meddelande', url: '/pages/rattsligt-meddelande'},
+      {id: 'legal', title: 'Rättsligt meddelande', url: '/pages/rattsligt-meddelande'},
     ],
   },
   {
@@ -27,7 +31,7 @@ const FALLBACK_FOOTER_SECTIONS = [
       {
         id: 'wishlist',
         title: 'Min önskelista',
-        url: 'wishlist',
+        url: '/wishlist',
         icon: 'heart',
       },
     ],

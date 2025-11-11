@@ -28,37 +28,43 @@ interface HelpPageProps {
   } | null;
 }
 
-// Fallback FAQ data in Swedish
+// Updated FAQ data in Swedish with focus on returns, refunds, and exchanges
 const fallbackFAQs: FAQ[] = [
   {
     id: 'faq-1',
-    question: 'Hur kommer jag igång?',
+    question: 'Hur går en retur till?',
     answer:
-      'När du registrerar dig får du tillgång till vårt fullständiga sortiment av leksaker och spel. Som inloggad medlem får du också tillgång till specialerbjudanden och personlig kundservice.',
+      'Kontakta oss först på info@klosslabbet.se med ditt ordernummer och beskriv varför du vill returnera. Vi skickar då returinstruktioner och returetikett. Du har 14 dagars ångerrätt från det att du mottagit varan. Varan ska vara oanvänd och i originalförpackning. För LEGO®-set måste ytterkartongen vara obruten.',
   },
   {
     id: 'faq-2',
-    question: 'Vad ingår i gratis frakt?',
+    question: 'Hur lång tid tar en återbetalning?',
     answer:
-      'Vi erbjuder fri frakt till ombud på beställningar över 1299 kr inom Sverige (kostnad 59 kr för beställningar under 1299 kr). Hemleverans kostar alltid 139 kr. Leveranstiden är vanligtvis 2-7 arbetsdagar.',
+      'Återbetalning sker normalt inom 10 arbetsdagar efter att vi mottagit och godkänt returen, dock alltid senast 14 dagar enligt lag. Pengarna återbetalas automatiskt till samma betalmetod som användes vid köpet (kort, Klarna, PayPal, Shop Pay, etc.). Det kan ta ytterligare 3-10 dagar innan pengarna syns på ditt konto, beroende på din banks handläggningstid.',
   },
   {
     id: 'faq-3',
-    question: 'Hur avbokar jag mitt medlemskap?',
+    question: 'Kan jag byta min produkt?',
     answer:
-      'Du kan avboka ditt medlemskap när som helst genom att logga in på ditt konto och gå till "Kontoinställningar". Där hittar du alternativet att avsluta ditt medlemskap.',
+      'Vi erbjuder för närvarande inte produktbyten. Om du vill ha en annan storlek, färg eller produkt - gör en retur av originalordern och lägg en ny beställning för önskad produkt. Så får du rätt produkt snabbast: lägg först en ny beställning för produkten du vill ha, och initiera sedan returen för originalprodukten.',
   },
   {
     id: 'faq-4',
-    question: 'Hur överför jag mitt medlemskap till ett annat konto?',
+    question: 'Vad händer om jag får fel eller skadad vara?',
     answer:
-      'Kontakta vår kundservice på info@klosslabbet.se så hjälper vi dig att överföra ditt medlemskap till ett nytt konto. Vi behöver verifiering av båda kontona.',
+      'Kontakta oss direkt på info@klosslabbet.se med foto på skadan och ditt ordernummer. Vi skickar antingen en ersättningsprodukt utan kostnad, eller återbetalar hela beloppet inklusive frakt. Du behöver normalt inte returnera den skadade varan. Vi står alltid för returfrakt vid defekta produkter eller om du fått fel vara.',
   },
   {
     id: 'faq-5',
-    question: 'Vad är returpolicyn?',
+    question: 'Vad ingår i fri frakt?',
     answer:
-      'Vi erbjuder 14 dagars öppet köp på alla produkter. Produkterna ska vara oanvända och i originalförpackning. Kontakta kundservice för att initiera en retur.',
+      'Vid beställningar över 1299 kr är frakt till utlämningsställe kostnadsfri inom Sverige (annars 59 kr). Hemleverans kostar alltid 139kr oavsett ordervärde. Leveranstiden är 2–7 arbetsdagar. Beställ innan kl. 12:00 måndag–fredag så hanterar vi din order samma dag.',
+  },
+  {
+    id: 'faq-6',
+    question: 'Hur kommer jag igång med att handla?',
+    answer:
+      'Att handla hos oss är enkelt! Hitta dina favoritprodukter, lägg dem i varukorgen och gå vidare till kassan. Du kan slutföra ditt köp som gäst eller välja att skapa ett konto. Genom att registrera dig får du möjlighet att följa din orderhistorik, spara produkter i önskelistan och få en snabbare kassaupplevelse nästa gång.',
   },
 ];
 
@@ -105,7 +111,7 @@ export function HelpPage({helpPage, contactInfo}: HelpPageProps) {
     'info@klosslabbet.se';
   const supportPhone =
     getMetafieldValue(contactInfo?.metafields, 'support_phone') ||
-    '+46 8 123 456 78';
+    '+46760070987';
 
   const toggleFAQ = (faqId: string) => {
     setOpenFAQ(openFAQ === faqId ? null : faqId);
