@@ -1,8 +1,7 @@
-// FILE: app/routes/($locale)._index.tsx - Using hidden collection for featured products
+// FILE: app/routes/($locale)._index.tsx - Using metaobjects for homepage sections
+// ✅ METAOBJECTS: All sections now load from Shopify metaobjects
+// ✅ PERFORMANCE: Using hidden collection for featured products
 // ✅ SHOPIFY HYDROGEN STANDARDS: Homepage with improved UX and proper ordering
-// ✅ PERFORMANCE: Using hidden collection instead of fetching all products
-// ✅ FIXED: Pagination dots now decorative (not interactive)
-// ✅ UPDATED: Section title now comes from collection name
 
 import {type LoaderFunctionArgs} from '@shopify/remix-oxygen';
 import {Await, useLoaderData, type MetaFunction} from 'react-router';
@@ -51,33 +50,38 @@ export async function loader(args: LoaderFunctionArgs) {
 async function loadCriticalData({context}: LoaderFunctionArgs) {
   try {
     const [
-      topCategoriesData,
+      featuredThemesData,
       shopByAgeData,
       featuredBannersData,
       shopByDiscountData,
       heroData,
     ] = await Promise.all([
-      context.storefront.query(TOP_CATEGORIES_QUERY),
+      context.storefront.query(FEATURED_THEMES_QUERY),
       context.storefront.query(SHOP_BY_AGE_QUERY),
       context.storefront.query(FEATURED_BANNERS_QUERY),
       context.storefront.query(SHOP_BY_DISCOUNT_QUERY),
       context.storefront.query(HERO_BANNER_QUERY),
     ]);
+console.log('🔍 Featured Themes Data:', featuredThemesData);
+console.log('🔍 Shop By Age Data:', shopByAgeData);
+console.log('🔍 Featured Themes Nodes:', featuredThemesData.metaobjects?.nodes);
+console.log('🔍 First Theme:', featuredThemesData.metaobjects?.nodes?.[0]);
+console.log('🔍 First Theme Fields:', JSON.stringify(featuredThemesData.metaobjects?.nodes?.[0]?.fields, null, 2));
 
     return {
-      topCategories: topCategoriesData.collections.nodes || [],
-      shopByAgeData: shopByAgeData.collections.nodes || [],
-      featuredBanners: featuredBannersData.collections.nodes || [],
-      shopByDiscountData: shopByDiscountData.collections.nodes || [],
+      featuredThemes: featuredThemesData.metaobjects?.nodes || [],
+      shopByAge: shopByAgeData.metaobjects?.nodes || [],
+      featuredBanners: featuredBannersData.metaobjects?.nodes || [],
+      shopByDiscount: shopByDiscountData.metaobjects?.nodes || [],
       heroMetafields: heroData.shop.metafields || [],
     };
   } catch (error) {
-    console.error('Error loading collections:', error);
+    console.error('Error loading metaobjects:', error);
     return {
-      topCategories: [],
-      shopByAgeData: [],
+      featuredThemes: [],
+      shopByAge: [],
       featuredBanners: [],
-      shopByDiscountData: [],
+      shopByDiscount: [],
       heroMetafields: [],
     };
   }
@@ -169,17 +173,17 @@ export default function Homepage() {
         </Await>
       </Suspense>
 
-      {/* ✅ 2. Shop By Theme (Shoppa efter tema) */}
-      <TopCategories collections={data.topCategories as any} />
+      {/* ✅ 2. Shop By Theme (Shoppa efter tema) - FROM METAOBJECT */}
+      <TopCategories metaobjects={data.featuredThemes as any} />
 
-      {/* ✅ 3. Featured Banners - Keep as is */}
-      <FeaturedBanners collections={data.featuredBanners as any} />
+      {/* ✅ 3. Featured Banners - FROM METAOBJECT */}
+      <FeaturedBanners metaobjects={data.featuredBanners as any} />
 
-      {/* ✅ 4. Shop By Price (Handla efter pris) */}
-      <ShopByDiscount discounts={data.shopByDiscountData as any} />
+      {/* ✅ 4. Shop By Price (Handla efter pris) - FROM METAOBJECT */}
+      <ShopByDiscount metaobjects={data.shopByDiscount as any} />
 
-      {/* ✅ 5. Shop By Age (Hitta rätt LEGO för varje ålder) */}
-      <ShopByAge brands={data.shopByAgeData} />
+      {/* ✅ 5. Shop By Age (Hitta rätt LEGO för varje ålder) - FROM METAOBJECT */}
+      <ShopByAge metaobjects={data.shopByAge as any} />
 
       {/* ✅ 6. Recommended Products Section */}
       <Suspense fallback={<ProductSectionSkeleton title="Rekommenderade produkter" />}>
@@ -256,7 +260,6 @@ function ProductCarouselSection({
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Desktop Layout */}
         <div className="hidden md:block">
-          {/* ✅ FIXED: Desktop Header with centered title and right-aligned navigation (same as other sections) */}
           <div className="flex items-center justify-between mb-8">
             <div className="flex-1"></div>
             <div className="flex-1 flex justify-center">
@@ -308,7 +311,6 @@ function ProductCarouselSection({
             </div>
           </div>
           
-          {/* Desktop Product Grid with Crossfade */}
           <div 
             className={`grid grid-cols-4 gap-6 transition-opacity duration-300 ${
               isAnimating ? 'opacity-50' : 'opacity-100'
@@ -342,7 +344,6 @@ function ProductCarouselSection({
             </h2>
           </div>
           
-          {/* Mobile Product Grid with Crossfade */}
           <div 
             className={`grid grid-cols-2 gap-4 transition-opacity duration-300 ${
               isAnimating ? 'opacity-50' : 'opacity-100'
@@ -357,7 +358,6 @@ function ProductCarouselSection({
             ))}
           </div>
 
-          {/* Mobile Navigation */}
           {hasMultiplePages && (
             <div className="flex justify-center items-center mt-6 gap-4">
               <button
@@ -373,7 +373,6 @@ function ProductCarouselSection({
                 <ChevronLeft size={20} />
               </button>
 
-              {/* ✅ FIXED: Decorative pagination dots (not interactive) */}
               <div className="flex gap-2" role="presentation" aria-hidden="true">
                 {[...Array(totalPages)].map((_, index) => (
                   <span
@@ -423,142 +422,166 @@ function ProductSectionSkeleton({ title }: { title: string }) {
   );
 }
 
-// Queries
-const TOP_CATEGORIES_QUERY = `#graphql
-  fragment TopCategory on Collection {
-    id
-    title
-    handle
-    image {
-      id
-      url
-      altText
-      width
-      height
-    }
-    metafields(identifiers: [
-      {namespace: "custom", key: "featured-category"},
-      {namespace: "custom", key: "featured_category"},
-      {namespace: "app", key: "featured-category"},
-      {namespace: "app", key: "featured_category"},
-      {namespace: "custom", key: "sort_order"},
-      {namespace: "app", key: "sort_order"}
-    ]) {
-      id
-      key
-      value
-      namespace
-    }
-  }
-  query TopCategories($country: CountryCode, $language: LanguageCode)
-    @inContext(country: $country, language: $language) {
-    collections(first: 100, sortKey: TITLE) {
+// ✅ METAOBJECT QUERIES
+const FEATURED_THEMES_QUERY = `#graphql
+  query FeaturedThemes {
+    metaobjects(type: "featured_themes", first: 10) {
       nodes {
-        ...TopCategory
+        id
+        handle
+        fields {
+          key
+          value
+          type
+          reference {
+            ... on Collection {
+              id
+              title
+              handle
+              image {
+                url
+                altText
+                width
+                height
+              }
+            }
+          }
+          references(first: 20) {
+            nodes {
+              ... on Collection {
+                id
+                title
+                handle
+                image {
+                  url
+                  altText
+                  width
+                  height
+                }
+              }
+            }
+          }
+        }
       }
     }
   }
 ` as const;
 
 const SHOP_BY_AGE_QUERY = `#graphql
-  fragment ShopByAge on Collection {
-    id
-    title
-    handle
-    image {
-      id
-      url
-      altText
-      width
-      height
-    }
-    metafields(identifiers: [
-      {namespace: "custom", key: "featured_brand"},
-      {namespace: "custom", key: "featured-brand"},
-      {namespace: "app", key: "featured_brand"},
-      {namespace: "app", key: "featured-brand"},
-      {namespace: "app", key: "sort_order"},
-      {namespace: "custom", key: "sort_order"}
-    ]) {
-      id
-      key
-      value
-      namespace
-    }
-  }
-  query ShopByAge($country: CountryCode, $language: LanguageCode)
-    @inContext(country: $country, language: $language) {
-    collections(first: 100, sortKey: TITLE) {
+  query ShopByAge {
+    metaobjects(type: "shop_by_age", first: 10) {
       nodes {
-        ...ShopByAge
+        id
+        handle
+        fields {
+          key
+          value
+          type
+          reference {
+            ... on Collection {
+              id
+              title
+              handle
+              image {
+                url
+                altText
+                width
+                height
+              }
+            }
+          }
+          references(first: 20) {
+            nodes {
+              ... on Collection {
+                id
+                title
+                handle
+                image {
+                  url
+                  altText
+                  width
+                  height
+                }
+              }
+            }
+          }
+        }
       }
     }
   }
 ` as const;
 
 const SHOP_BY_DISCOUNT_QUERY = `#graphql
-  fragment ShopByDiscount on Collection {
-    id
-    title
-    handle
-    image {
-      id
-      url
-      altText
-      width
-      height
-    }
-    metafields(identifiers: [
-      {namespace: "custom", key: "featured_discount"},
-      {namespace: "custom", key: "featured-discount"},
-      {namespace: "app", key: "featured_discount"},
-      {namespace: "app", key: "featured-discount"},
-      {namespace: "custom", key: "sort_order"},
-      {namespace: "app", key: "sort_order"}
-    ]) {
-      id
-      key
-      value
-      namespace
-    }
-  }
-  query ShopByDiscount($country: CountryCode, $language: LanguageCode)
-    @inContext(country: $country, language: $language) {
-    collections(first: 100, sortKey: TITLE) {
+  query ShopByDiscount {
+    metaobjects(type: "shop_by_discount", first: 10) {
       nodes {
-        ...ShopByDiscount
+        id
+        handle
+        fields {
+          key
+          value
+          type
+          reference {
+            ... on Collection {
+              id
+              title
+              handle
+              image {
+                url
+                altText
+                width
+                height
+              }
+            }
+          }
+          references(first: 20) {
+            nodes {
+              ... on Collection {
+                id
+                title
+                handle
+                image {
+                  url
+                  altText
+                  width
+                  height
+                }
+              }
+            }
+          }
+        }
       }
     }
   }
 ` as const;
 
 const FEATURED_BANNERS_QUERY = `#graphql
-  fragment FeaturedBanner on Collection {
-    id
-    title
-    handle
-    description
-    image {
-      id
-      url
-      altText
-      width
-      height
-    }
-    metafields(identifiers: [
-      {namespace: "custom", key: "homepage_banner_image"}
-    ]) {
-      id
-      key
-      value
-      namespace
-    }
-  }
-  query FeaturedBanners($country: CountryCode, $language: LanguageCode)
-    @inContext(country: $country, language: $language) {
-    collections(first: 100, sortKey: UPDATED_AT, reverse: true) {
+  query FeaturedBanners {
+    metaobjects(type: "featured_banner", first: 10) {
       nodes {
-        ...FeaturedBanner
+        id
+        handle
+        fields {
+          key
+          value
+          type
+          reference {
+            ... on Collection {
+              id
+              title
+              handle
+              description
+            }
+            ... on MediaImage {
+              image {
+                url
+                altText
+                width
+                height
+              }
+            }
+          }
+        }
       }
     }
   }

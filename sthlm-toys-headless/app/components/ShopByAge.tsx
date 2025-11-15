@@ -1,3 +1,9 @@
+// FILE: app/components/ShopByAge.tsx
+// ✅ METAOBJECTS: Now loads from metaobject instead of collection metafields
+// ✅ DYNAMIC TITLE: Section title comes from metaobject "ime" field
+// ✅ PERFORMANCE OPTIMIZED: Better responsive images
+// ✅ FIXED: Proper reference/value ordering in getFieldValue
+
 import {Link} from 'react-router';
 import {useState, useRef} from 'react';
 
@@ -10,7 +16,6 @@ interface CollectionFragment {
     url: string;
     altText?: string;
   } | null;
-  metafields?: Array<{key: string; value: string; namespace: string}>;
 }
 
 // Age-based colors for the fallback placeholders
@@ -74,8 +79,8 @@ interface AgeGroupWithColor extends CollectionFragment {
   backgroundColor?: string;
 }
 
-interface ShopByBrandProps {
-  brands: CollectionFragment[];
+interface ShopByAgeProps {
+  metaobjects: any[]; // Metaobject entries from Shopify
 }
 
 // ✅ PERFORMANCE: Helper function to generate responsive image URLs
@@ -96,7 +101,7 @@ const generateSrcSet = (url: string, displaySize: number): string => {
   ].join(', ');
 };
 
-export function ShopByAge({brands}: ShopByBrandProps) {
+export function ShopByAge({metaobjects}: ShopByAgeProps) {
   const mobileScrollRef = useRef<HTMLDivElement>(null);
   
   const [isDragging, setIsDragging] = useState(false);
@@ -106,62 +111,27 @@ export function ShopByAge({brands}: ShopByBrandProps) {
   
   const DRAG_THRESHOLD = 10;
 
-  const getMetafieldValue = (
-    metafields: Array<{key: string; value: string; namespace: string}> | undefined,
-    key: string,
-  ): string | null => {
-    if (!metafields) return null;
-    const metafield = metafields.find((m) => 
-      m && 
-      m.key === key && 
-      (m.namespace === 'custom' || m.namespace === 'app')
-    );
-    return metafield ? metafield.value : null;
+  // ✅ FIXED: Extract data from metaobject - prioritize reference/references over value
+  const getFieldValue = (fields: any[], key: string): any => {
+    const field = fields?.find((f: any) => f.key === key);
+    // For reference types, return the dereferenced object/array, not the GID string value
+    return field?.references?.nodes || field?.reference || field?.value || null;
   };
 
-  const isTrueValue = (value: string | null): boolean => {
-    if (!value) return false;
-    const normalizedValue = value.toLowerCase().trim();
-    return (
-      normalizedValue === 'true' ||
-      normalizedValue === '1' ||
-      normalizedValue === 'yes'
-    );
-  };
+  // Get the FIRST active metaobject entry
+  const activeEntry = metaobjects?.[0];
+  
+  // ✅ DYNAMIC: Extract section title from "ime" field
+  const sectionTitle = activeEntry 
+    ? getFieldValue(activeEntry.fields, 'ime') || 'Handla efter ålder'
+    : 'Handla efter ålder';
 
-  const featuredAgeGroups =
-    brands && brands.length > 0
-      ? brands.filter((brand) => {
-          const featuredBrandValue =
-            getMetafieldValue(brand.metafields, 'featured-brand') ||
-            getMetafieldValue(brand.metafields, 'featured_brand');
-          const isFeatured = isTrueValue(featuredBrandValue);
-          
-          const DEBUG_LOGS = false;
-          if (DEBUG_LOGS) {
-            console.log(`🔍 Age Collection: ${brand.title}`, {
-              metafields: brand.metafields,
-              featuredBrandValue,
-              isFeatured,
-              hasImage: !!brand.image?.url
-            });
-          }
-          
-          return isFeatured;
-        })
-        .sort((a, b) => {
-          const sortOrderA = parseInt(getMetafieldValue(a.metafields, 'sort_order') || '999');
-          const sortOrderB = parseInt(getMetafieldValue(b.metafields, 'sort_order') || '999');
-          
-          if (sortOrderA !== sortOrderB) {
-            return sortOrderA - sortOrderB;
-          }
-          
-          return a.title.localeCompare(b.title);
-        })
-      : [];
+  // Extract collections from "kolekcija" field
+  const brands: CollectionFragment[] = activeEntry
+    ? (getFieldValue(activeEntry.fields, 'kolekcija') || [])
+    : [];
 
-  const shopifyAgeGroups = featuredAgeGroups.length > 0 ? featuredAgeGroups : [];
+  const shopifyAgeGroups = brands.length > 0 ? brands : [];
   const placeholdersNeeded = Math.max(0, 6 - shopifyAgeGroups.length);
   
   const displayAgeGroups: AgeGroupWithColor[] = [
@@ -228,7 +198,7 @@ export function ShopByAge({brands}: ShopByBrandProps) {
                   textAlign: 'center',
                 }}
               >
-                Handla efter ålder
+                {sectionTitle}
               </h2>
             </div>
             <div className="flex-1 flex justify-end">
@@ -375,7 +345,7 @@ export function ShopByAge({brands}: ShopByBrandProps) {
               marginBottom: '24px',
             }}
           >
-            Handla efter ålder
+            {sectionTitle}
           </h2>
 
           <div

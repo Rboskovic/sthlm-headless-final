@@ -1,6 +1,6 @@
 // FILE: app/routes/($locale).products.$handle.tsx
 // ✅ SHOPIFY HYDROGEN STANDARD: Complete Product Detail Page with metafields
-// ✅ ONLY FIX: Button navigates instead of form POST
+// ✅ INVENTORY VALIDATION: Added quantityAvailable to fragment and AddToCartButton
 
 import {redirect, type LoaderFunctionArgs} from '@shopify/remix-oxygen';
 import {useLoaderData, type MetaFunction, Await, Link, useNavigate} from 'react-router';
@@ -33,7 +33,7 @@ export const meta: MetaFunction<typeof loader> = ({data}) => {
     {title: `${product?.title ?? ''} | Klosslabbet`},
     {
       name: 'description', 
-      content: `Köp ${product?.title} hos Klosslabbet. ${product?.description?.substring(0, 150)}... ✓ Fri upphämtning över 1299 k ✓ Säker betalning`
+      content: `Köp ${product?.title} hos Klosslabbet. ${product?.description?.substring(0, 150)}... ✓ Fri frakt till ombud över 1299 kr ✓ Säker betalning`
     },
     {
       tagName: 'link',
@@ -438,7 +438,7 @@ export default function Product() {
 
             {/* Add to Cart & Buy Now Buttons - Both visible with cart modal */}
             <div className="space-y-3">
-              {/* Add to Cart button - NOW OPENS CART MODAL */}
+              {/* ✅ INVENTORY VALIDATION: Added quantityAvailable prop */}
               <AddToCartButton
                 lines={[
                   {
@@ -450,6 +450,7 @@ export default function Product() {
                   open('cart');
                 }}
                 disabled={!selectedVariant?.availableForSale}
+                quantityAvailable={selectedVariant?.quantityAvailable}
                 analytics={{
                   products: [
                     {
@@ -588,6 +589,7 @@ const PRODUCT_QUERY = `#graphql
   #graphql
   fragment ProductVariant on ProductVariant {
     availableForSale
+    quantityAvailable
     compareAtPrice {
       amount
       currencyCode

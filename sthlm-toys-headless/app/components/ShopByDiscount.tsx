@@ -1,3 +1,9 @@
+// FILE: app/components/ShopByDiscount.tsx
+// ✅ METAOBJECTS: Now loads from metaobject instead of collection metafields
+// ✅ DYNAMIC TITLE: Section title comes from metaobject "ime" field
+// ✅ PERFORMANCE OPTIMIZED: Better responsive images
+// ✅ FIXED: Proper reference/value ordering in getFieldValue
+
 import {Link} from 'react-router';
 import {useState, useRef} from 'react';
 
@@ -13,17 +19,11 @@ interface DiscountCollection {
     width?: number;
     height?: number;
   } | null;
-  metafields?: Array<{
-    id?: string;
-    key: string;
-    value: string;
-    namespace: string;
-  }>;
 }
 
 interface ShopByDiscountProps {
+  metaobjects: any[]; // Metaobject entries from Shopify
   variant?: 'homepage' | 'collection';
-  discounts?: any[] | null;
 }
 
 // ✅ TYPESCRIPT FIX: Local interface for price ranges with color
@@ -39,12 +39,6 @@ interface PriceRangeWithColor {
     height?: number;
   } | null;
   backgroundColor?: string;
-  metafields?: Array<{
-    id?: string;
-    key: string;
-    value: string;
-    namespace: string;
-  }>;
 }
 
 // Price range color mapping for fallbacks
@@ -121,7 +115,7 @@ const generateSrcSet = (url: string, displaySize: number): string => {
 };
 
 export function ShopByDiscount({
-  discounts,
+  metaobjects,
   variant = 'homepage',
 }: ShopByDiscountProps) {
   const mobileScrollRef = useRef<HTMLDivElement>(null);
@@ -133,90 +127,35 @@ export function ShopByDiscount({
   
   const DRAG_THRESHOLD = 10;
 
-  const getMetafieldValue = (metafields: any[] | undefined, key: string): string | null => {
-    if (!metafields || !Array.isArray(metafields)) return null;
-    
-    const metafield = metafields.find((field: any) => {
-      if (!field) return false;
-      
-      if (field.key && field.value && field.namespace) {
-        return field.key === key && (field.namespace === 'custom' || field.namespace === 'app');
-      }
-      
-      return field.key === key;
-    }) as any;
-    
-    return metafield && metafield.value ? metafield.value : null;
+  // ✅ FIXED: Extract data from metaobject - prioritize reference/references over value
+  const getFieldValue = (fields: any[], key: string): any => {
+    const field = fields?.find((f: any) => f.key === key);
+    // For reference types, return the dereferenced object/array, not the GID string value
+    return field?.references?.nodes || field?.reference || field?.value || null;
   };
 
-  const isTrueValue = (value: string | null): boolean => {
-    if (!value) return false;
-    const normalizedValue = value.toLowerCase().trim();
-    return (
-      normalizedValue === 'true' ||
-      normalizedValue === '1' ||
-      normalizedValue === 'yes'
-    );
-  };
+  // Get the FIRST active metaobject entry
+  const activeEntry = metaobjects?.[0];
+  
+  // ✅ DYNAMIC: Extract section title from "ime" field
+  const sectionTitle = activeEntry 
+    ? getFieldValue(activeEntry.fields, 'ime') || 'Handla efter pris'
+    : 'Handla efter pris';
 
-  const convertToDiscountCollection = (item: any): DiscountCollection => {
-    return {
-      id: item.id || '',
-      title: item.title || '',
-      handle: item.handle || '',
-      image: item.image ? {
-        id: item.image.id,
-        url: item.image.url || '',
-        altText: item.image.altText,
-        width: item.image.width,
-        height: item.image.height,
-      } : null,
-      metafields: item.metafields || [],
-    };
-  };
+  // Extract collections from "kolekcija" field
+  const discounts: DiscountCollection[] = activeEntry
+    ? (getFieldValue(activeEntry.fields, 'kolekcija') || [])
+    : [];
 
-  const featuredPriceRanges =
-    discounts && discounts.length > 0
-      ? discounts
-          .map(convertToDiscountCollection)
-          .filter((discount) => {
-            const featuredValue =
-              getMetafieldValue(discount.metafields, 'featured-discount') ||
-              getMetafieldValue(discount.metafields, 'featured_discount');
-            const isFeatured = isTrueValue(featuredValue);
-            
-            const DEBUG_LOGS = false;
-            if (DEBUG_LOGS) {
-              console.log(`💰 Price Collection: ${discount.title}`, {
-                metafields: discount.metafields,
-                featuredValue,
-                isFeatured,
-                hasImage: !!discount.image?.url
-              });
-            }
-            
-            return isFeatured;
-          })
-          .sort((a, b) => {
-            const sortOrderA = parseInt(getMetafieldValue(a.metafields, 'sort_order') || '999');
-            const sortOrderB = parseInt(getMetafieldValue(b.metafields, 'sort_order') || '999');
-            
-            if (sortOrderA !== sortOrderB) {
-              return sortOrderA - sortOrderB;
-            }
-            
-            return a.title.localeCompare(b.title);
-          })
-      : [];
+  const shopifyDiscounts = discounts.length > 0 ? discounts : [];
 
   const displayPriceRanges: PriceRangeWithColor[] =
-    featuredPriceRanges.length > 0 
-      ? featuredPriceRanges.map((range): PriceRangeWithColor => ({
+    shopifyDiscounts.length > 0 
+      ? shopifyDiscounts.map((range): PriceRangeWithColor => ({
           id: range.id,
           title: range.title,
           handle: range.handle,
           image: range.image,
-          metafields: range.metafields,
           backgroundColor: priceColors[range.handle] || priceColors['under-100'],
         }))
       : fallbackPriceRanges;
@@ -281,7 +220,7 @@ export function ShopByDiscount({
                   textAlign: 'center',
                 }}
               >
-                Handla efter pris
+                {sectionTitle}
               </h2>
             </div>
             <div className="flex-1 flex justify-end">
@@ -377,7 +316,7 @@ export function ShopByDiscount({
                     "Buenos Aires, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif",
                 }}
               >
-                Handla efter pris
+                {sectionTitle}
               </h2>
             </div>
           )}

@@ -1,6 +1,8 @@
 // FILE: app/components/FeaturedBanners.tsx
-// ✅ PERFORMANCE OPTIMIZED: Better responsive images with proper srcset and explicit dimensions
-// ✅ ACCESSIBILITY FIXED: Alt text for decorative images with text overlays
+// ✅ METAOBJECTS: Now loads from metaobject instead of collection metafields
+// ✅ PERFORMANCE OPTIMIZED: Better responsive images with proper srcset
+// ✅ MAX 2 BANNERS: Only shows first 2 active entries
+// ✅ FIXED: Using correct lowercase field keys
 
 import {Link} from 'react-router';
 
@@ -16,7 +18,6 @@ interface CollectionFragment {
     width?: number;
     height?: number;
   } | null;
-  metafields?: Array<{key: string; value: string; namespace: string}>;
 }
 
 interface CollectionWithBanner extends CollectionFragment {
@@ -27,7 +28,7 @@ interface CollectionWithBanner extends CollectionFragment {
 }
 
 interface FeaturedBannersProps {
-  collections: CollectionFragment[];
+  metaobjects: any[]; // Metaobject entries from Shopify
 }
 
 // Fallback banners for testing/development
@@ -58,16 +59,11 @@ const fallbackBanners: CollectionWithBanner[] = [
   },
 ];
 
-export function FeaturedBanners({collections}: FeaturedBannersProps) {
-  // Helper function to extract metafield values
-  const getMetafieldValue = (
-    metafields: Array<{key: string; value: string; namespace: string}> | undefined,
-    key: string,
-  ): string | null => {
-    if (!metafields) return null;
-    const metafield = metafields.find((m) => m && m.key === key);
-    return metafield ? metafield.value : null;
-  };
+export function FeaturedBanners({metaobjects}: FeaturedBannersProps) {
+  // ✅ DEBUG: Log metaobjects to see structure
+  console.log('🎨 FeaturedBanners - Received metaobjects:', metaobjects);
+  console.log('🎨 FeaturedBanners - First entry:', metaobjects?.[0]);
+  console.log('🎨 FeaturedBanners - First entry fields:', JSON.stringify(metaobjects?.[0]?.fields, null, 2));
 
   // ✅ PERFORMANCE: Generate responsive image URLs with WebP format
   const getOptimizedImageUrl = (url: string, width: number): string => {
@@ -89,24 +85,52 @@ export function FeaturedBanners({collections}: FeaturedBannersProps) {
       .join(', ');
   };
 
-  // Filter collections that have homepage_banner_image metafield set
-  const featuredBanners: CollectionWithBanner[] =
-    collections && collections.length > 0
-      ? collections.filter((collection) => {
-          const bannerImageUrl = getMetafieldValue(collection.metafields, 'homepage_banner_image');
-          return bannerImageUrl && bannerImageUrl.trim().length > 0;
-        })
-        .map((collection): CollectionWithBanner => {
-          const bannerImageUrl = getMetafieldValue(collection.metafields, 'homepage_banner_image');
-          return {
-            ...collection,
-            bannerImage: {
-              url: bannerImageUrl,
-              altText: `${collection.title} Banner`,
-            },
-          };
-        })
-      : [];
+  // ✅ FIXED: Extract data from metaobject fields - prioritize reference over value for reference types
+  const getFieldValue = (fields: any[], key: string): any => {
+    const field = fields?.find((f: any) => f.key === key);
+    // For reference types, return the reference object, not the GID string value
+    return field?.reference || field?.value || null;
+  };
+
+  // ✅ FIXED: Process metaobjects into banner format with correct field keys
+  const featuredBanners: CollectionWithBanner[] = metaobjects
+    ?.slice(0, 2) // Only take first 2 entries (max 2 banners)
+    ?.map((entry) => {
+      const fields = entry.fields || [];
+      console.log('🔍 Processing entry:', entry.id);
+      console.log('🔍 Entry fields:', fields);
+      
+      // ✅ FIXED: Use lowercase 'kolekcija' instead of 'Kolekcija'
+      const collection = getFieldValue(fields, 'kolekcija'); // Collection reference
+      console.log('🔍 Collection found:', collection);
+      
+      // ✅ FIXED: Use lowercase 'banner_slika' 
+      const bannerImageField = fields.find((f: any) => f.key === 'banner_slika');
+      console.log('🔍 Banner image field:', bannerImageField);
+      
+      const bannerImage = bannerImageField?.reference?.image || null;
+      console.log('🔍 Banner image:', bannerImage);
+      
+      return {
+        id: entry.id,
+        title: collection?.title || '',
+        handle: collection?.handle || '',
+        description: collection?.description || '',
+        image: null,
+        bannerImage: {
+          url: bannerImage?.url || null,
+          altText: `${collection?.title || 'Banner'} Banner`,
+        },
+      };
+    })
+    .filter((banner) => {
+      const isValid = banner.handle && banner.bannerImage.url;
+      console.log(`🔍 Banner ${banner.id} valid:`, isValid, {handle: banner.handle, hasImage: !!banner.bannerImage.url});
+      return isValid;
+    }) // Only show banners with both collection and image
+    || [];
+
+  console.log('✅ Final banners to display:', featuredBanners.length, featuredBanners);
 
   const displayBanners = featuredBanners.length > 0 ? featuredBanners : fallbackBanners;
   

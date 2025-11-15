@@ -1,7 +1,13 @@
+// FILE: app/components/TopCategories.tsx
+// ✅ METAOBJECTS: Now loads from metaobject instead of collection metafields
+// ✅ DYNAMIC TITLE: Section title comes from metaobject "ime" field
+// ✅ PERFORMANCE OPTIMIZED: Better responsive images
+// ✅ FIXED: Proper reference/value ordering in getFieldValue
+
 import {Link} from 'react-router';
 import {useState, useRef} from 'react';
 
-// ✅ TYPESCRIPT FIX: Create proper interface with metafields
+// ✅ TYPESCRIPT FIX: Create proper interface
 interface CollectionFragment {
   id: string;
   title: string;
@@ -13,12 +19,6 @@ interface CollectionFragment {
     width?: number;
     height?: number;
   } | null;
-  metafields?: Array<{
-    id?: string;
-    key: string;
-    value: string;
-    namespace: string;
-  }>;
 }
 
 const categoryColors: Record<string, string> = {
@@ -85,7 +85,7 @@ interface CategoryWithColor extends CollectionFragment {
 }
 
 interface TopCategoriesProps {
-  collections: CollectionFragment[];
+  metaobjects: any[]; // Metaobject entries from Shopify
 }
 
 // ✅ PERFORMANCE: Helper functions for responsive images
@@ -105,7 +105,7 @@ const generateSrcSet = (url: string, displaySize: number): string => {
   ].join(', ');
 };
 
-export function TopCategories({collections}: TopCategoriesProps) {
+export function TopCategories({metaobjects}: TopCategoriesProps) {
   const mobileScrollRef = useRef<HTMLDivElement>(null);
   
   const [isDragging, setIsDragging] = useState(false);
@@ -115,48 +115,30 @@ export function TopCategories({collections}: TopCategoriesProps) {
   
   const DRAG_THRESHOLD = 10;
 
-  const getMetafieldValue = (
-    metafields: Array<{key: string; value: string; namespace: string}> | undefined,
-    key: string,
-  ): string | null => {
-    if (!metafields) return null;
-    const metafield = metafields.find((m) => m && m.key === key);
-    return metafield ? metafield.value : null;
+  // ✅ FIXED: Extract data from metaobject - prioritize reference/references over value
+  const getFieldValue = (fields: any[], key: string): any => {
+    const field = fields?.find((f: any) => f.key === key);
+    // For reference types, return the dereferenced object/array, not the GID string value
+    return field?.references?.nodes || field?.reference || field?.value || null;
   };
 
-  const isTrueValue = (value: string | null): boolean => {
-    if (!value) return false;
-    const normalizedValue = value.toLowerCase().trim();
-    return (
-      normalizedValue === 'true' ||
-      normalizedValue === '1' ||
-      normalizedValue === 'yes'
-    );
-  };
+  // Get the FIRST active metaobject entry
+  const activeEntry = metaobjects?.[0];
+  
+  // ✅ DYNAMIC: Extract section title from "ime" field
+  const sectionTitle = activeEntry 
+    ? getFieldValue(activeEntry.fields, 'ime') || 'Shoppa efter tema'
+    : 'Shoppa efter tema';
 
-  const featuredCategories =
-    collections && collections.length > 0
-      ? collections.filter((category) => {
-          const featuredCategoryValue =
-            getMetafieldValue(category.metafields, 'featured-category') ||
-            getMetafieldValue(category.metafields, 'featured_category');
-          const isFeatured = isTrueValue(featuredCategoryValue);
-          return isFeatured && category.image?.url;
-        })
-        .sort((a, b) => {
-          const sortOrderA = parseInt(getMetafieldValue(a.metafields, 'sort_order') || '999');
-          const sortOrderB = parseInt(getMetafieldValue(b.metafields, 'sort_order') || '999');
-          
-          if (sortOrderA !== sortOrderB) {
-            return sortOrderA - sortOrderB;
-          }
-          
-          return a.title.localeCompare(b.title);
-        })
-      : [];
+  // Extract collections from "kolekcija" field
+  const themes: CollectionFragment[] = activeEntry
+    ? (getFieldValue(activeEntry.fields, 'kolekcija') || [])
+    : [];
 
+  const shopifyThemes = themes.length > 0 ? themes : [];
+  
   const displayCategories: CategoryWithColor[] =
-    featuredCategories.length > 0 ? featuredCategories : fallbackCategories;
+    shopifyThemes.length > 0 ? shopifyThemes : fallbackCategories;
 
   const visibleCategories = displayCategories.slice(0, 6);
 
@@ -217,7 +199,7 @@ export function TopCategories({collections}: TopCategoriesProps) {
                   textAlign: 'center',
                 }}
               >
-                Shoppa efter tema
+                {sectionTitle}
               </h2>
             </div>
             <div className="flex-1 flex justify-end">
@@ -314,7 +296,7 @@ export function TopCategories({collections}: TopCategoriesProps) {
               marginBottom: '24px',
             }}
           >
-            Shoppa efter tema
+            {sectionTitle}
           </h2>
 
           <div
