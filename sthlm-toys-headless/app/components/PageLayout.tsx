@@ -17,6 +17,7 @@ interface PageLayoutProps {
   cart: Promise<CartApiQueryFragment | null>;
   footer: Promise<any>;
   header: any;
+  headerBanners?: any[];
   publicStoreDomain: string;
   children?: React.ReactNode;
   popularCollections?: Collection[];
@@ -27,6 +28,7 @@ export function PageLayout({
   children = null,
   footer,
   header,
+  headerBanners = [],
   publicStoreDomain,
   popularCollections = [],
 }: PageLayoutProps) {
@@ -42,6 +44,7 @@ export function PageLayout({
           cart={cart}
           publicStoreDomain={publicStoreDomain}
           popularCollections={popularCollections}
+          headerBanners={headerBanners}
         />
       )}
       <main>{children}</main>

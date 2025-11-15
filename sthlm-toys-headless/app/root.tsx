@@ -1,6 +1,7 @@
 // app/root.tsx - Simplified version for Classic Customer Accounts
 // ✅ PERFORMANCE OPTIMIZED: Added early preconnect in <head> for faster CDN connection
 // ✅ PRESERVES: All existing functionality from 223-line version
+// ✅ UPDATED: Added header banner metaobjects query
 
 import { Analytics, getShopAnalytics, useNonce } from "@shopify/hydrogen";
 import { type LoaderFunctionArgs } from "@shopify/remix-oxygen";
@@ -20,6 +21,7 @@ import {
   FOOTER_QUERY,
   HEADER_QUERY,
   MOBILE_MENU_COLLECTIONS_QUERY,
+  HEADER_BANNER_QUERY,
 } from "~/lib/fragments";
 import resetStyles from "~/styles/reset.css?url";
 import tailwindCss from "~/styles/tailwind.css?url";
@@ -61,17 +63,20 @@ export function links() {
   ];
 }
 
-// ✅ EXISTING: Classic Accounts loader (preserved completely)
+// ✅ UPDATED: Added header banner metaobjects query
 export async function loader({ context }: LoaderFunctionArgs) {
   const { storefront, env, cart } = context;
 
   // --- Critical data ---
-  const [header, mobileMenuCollections] = await Promise.all([
+  const [header, mobileMenuCollections, headerBanners] = await Promise.all([
     storefront.query(HEADER_QUERY, {
       cache: storefront.CacheLong(),
       variables: { headerMenuHandle: "mega-menu" },
     }),
     storefront.query(MOBILE_MENU_COLLECTIONS_QUERY, {
+      cache: storefront.CacheLong(),
+    }),
+    storefront.query(HEADER_BANNER_QUERY, {
       cache: storefront.CacheLong(),
     }),
   ]);
@@ -89,6 +94,7 @@ export async function loader({ context }: LoaderFunctionArgs) {
 
   return {
     header,
+    headerBanners: headerBanners?.metaobjects?.nodes || [],
     popularCollections: (mobileMenuCollections?.collections?.nodes || []) as any,
     footer,
     cart: cart.get(),

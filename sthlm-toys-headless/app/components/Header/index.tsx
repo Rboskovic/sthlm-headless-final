@@ -11,6 +11,7 @@ export function Header({
   cart,
   publicStoreDomain,
   popularCollections = [],
+  headerBanners = [],
 }: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -39,8 +40,8 @@ export function Header({
           publicStoreDomain={publicStoreDomain}
         />
 
-        {/* 3. Announcement Banner - Now with shop metafield support */}
-        <HeaderBanner shop={header.shop} />
+        {/* 3. Announcement Banner - Now with metaobject rotation support */}
+        <HeaderBanner banners={headerBanners} />
       </header>
 
       {/* Fullscreen Mobile Navigation - Drill-down with Shopify menu */}

@@ -49,6 +49,7 @@ export interface HeaderProps {
   cart: Promise<CartApiQueryFragment | null>;
   publicStoreDomain: string;
   popularCollections?: Collection[];
+  headerBanners?: any[];
 }
 
 export interface HeaderMainProps {

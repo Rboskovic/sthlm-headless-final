@@ -226,6 +226,23 @@ const MOBILE_MENU_COLLECTION_FRAGMENT = `#graphql
   }
 ` as const;
 
+// Header Banner metaobject query
+export const HEADER_BANNER_QUERY = `#graphql
+  query HeaderBanners($country: CountryCode, $language: LanguageCode)
+    @inContext(country: $country, language: $language) {
+    metaobjects(type: "header_banner", first: 10) {
+      nodes {
+        id
+        handle
+        fields {
+          key
+          value
+        }
+      }
+    }
+  }
+` as const;
+
 export const MOBILE_MENU_COLLECTIONS_QUERY = `#graphql
   query MobileMenuCollections($country: CountryCode, $language: LanguageCode)
     @inContext(country: $country, language: $language) {

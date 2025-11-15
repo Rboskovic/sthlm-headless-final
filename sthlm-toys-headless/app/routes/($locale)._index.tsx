@@ -2,6 +2,7 @@
 // ✅ SHOPIFY HYDROGEN STANDARDS: Homepage with improved UX and proper ordering
 // ✅ PERFORMANCE: Using hidden collection instead of fetching all products
 // ✅ FIXED: Pagination dots now decorative (not interactive)
+// ✅ UPDATED: Section title now comes from collection name
 
 import {type LoaderFunctionArgs} from '@shopify/remix-oxygen';
 import {Await, useLoaderData, type MetaFunction} from 'react-router';
@@ -86,11 +87,12 @@ function loadDeferredData({context}: LoaderFunctionArgs) {
   const newProducts = context.storefront
     .query(NEW_PRODUCTS_QUERY)
     .then((response) => {
-      if (!response?.collection?.products?.nodes) return null;
+      if (!response?.collection) return null;
       
       return {
+        title: response.collection.title || 'Nya produkter',
         products: {
-          nodes: response.collection.products.nodes
+          nodes: response.collection.products?.nodes || []
         }
       };
     })
@@ -159,8 +161,8 @@ export default function Homepage() {
 
             return (
               <ProductCarouselSection
-                products={newProducts as ProductFragment[]}
-                title="Nya produkter"
+                products={newProducts as any}
+                title={response.title}
               />
             );
           }}
@@ -171,7 +173,7 @@ export default function Homepage() {
       <TopCategories collections={data.topCategories as any} />
 
       {/* ✅ 3. Featured Banners - Keep as is */}
-      <FeaturedBanners collections={data.featuredBanners} />
+      <FeaturedBanners collections={data.featuredBanners as any} />
 
       {/* ✅ 4. Shop By Price (Handla efter pris) */}
       <ShopByDiscount discounts={data.shopByDiscountData as any} />
@@ -586,6 +588,7 @@ const HERO_BANNER_QUERY = `#graphql
 const NEW_PRODUCTS_QUERY = `#graphql
   query FeaturedHomepageProducts {
     collection(handle: "featured-homepage") {
+      title
       products(first: 12, sortKey: MANUAL) {
         nodes {
           id
