@@ -1,5 +1,5 @@
 // FILE: app/components/CartLineItem.tsx
-// ✅ FIXED: Text truncation + price alignment + wider quantity + no black box
+// ✅ FIXED: Added inventory validation with Swedish error message
 
 import type {CartLineUpdateInput} from '@shopify/hydrogen/storefront-api-types';
 import type {CartLayout} from '~/components/CartMain';
@@ -7,8 +7,9 @@ import {CartForm, Image, type OptimisticCartLine, Money} from '@shopify/hydrogen
 import {useVariantUrl} from '~/lib/variants';
 import {Link} from 'react-router';
 import {useAside} from './Aside';
-import {Minus, Plus, Trash2} from 'lucide-react';
+import {Minus, Plus, Trash2, AlertCircle} from 'lucide-react';
 import type {CartApiQueryFragment} from 'storefrontapi.generated';
+import {useState} from 'react';
 
 type CartLine = OptimisticCartLine<CartApiQueryFragment>;
 
@@ -118,7 +119,7 @@ export function CartLineItem({
 }
 
 /**
- * ✅ FIXED: Wider quantity controls with more spacing
+ * ✅ FIXED: Wider quantity controls with inventory validation
  */
 function CartLineQuantity({
   line,
@@ -128,40 +129,70 @@ function CartLineQuantity({
   layout: CartLayout;
 }) {
   if (!line || typeof line?.quantity === 'undefined') return null;
-  const {id: lineId, quantity, isOptimistic} = line;
+  const {id: lineId, quantity, isOptimistic, merchandise} = line;
+  
+  // ✅ NEW: Get available inventory
+  const availableQuantity = (merchandise as any)?.quantityAvailable || 999;
+  
+  // ✅ NEW: Track if user tried to exceed max
+  const [showMaxError, setShowMaxError] = useState(false);
+  
   const prevQuantity = Number(Math.max(0, quantity - 1).toFixed(0));
   const nextQuantity = Number((quantity + 1).toFixed(0));
+  
+  // ✅ NEW: Check if next quantity would exceed available
+  const isMaxQuantity = quantity >= availableQuantity;
 
   return (
-    <div className="flex items-center border border-gray-200 rounded-full overflow-hidden bg-white">
-      {/* ✅ WIDER: Decrease button with more padding */}
-      <CartLineUpdateButton lines={[{id: lineId, quantity: prevQuantity}]}>
-        <button
-          type="submit"
-          aria-label="Minska antal"
-          disabled={quantity <= 1 || !!isOptimistic}
-          className="w-10 h-8 flex items-center justify-center text-gray-600 hover:text-gray-800 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors rounded-l-full"
-        >
-          <Minus size={14} />
-        </button>
-      </CartLineUpdateButton>
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center border border-gray-200 rounded-full overflow-hidden bg-white">
+        {/* ✅ WIDER: Decrease button with more padding */}
+        <CartLineUpdateButton lines={[{id: lineId, quantity: prevQuantity}]}>
+          <button
+            type="submit"
+            aria-label="Minska antal"
+            disabled={quantity <= 1 || !!isOptimistic}
+            className="w-10 h-8 flex items-center justify-center text-gray-600 hover:text-gray-800 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors rounded-l-full"
+          >
+            <Minus size={14} />
+          </button>
+        </CartLineUpdateButton>
 
-      {/* ✅ WIDER: Quantity display with more width */}
-      <div className="w-14 h-8 flex items-center justify-center text-xs font-medium text-gray-900 border-l border-r border-gray-200 bg-white">
-        {quantity}
+        {/* ✅ WIDER: Quantity display with more width */}
+        <div className="w-14 h-8 flex items-center justify-center text-xs font-medium text-gray-900 border-l border-r border-gray-200 bg-white">
+          {quantity}
+        </div>
+
+        {/* ✅ NEW: Increase button with validation */}
+        <CartLineUpdateButton 
+          lines={[{id: lineId, quantity: isMaxQuantity ? quantity : nextQuantity}]}
+        >
+          <button
+            type="submit"
+            aria-label="Öka antal"
+            disabled={!!isOptimistic || isMaxQuantity}
+            onClick={() => {
+              if (isMaxQuantity) {
+                setShowMaxError(true);
+                setTimeout(() => setShowMaxError(false), 3000);
+              }
+            }}
+            className="w-10 h-8 flex items-center justify-center text-gray-600 hover:text-gray-800 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors rounded-r-full"
+          >
+            <Plus size={14} />
+          </button>
+        </CartLineUpdateButton>
       </div>
-
-      {/* ✅ WIDER: Increase button with more padding */}
-      <CartLineUpdateButton lines={[{id: lineId, quantity: nextQuantity}]}>
-        <button
-          type="submit"
-          aria-label="Öka antal"
-          disabled={!!isOptimistic}
-          className="w-10 h-8 flex items-center justify-center text-gray-600 hover:text-gray-800 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors rounded-r-full"
-        >
-          <Plus size={14} />
-        </button>
-      </CartLineUpdateButton>
+      
+      {/* ✅ NEW: Swedish error message when max quantity reached */}
+      {showMaxError && (
+        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 border border-red-200 rounded-lg">
+          <AlertCircle className="h-3 w-3 text-red-600 flex-shrink-0" />
+          <span className="text-xs text-red-700 font-medium">
+            Maximalt {availableQuantity} tillgängliga
+          </span>
+        </div>
+      )}
     </div>
   );
 }

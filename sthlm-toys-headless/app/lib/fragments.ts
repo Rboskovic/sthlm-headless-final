@@ -1,6 +1,5 @@
 // FILE: app/lib/fragments.ts
-// ✅ FIXED: Removed customer fragments causing GraphQL errors since using Shopify hosted account
-// ✅ UPDATED: Added paymentSettings to FOOTER_QUERY for official payment icons
+// ✅ FIXED: Added quantityAvailable to CART_FRAGMENT for inventory validation
 
 // Fragment for money fields
 const MONEY_FRAGMENT = `#graphql
@@ -10,7 +9,7 @@ const MONEY_FRAGMENT = `#graphql
   }
 ` as const;
 
-// Cart fragment
+// Cart fragment - ✅ ADDED quantityAvailable
 const CART_FRAGMENT = `#graphql
   fragment CartApiQuery on Cart {
     updatedAt
@@ -60,6 +59,7 @@ const CART_FRAGMENT = `#graphql
             }
             requiresShipping
             title
+            quantityAvailable
             image {
               id
               url
@@ -142,7 +142,7 @@ const MENU_FRAGMENT = `#graphql
   }
 ` as const;
 
-// Shop fragment - ✅ UPDATED: Added metafields for free shipping banner
+// Shop fragment
 const SHOP_FRAGMENT = `#graphql
   fragment Shop on Shop {
     id
@@ -168,7 +168,6 @@ const SHOP_FRAGMENT = `#graphql
   }
 ` as const;
 
-// Header query - STRING format for Hydrogen
 export const HEADER_QUERY = `#graphql
   query Header(
     $country: CountryCode
@@ -186,7 +185,6 @@ export const HEADER_QUERY = `#graphql
   ${MENU_FRAGMENT}
 ` as const;
 
-// ✅ UPDATED: Footer query with payment settings - OFFICIAL SHOPIFY METHOD
 export const FOOTER_QUERY = `#graphql
   query Footer(
     $country: CountryCode
@@ -205,7 +203,6 @@ export const FOOTER_QUERY = `#graphql
   ${MENU_FRAGMENT}
 ` as const;
 
-// EXISTING: Mobile menu collections query
 const MOBILE_MENU_COLLECTION_FRAGMENT = `#graphql
   fragment MobileMenuCollection on Collection {
     id
@@ -241,7 +238,6 @@ export const MOBILE_MENU_COLLECTIONS_QUERY = `#graphql
   ${MOBILE_MENU_COLLECTION_FRAGMENT}
 ` as const;
 
-// EXISTING: Themes collections query
 const THEMES_COLLECTION_FRAGMENT = `#graphql
   fragment ThemesCollection on Collection {
     id
@@ -277,10 +273,8 @@ export const THEMES_COLLECTIONS_QUERY = `#graphql
   ${THEMES_COLLECTION_FRAGMENT}
 ` as const;
 
-// Export for compatibility with existing context.ts
 export const CART_QUERY_FRAGMENT = CART_FRAGMENT;
 
-// Export fragments for reuse
 export {
   MONEY_FRAGMENT,
   CART_FRAGMENT,
