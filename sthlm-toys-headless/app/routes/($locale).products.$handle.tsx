@@ -33,7 +33,7 @@ export const meta: MetaFunction<typeof loader> = ({data}) => {
     {title: `${product?.title ?? ''} | Klosslabbet`},
     {
       name: 'description', 
-      content: `Köp ${product?.title} hos Klosslabbet. ${product?.description?.substring(0, 150)}... ✓ Fri frakt till ombud över 1299 kr ✓ Säker betalning`
+      content: `Köp ${product?.title} hos Klosslabbet. ${product?.description?.substring(0, 150)}... ✓ Fri frakt till ombud över 799 kr ✓ Säker betalning`
     },
     {
       tagName: 'link',
@@ -250,7 +250,7 @@ export default function Product() {
   
   // Shop-wide shipping information
   const freeShippingText = getMetafieldValue(shop?.metafields, 'free_shipping_text') || 
-    'Fri frakt till ombud över 1299 kr*';
+    'Fri frakt till ombud över 799 kr*';
   
   const freeShippingNote = getMetafieldValue(shop?.metafields, 'free_shipping_note') || 
     '*Erbjudandet gäller standardfrakt till ombud. Leverans vid dörren tar vanligtvis 2 till 7 dagar och kostar 139 kr.';

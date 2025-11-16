@@ -1,5 +1,6 @@
 // FILE: app/routes/($locale)._index.tsx - Using metaobjects for homepage sections
 // ✅ METAOBJECTS: All sections now load from Shopify metaobjects
+// ✅ CAMPAIGN BANNER: SimpleCampaignBanner for promotional content
 // ✅ PERFORMANCE: Using hidden collection for featured products
 // ✅ SHOPIFY HYDROGEN STANDARDS: Homepage with improved UX and proper ordering
 
@@ -10,8 +11,8 @@ import {ChevronLeft, ChevronRight} from 'lucide-react';
 import type {ProductFragment} from 'storefrontapi.generated';
 import {getCanonicalUrlForPath} from '~/lib/canonical';
 
-// ✅ EXISTING: Keep all your existing components
-import {HeroBanner} from '~/components/HeroBanner';
+// ✅ COMPONENTS: Homepage sections
+import {SimpleCampaignBanner} from '~/components/SimpleCampaignBanner';
 import {TopCategories} from '~/components/TopCategories';
 import {ShopByDiscount} from '~/components/ShopByDiscount';
 import {FeaturedBanners} from '~/components/FeaturedBanners';
@@ -19,7 +20,7 @@ import {ShopByAge} from '~/components/ShopByAge';
 import {ProductItem} from '~/components/ProductItem';
 import {RecommendedProductsHomepage} from '~/components/RecommendedProductsHomepage';
 
-// ✅ NEW: Flexible product queries and helpers
+// ✅ HELPERS: Product queries and utilities
 import {
   HOMEPAGE_PRODUCTS_COMBINED_QUERY,
   sampleFeaturedProducts,
@@ -31,7 +32,7 @@ export const meta: MetaFunction = () => {
     {title: 'Klosslabbet - Sveriges bästa LEGO-leksaksbutik'},
     {
       name: 'description', 
-      content: 'Handla LEGO och leksaker online hos Klosslabbet. Fri frakt till ombud över 1299 kr. Säkert köp och konkurrenskraftiga priser.'
+      content: 'Handla LEGO och leksaker online hos Klosslabbet. Fri frakt till ombud över 799 kr. Säkert köp och konkurrenskraftiga priser.'
     },
     {
       tagName: 'link',
@@ -54,26 +55,21 @@ async function loadCriticalData({context}: LoaderFunctionArgs) {
       shopByAgeData,
       featuredBannersData,
       shopByDiscountData,
-      heroData,
+      campaignBannerData,
     ] = await Promise.all([
       context.storefront.query(FEATURED_THEMES_QUERY),
       context.storefront.query(SHOP_BY_AGE_QUERY),
       context.storefront.query(FEATURED_BANNERS_QUERY),
       context.storefront.query(SHOP_BY_DISCOUNT_QUERY),
-      context.storefront.query(HERO_BANNER_QUERY),
+      context.storefront.query(CAMPAIGN_BANNER_QUERY),
     ]);
-console.log('🔍 Featured Themes Data:', featuredThemesData);
-console.log('🔍 Shop By Age Data:', shopByAgeData);
-console.log('🔍 Featured Themes Nodes:', featuredThemesData.metaobjects?.nodes);
-console.log('🔍 First Theme:', featuredThemesData.metaobjects?.nodes?.[0]);
-console.log('🔍 First Theme Fields:', JSON.stringify(featuredThemesData.metaobjects?.nodes?.[0]?.fields, null, 2));
 
     return {
       featuredThemes: featuredThemesData.metaobjects?.nodes || [],
       shopByAge: shopByAgeData.metaobjects?.nodes || [],
       featuredBanners: featuredBannersData.metaobjects?.nodes || [],
       shopByDiscount: shopByDiscountData.metaobjects?.nodes || [],
-      heroMetafields: heroData.shop.metafields || [],
+      campaignBanner: campaignBannerData.metaobject || null,
     };
   } catch (error) {
     console.error('Error loading metaobjects:', error);
@@ -82,7 +78,7 @@ console.log('🔍 First Theme Fields:', JSON.stringify(featuredThemesData.metaob
       shopByAge: [],
       featuredBanners: [],
       shopByDiscount: [],
-      heroMetafields: [],
+      campaignBanner: null,
     };
   }
 }
@@ -124,36 +120,15 @@ function loadDeferredData({context}: LoaderFunctionArgs) {
   };
 }
 
-function getHeroData(metafields: any[]) {
-  const getMetafield = (key: string) =>
-    metafields.find((field) => field?.key === key)?.value || null;
-
-  return {
-    title: getMetafield('hero-homepage-title'),
-    subtitle: getMetafield('hero-homepage-subtitle'),
-    buttonText: getMetafield('hero-homepage-button-text'),
-    buttonLink: getMetafield('hero-homepage-button-link'),
-    backgroundColor: getMetafield('hero-homepage-background-color'),
-    textColor: getMetafield('hero-homepage-text-color'),
-  };
-}
-
 export default function Homepage() {
   const data = useLoaderData<typeof loader>();
-  const heroData = getHeroData(data.heroMetafields || []);
 
   return (
     <div style={{margin: 0, padding: 0}}>
-      <HeroBanner
-        title={heroData.title || 'Bygg, skapa & föreställ dig'}
-        subtitle={heroData.subtitle || 'Upptäck oändliga möjligheter med vår fantastiska LEGO-kollektion'}
-        buttonText={heroData.buttonText || 'Visa teman'}
-        buttonLink={heroData.buttonLink || '/themes'}
-        backgroundImage="https://cdn.shopify.com/s/files/1/0900/8811/2507/files/hero-mobile2.png?v=1753985948"
-        mobileBackgroundImage="https://cdn.shopify.com/s/files/1/0900/8811/2507/files/hero-mobile2.png?v=1753985948"
-        backgroundColor={heroData.backgroundColor || '#FFD42B'}
-        textColor={heroData.textColor || '#1F2937'}
-      />
+      {/* ✅ CAMPAIGN BANNER: Full-width promotional banner */}
+      {data.campaignBanner && (
+        <SimpleCampaignBanner metaobject={data.campaignBanner} />
+      )}
 
       {/* ✅ 1. New Products Section - Product carousel with navigation */}
       <Suspense fallback={<ProductSectionSkeleton title="Nya produkter" />}>
@@ -173,16 +148,16 @@ export default function Homepage() {
         </Await>
       </Suspense>
 
-      {/* ✅ 2. Shop By Theme (Shoppa efter tema) - FROM METAOBJECT */}
+      {/* ✅ 2. Shop By Theme (Shoppa efter tema) */}
       <TopCategories metaobjects={data.featuredThemes as any} />
 
-      {/* ✅ 3. Featured Banners - FROM METAOBJECT */}
+      {/* ✅ 3. Featured Banners */}
       <FeaturedBanners metaobjects={data.featuredBanners as any} />
 
-      {/* ✅ 4. Shop By Price (Handla efter pris) - FROM METAOBJECT */}
+      {/* ✅ 4. Shop By Price (Handla efter pris) */}
       <ShopByDiscount metaobjects={data.shopByDiscount as any} />
 
-      {/* ✅ 5. Shop By Age (Hitta rätt LEGO för varje ålder) - FROM METAOBJECT */}
+      {/* ✅ 5. Shop By Age (Hitta rätt LEGO för varje ålder) */}
       <ShopByAge metaobjects={data.shopByAge as any} />
 
       {/* ✅ 6. Recommended Products Section */}
@@ -422,7 +397,8 @@ function ProductSectionSkeleton({ title }: { title: string }) {
   );
 }
 
-// ✅ METAOBJECT QUERIES
+// ✅ GRAPHQL QUERIES
+
 const FEATURED_THEMES_QUERY = `#graphql
   query FeaturedThemes {
     metaobjects(type: "featured_themes", first: 10) {
@@ -587,22 +563,30 @@ const FEATURED_BANNERS_QUERY = `#graphql
   }
 ` as const;
 
-const HERO_BANNER_QUERY = `#graphql
-  query HeroBanner($country: CountryCode, $language: LanguageCode)
-    @inContext(country: $country, language: $language) {
-    shop {
-      metafields(identifiers: [
-        {namespace: "hero", key: "hero-homepage-title"},
-        {namespace: "hero", key: "hero-homepage-subtitle"},
-        {namespace: "hero", key: "hero-homepage-button-text"},
-        {namespace: "hero", key: "hero-homepage-button-link"},
-        {namespace: "hero", key: "hero-homepage-background-color"},
-        {namespace: "hero", key: "hero-homepage-text-color"}
-      ]) {
-        id
+const CAMPAIGN_BANNER_QUERY = `#graphql
+  query CampaignBanner {
+    metaobject(handle: {type: "campaign_banner", handle: "black-friday-2025"}) {
+      id
+      handle
+      fields {
         key
         value
-        namespace
+        type
+        reference {
+          ... on MediaImage {
+            image {
+              url
+              altText
+              width
+              height
+            }
+          }
+          ... on Collection {
+            id
+            handle
+            title
+          }
+        }
       }
     }
   }

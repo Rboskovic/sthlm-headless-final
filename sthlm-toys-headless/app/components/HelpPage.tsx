@@ -58,7 +58,7 @@ const fallbackFAQs: FAQ[] = [
     id: 'faq-5',
     question: 'Vad ingår i fri frakt?',
     answer:
-      'Vid beställningar över 1299 kr är frakt till utlämningsställe kostnadsfri inom Sverige (annars 59 kr). Hemleverans kostar alltid 139kr oavsett ordervärde. Leveranstiden är 2–7 arbetsdagar. Beställ innan kl. 12:00 måndag–fredag så hanterar vi din order samma dag.',
+      'Vid beställningar över 799 kr är frakt till utlämningsställe kostnadsfri inom Sverige (annars 59 kr). Hemleverans kostar alltid 139kr oavsett ordervärde. Leveranstiden är 2–7 arbetsdagar. Beställ innan kl. 12:00 måndag–fredag så hanterar vi din order samma dag.',
   },
   {
     id: 'faq-6',

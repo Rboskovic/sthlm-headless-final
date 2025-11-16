@@ -830,19 +830,30 @@ export type FeaturedBannersQuery = {
   };
 };
 
-export type HeroBannerQueryVariables = StorefrontAPI.Exact<{
-  country?: StorefrontAPI.InputMaybe<StorefrontAPI.CountryCode>;
-  language?: StorefrontAPI.InputMaybe<StorefrontAPI.LanguageCode>;
+export type CampaignBannerQueryVariables = StorefrontAPI.Exact<{
+  [key: string]: never;
 }>;
 
-export type HeroBannerQuery = {
-  shop: {
-    metafields: Array<
-      StorefrontAPI.Maybe<
-        Pick<StorefrontAPI.Metafield, 'id' | 'key' | 'value' | 'namespace'>
-      >
-    >;
-  };
+export type CampaignBannerQuery = {
+  metaobject?: StorefrontAPI.Maybe<
+    Pick<StorefrontAPI.Metaobject, 'id' | 'handle'> & {
+      fields: Array<
+        Pick<StorefrontAPI.MetaobjectField, 'key' | 'value' | 'type'> & {
+          reference?: StorefrontAPI.Maybe<
+            | Pick<StorefrontAPI.Collection, 'id' | 'handle' | 'title'>
+            | {
+                image?: StorefrontAPI.Maybe<
+                  Pick<
+                    StorefrontAPI.Image,
+                    'url' | 'altText' | 'width' | 'height'
+                  >
+                >;
+              }
+          >;
+        }
+      >;
+    }
+  >;
 };
 
 export type FeaturedHomepageProductsQueryVariables = StorefrontAPI.Exact<{
@@ -2219,9 +2230,9 @@ interface GeneratedQueryTypes {
     return: FeaturedBannersQuery;
     variables: FeaturedBannersQueryVariables;
   };
-  '#graphql\n  query HeroBanner($country: CountryCode, $language: LanguageCode)\n    @inContext(country: $country, language: $language) {\n    shop {\n      metafields(identifiers: [\n        {namespace: "hero", key: "hero-homepage-title"},\n        {namespace: "hero", key: "hero-homepage-subtitle"},\n        {namespace: "hero", key: "hero-homepage-button-text"},\n        {namespace: "hero", key: "hero-homepage-button-link"},\n        {namespace: "hero", key: "hero-homepage-background-color"},\n        {namespace: "hero", key: "hero-homepage-text-color"}\n      ]) {\n        id\n        key\n        value\n        namespace\n      }\n    }\n  }\n': {
-    return: HeroBannerQuery;
-    variables: HeroBannerQueryVariables;
+  '#graphql\n  query CampaignBanner {\n    metaobject(handle: {type: "campaign_banner", handle: "black-friday-2025"}) {\n      id\n      handle\n      fields {\n        key\n        value\n        type\n        reference {\n          ... on MediaImage {\n            image {\n              url\n              altText\n              width\n              height\n            }\n          }\n          ... on Collection {\n            id\n            handle\n            title\n          }\n        }\n      }\n    }\n  }\n': {
+    return: CampaignBannerQuery;
+    variables: CampaignBannerQueryVariables;
   };
   '#graphql\n  query FeaturedHomepageProducts {\n    collection(handle: "featured-homepage") {\n      title\n      products(first: 12, sortKey: MANUAL) {\n        nodes {\n          id\n          title\n          handle\n          vendor\n          description\n          descriptionHtml\n          encodedVariantExistence\n          encodedVariantAvailability\n          updatedAt\n          featuredImage {\n            id\n            url\n            altText\n            width\n            height\n          }\n          priceRange {\n            minVariantPrice {\n              amount\n              currencyCode\n            }\n          }\n          compareAtPriceRange {\n            minVariantPrice {\n              amount\n              currencyCode\n            }\n          }\n          selectedOrFirstAvailableVariant(selectedOptions: []) {\n            id\n            availableForSale\n            price {\n              amount\n              currencyCode\n            }\n            compareAtPrice {\n              amount\n              currencyCode\n            }\n            image {\n              url\n              altText\n              width\n              height\n            }\n          }\n        }\n      }\n    }\n  }\n': {
     return: FeaturedHomepageProductsQuery;

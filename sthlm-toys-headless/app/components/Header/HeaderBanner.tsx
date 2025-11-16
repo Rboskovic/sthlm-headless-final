@@ -35,7 +35,7 @@ export function HeaderBanner({banners = []}: HeaderBannerProps) {
   // Fallback if no banners
   const displayText = bannerTexts.length > 0 
     ? bannerTexts[currentIndex] 
-    : 'Fri frakt till ombud över 1299 kr';
+    : 'Fri frakt till ombud över 799 kr';
 
   // Auto-rotate every 5 seconds if multiple banners
   useEffect(() => {

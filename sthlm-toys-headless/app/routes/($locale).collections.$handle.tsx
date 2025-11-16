@@ -17,8 +17,8 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
     {
       name: 'description',
       content: data?.collection?.description 
-        ? `${data?.collection?.description} ✓ ${productCount}+ produkter ✓ Fri frakt till ombud över 1299 kr ✓ Säker betalning`
-        : `Upptäck ${collectionTitle} med ${productCount}+ produkter. ✓ Fri frakt till ombud över 1299 kr ✓ 14 dagars öppet köp ✓ Snabb leverans`,
+        ? `${data?.collection?.description} ✓ ${productCount}+ produkter ✓ Fri frakt till ombud över 799 kr ✓ Säker betalning`
+        : `Upptäck ${collectionTitle} med ${productCount}+ produkter. ✓ Fri frakt till ombud över 799 kr ✓ 14 dagars öppet köp ✓ Snabb leverans`,
     },
     {
       tagName: 'link',

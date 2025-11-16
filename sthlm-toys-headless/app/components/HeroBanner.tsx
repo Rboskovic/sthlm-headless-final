@@ -1,10 +1,13 @@
 // FILE: app/components/HeroBanner.tsx
+// ✅ METAOBJECTS: Now supports metaobject data with fallback to props
 // ✅ PERFORMANCE OPTIMIZED: Added explicit dimensions for LCP fix
-// ✅ PRESERVES: All existing functionality from 267-line version
+// ✅ PRESERVES: All existing functionality with backward compatibility
 
 import {ShopLinkButton} from '~/components/ui/ShopButton';
 
 interface HeroBannerProps {
+  metaobject?: any; // Metaobject data from Shopify
+  // ✅ FALLBACK: Keep original props for backward compatibility
   title?: string;
   subtitle?: string;
   buttonText?: string;
@@ -16,15 +19,65 @@ interface HeroBannerProps {
 }
 
 export function HeroBanner({
-  title = 'Bygg, skapa & föreställ dig',
-  subtitle = 'Upptäck oändliga möjligheter med vår fantastiska LEGO-kollektion',
-  buttonText = 'Handla nu',
-  buttonLink = '/collections/lego',
-  backgroundImage = 'https://cdn.shopify.com/s/files/1/0900/8811/2507/files/hero.destkop.png?v=1754500700',
-  mobileBackgroundImage = 'https://cdn.shopify.com/s/files/1/0900/8811/2507/files/hero-mobile2.png?v=1753985948',
-  backgroundColor = '#FFD42B',
-  textColor = '#1F2937',
+  metaobject,
+  title: propTitle,
+  subtitle: propSubtitle,
+  buttonText: propButtonText,
+  buttonLink: propButtonLink,
+  backgroundImage: propBackgroundImage,
+  mobileBackgroundImage: propMobileBackgroundImage,
+  backgroundColor: propBackgroundColor,
+  textColor: propTextColor,
 }: HeroBannerProps) {
+  // ✅ EXTRACT: Helper to get field value from metaobject
+  const getFieldValue = (fields: any[], key: string): any => {
+    const field = fields?.find((f: any) => f.key === key);
+    // For reference types (images, colors), return the reference object
+    return field?.reference || field?.value || null;
+  };
+
+  // ✅ METAOBJECT DATA: Extract from metaobject if available
+  let heroData = {
+    title: propTitle || 'Bygg, skapa & föreställ dig',
+    subtitle: propSubtitle || 'Upptäck oändliga möjligheter med vår fantastiska LEGO-kollektion',
+    buttonText: propButtonText || 'Handla nu',
+    buttonLink: propButtonLink || '/collections/lego',
+    desktopImage: propBackgroundImage || 'https://cdn.shopify.com/s/files/1/0900/8811/2507/files/hero.destkop.png?v=1754500700',
+    mobileImage: propMobileBackgroundImage || 'https://cdn.shopify.com/s/files/1/0900/8811/2507/files/hero-mobile2.png?v=1753985948',
+    backgroundColor: propBackgroundColor || '#FFD42B',
+    textColor: propTextColor || '#1F2937',
+  };
+
+  // ✅ OVERRIDE: If metaobject exists, use its data
+  if (metaobject?.fields) {
+    const fields = metaobject.fields;
+    
+    // Text fields (simple values)
+    const naslov = getFieldValue(fields, 'naslov');
+    const podnaslov = getFieldValue(fields, 'podnaslov');
+    const ctaText = getFieldValue(fields, 'cta_text');
+    const ctaLink = getFieldValue(fields, 'cta_link');
+    
+    // Image fields (references)
+    const desktopImageRef = getFieldValue(fields, 'destkop_slika'); // Note the typo in field name
+    const mobileImageRef = getFieldValue(fields, 'mobile_slika');
+    
+    // Color fields (values - hex strings)
+    const backgroundColorValue = getFieldValue(fields, 'boja_pozadine');
+    const textColorValue = getFieldValue(fields, 'boja_teksta');
+
+    heroData = {
+      title: naslov || heroData.title,
+      subtitle: podnaslov || heroData.subtitle,
+      buttonText: ctaText || heroData.buttonText,
+      buttonLink: ctaLink || heroData.buttonLink,
+      desktopImage: desktopImageRef?.image?.url || heroData.desktopImage,
+      mobileImage: mobileImageRef?.image?.url || heroData.mobileImage,
+      backgroundColor: backgroundColorValue || heroData.backgroundColor,
+      textColor: textColorValue || heroData.textColor,
+    };
+  }
+
   // ✅ PERFORMANCE: Generate responsive image URLs with WebP format
   const getOptimizedImageUrl = (url: string, width: number): string => {
     if (!url) return url;
@@ -33,7 +86,7 @@ export function HeroBanner({
   };
 
   // ✅ RESPONSIVE: Generate srcset for mobile (multiple sizes)
-  const mobileImageBase = mobileBackgroundImage.split('?')[0];
+  const mobileImageBase = heroData.mobileImage.split('?')[0];
   const mobileSrcSet = [
     `${mobileImageBase}?width=375&format=webp 375w`,
     `${mobileImageBase}?width=425&format=webp 425w`,
@@ -41,11 +94,11 @@ export function HeroBanner({
   ].join(', ');
 
   // ✅ RESPONSIVE: Generate srcset for desktop (multiple sizes)
-  const desktopImageBase = backgroundImage.split('?')[0];
+  const desktopImageBase = heroData.desktopImage.split('?')[0];
   const desktopSrcSet = [
-    `${desktopImageBase}?width=520&format=webp 520w`,
-    `${desktopImageBase}?width=640&format=webp 640w`,
-    `${desktopImageBase}?width=768&format=webp 768w`,
+    `${desktopImageBase}?width=600&format=webp 600w`,
+    `${desktopImageBase}?width=700&format=webp 700w`,
+    `${desktopImageBase}?width=800&format=webp 800w`,
   ].join(', ');
 
   return (
@@ -54,14 +107,14 @@ export function HeroBanner({
       <link
         rel="preload"
         as="image"
-        href={getOptimizedImageUrl(mobileBackgroundImage, 425)}
+        href={getOptimizedImageUrl(heroData.mobileImage, 425)}
         media="(max-width: 1023px)"
         fetchPriority="high"
       />
       <link
         rel="preload"
         as="image"
-        href={getOptimizedImageUrl(backgroundImage, 640)}
+        href={getOptimizedImageUrl(heroData.desktopImage, 700)}
         media="(min-width: 1024px)"
         fetchPriority="high"
       />
@@ -72,7 +125,7 @@ export function HeroBanner({
           className="block lg:hidden relative overflow-hidden"
           style={{
             aspectRatio: '375 / 244',
-            backgroundColor: backgroundColor,
+            backgroundColor: heroData.backgroundColor,
             width: '100vw',
             marginLeft: '50%',
             transform: 'translateX(-50%)',
@@ -80,9 +133,9 @@ export function HeroBanner({
           }}
         >
           {/* Background Image - Responsive with srcset */}
-          {mobileBackgroundImage && (
+          {heroData.mobileImage && (
             <img
-              src={getOptimizedImageUrl(mobileBackgroundImage, 425)}
+              src={getOptimizedImageUrl(heroData.mobileImage, 425)}
               srcSet={mobileSrcSet}
               sizes="100vw"
               alt=""
@@ -119,7 +172,7 @@ export function HeroBanner({
                   paddingBottom: '60px',
                 }}
               >
-                {title}
+                {heroData.title}
               </h1>
             </div>
           </div>
@@ -136,7 +189,7 @@ export function HeroBanner({
         >
           <div className="container">
             <ShopLinkButton
-              to={buttonLink}
+              to={heroData.buttonLink}
               variant="cta"
               size="lg"
               className="rounded-full"
@@ -153,7 +206,7 @@ export function HeroBanner({
                 transition: 'background-color 0.2s ease',
               }}
             >
-              {buttonText}
+              {heroData.buttonText}
             </ShopLinkButton>
           </div>
         </div>
@@ -162,7 +215,7 @@ export function HeroBanner({
         <div
           className="hidden lg:block relative w-full"
           style={{
-            backgroundColor: backgroundColor,
+            backgroundColor: heroData.backgroundColor,
             minHeight: '440px',
             width: '100vw',
             marginLeft: '50%',
@@ -175,7 +228,7 @@ export function HeroBanner({
             <div
               className="flex-1 z-10"
               style={{
-                maxWidth: '50%',
+                maxWidth: '40%',
                 paddingTop: '40px',
                 paddingBottom: '40px',
                 paddingRight: '32px',
@@ -189,11 +242,11 @@ export function HeroBanner({
                   fontWeight: 800,
                   lineHeight: '1.1',
                   letterSpacing: '-0.015em',
-                  color: textColor,
+                  color: heroData.textColor,
                   marginBottom: '16px',
                 }}
               >
-                {title}
+                {heroData.title}
               </h1>
 
               <p
@@ -203,16 +256,16 @@ export function HeroBanner({
                   fontSize: '18px',
                   fontWeight: 400,
                   lineHeight: '1.4',
-                  color: textColor,
+                  color: heroData.textColor,
                   maxWidth: '420px',
                   marginBottom: '32px',
                 }}
               >
-                {subtitle}
+                {heroData.subtitle}
               </p>
 
               <ShopLinkButton
-                to={buttonLink}
+                to={heroData.buttonLink}
                 variant="secondary"
                 size="lg"
                 style={{
@@ -232,7 +285,7 @@ export function HeroBanner({
                 }}
                 className="hover:bg-gray-800 focus:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-offset-2"
               >
-                {buttonText}
+                {heroData.buttonText}
               </ShopLinkButton>
             </div>
 
@@ -240,28 +293,29 @@ export function HeroBanner({
             <div
               className="flex-1 flex justify-end items-center"
               style={{
-                maxWidth: '50%',
+                maxWidth: '60%',
                 height: '440px',
                 paddingLeft: '20px',
+                backgroundColor: heroData.backgroundColor,
               }}
             >
-              {backgroundImage ? (
+              {heroData.desktopImage ? (
                 <img
-                  src={getOptimizedImageUrl(backgroundImage, 640)}
+                  src={getOptimizedImageUrl(heroData.desktopImage, 700)}
                   srcSet={desktopSrcSet}
-                  sizes="(min-width: 1024px) 520px, 100vw"
-                  alt={title}
-                  width="520"
-                  height="380"
+                  sizes="(min-width: 1024px) 600px, 100vw"
+                  alt={heroData.title}
+                  width="600"
+                  height="440"
                   fetchPriority="high"
                   loading="eager"
                   decoding="async"
                   style={{
                     width: '100%',
-                    height: '380px',
-                    maxWidth: '520px',
+                    height: '100%',
+                    maxWidth: '600px',
                     objectFit: 'contain',
-                    objectPosition: 'center right',
+                    objectPosition: 'center',
                   }}
                 />
               ) : (
@@ -275,7 +329,7 @@ export function HeroBanner({
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    color: textColor,
+                    color: heroData.textColor,
                     fontSize: '14px',
                     fontWeight: 500,
                   }}
