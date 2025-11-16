@@ -1,5 +1,5 @@
 // FILE: app/lib/fragments.ts
-// ✅ FIXED: Added quantityAvailable to CART_FRAGMENT for inventory validation
+// ✅ FIXED: Added discountAllocations to CART_FRAGMENT for savings display
 
 // Fragment for money fields
 const MONEY_FRAGMENT = `#graphql
@@ -9,7 +9,7 @@ const MONEY_FRAGMENT = `#graphql
   }
 ` as const;
 
-// Cart fragment - ✅ ADDED quantityAvailable
+// Cart fragment - ✅ ADDED discountAllocations for BOGO and savings display
 const CART_FRAGMENT = `#graphql
   fragment CartApiQuery on Cart {
     updatedAt
@@ -44,6 +44,11 @@ const CART_FRAGMENT = `#graphql
             ...Money
           }
           compareAtAmountPerQuantity {
+            ...Money
+          }
+        }
+        discountAllocations {
+          discountedAmount {
             ...Money
           }
         }
@@ -103,6 +108,11 @@ const CART_FRAGMENT = `#graphql
     discountCodes {
       code
       applicable
+    }
+    discountAllocations {
+      discountedAmount {
+        ...Money
+      }
     }
   }
   ${MONEY_FRAGMENT}
