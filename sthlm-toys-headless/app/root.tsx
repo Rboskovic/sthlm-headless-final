@@ -1,7 +1,8 @@
-// app/root.tsx - Simplified version for Classic Customer Accounts
+// app/root.tsx - With Judge.me Reviews Integration
 // ✅ PERFORMANCE OPTIMIZED: Added early preconnect in <head> for faster CDN connection
-// ✅ PRESERVES: All existing functionality from 223-line version
+// ✅ PRESERVES: All existing functionality
 // ✅ UPDATED: Added header banner metaobjects query
+// ✅ NEW: Added Judge.me Provider for reviews
 
 import { Analytics, getShopAnalytics, useNonce } from "@shopify/hydrogen";
 import { type LoaderFunctionArgs } from "@shopify/remix-oxygen";
@@ -28,6 +29,8 @@ import tailwindCss from "~/styles/tailwind.css?url";
 import appStyles from "~/styles/app.css?url";
 import designSystemStyles from "~/styles/design-system.css?url";
 import { PageLayout } from "./components/PageLayout";
+// ✅ NEW: Judge.me import
+import { useJudgeme } from '@judgeme/shopify-hydrogen';
 
 export type RootLoader = typeof loader;
 
@@ -63,7 +66,7 @@ export function links() {
   ];
 }
 
-// ✅ UPDATED: Added header banner metaobjects query
+// ✅ UPDATED: Added header banner metaobjects query + Judge.me config
 export async function loader({ context }: LoaderFunctionArgs) {
   const { storefront, env, cart } = context;
 
@@ -110,6 +113,13 @@ export async function loader({ context }: LoaderFunctionArgs) {
       language: storefront.i18n.language,
     },
     publicStoreDomain: env.PUBLIC_STORE_DOMAIN,
+    // ✅ NEW: Judge.me configuration
+    judgeme: {
+      shopDomain: env.JUDGEME_SHOP_DOMAIN || 'klosslabbet.myshopify.com',
+      publicToken: env.JUDGEME_PUBLIC_TOKEN || '',
+      cdnHost: 'https://cdn.judge.me',
+      delay: 500,
+    },
   };
 }
 
@@ -167,6 +177,8 @@ export function Layout({ children }: { children?: React.ReactNode }) {
         <link rel="preconnect" href="https://cdn.shopify.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://shop.app" />
         <link rel="dns-prefetch" href="https://monorail-edge.shopifysvc.com" />
+        {/* ✅ Judge.me CDN preconnect */}
+        <link rel="preconnect" href="https://cdn.judge.me" />
         
         {/* ✅ EXISTING: Organization Schema for Google Merchant Center */}
         <script
@@ -204,8 +216,15 @@ export function Layout({ children }: { children?: React.ReactNode }) {
   );
 }
 
-// ✅ EXISTING: App component (preserved)
+// ✅ App component with Judge.me initialization
 export default function App() {
+  const data = useRouteLoaderData<RootLoader>("root");
+  
+  // ✅ Initialize Judge.me
+  if (data?.judgeme) {
+    useJudgeme(data.judgeme);
+  }
+  
   return <Outlet />;
 }
 

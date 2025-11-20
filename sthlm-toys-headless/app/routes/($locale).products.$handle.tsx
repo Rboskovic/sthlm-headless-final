@@ -1,6 +1,8 @@
 // FILE: app/routes/($locale).products.$handle.tsx
 // ✅ SHOPIFY HYDROGEN STANDARD: Complete Product Detail Page with metafields
 // ✅ INVENTORY VALIDATION: Added quantityAvailable to fragment and AddToCartButton
+// ✅ JUDGE.ME: Star rating and reviews widgets integrated
+// ✅ GMC COMPLIANCE: Fixed structured data with SKU, brand, images, proper availability
 
 import {redirect, type LoaderFunctionArgs} from '@shopify/remix-oxygen';
 import {useLoaderData, type MetaFunction, Await, Link, useNavigate} from 'react-router';
@@ -25,9 +27,21 @@ import {getCanonicalUrlForPath} from '~/lib/canonical';
 import {Check} from 'lucide-react';
 import React, {useState} from 'react';
 import {useAside} from '~/components/Aside';
+// ✅ NEW: Judge.me imports
+import { JudgemeReviewWidget, JudgemePreviewBadge } from '@judgeme/shopify-hydrogen';
 
 export const meta: MetaFunction<typeof loader> = ({data}) => {
   const product = data?.product;
+  const variant = product?.selectedOrFirstAvailableVariant;
+  
+  // ✅ GMC FIX: Build image array from ALL product images
+  const imageArray = product?.images?.nodes?.map(img => img.url).filter(Boolean) || 
+    (variant?.image?.url ? [variant.image.url] : []);
+  
+  // ✅ GMC FIX: Proper availability schema URL format
+  const availabilityStatus = variant?.availableForSale 
+    ? 'https://schema.org/InStock' 
+    : 'https://schema.org/OutOfStock';
   
   return [
     {title: `${product?.title ?? ''} | Klosslabbet`},
@@ -46,12 +60,20 @@ export const meta: MetaFunction<typeof loader> = ({data}) => {
         '@type': 'Product',
         name: product?.title,
         description: product?.description,
-        image: product?.selectedOrFirstAvailableVariant?.image?.url,
+        sku: variant?.sku, // ✅ GMC FIX: Added SKU
+        image: imageArray, // ✅ GMC FIX: Array of all images
+        brand: { // ✅ GMC FIX: Added brand
+          '@type': 'Brand',
+          name: product?.vendor || 'Klosslabbet'
+        },
+        url: `https://www.klosslabbet.se/products/${product?.handle}`,
         offers: {
           '@type': 'Offer',
-          price: product?.selectedOrFirstAvailableVariant?.price?.amount,
+          price: variant?.price?.amount,
           priceCurrency: 'SEK',
-          availability: product?.selectedOrFirstAvailableVariant?.availableForSale ? 'InStock' : 'OutOfStock',
+          availability: availabilityStatus, // ✅ GMC FIX: Schema.org URL format
+          itemCondition: 'https://schema.org/NewCondition', // ✅ GMC FIX: Added
+          priceValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // ✅ GMC FIX: 30 days
           seller: {
             '@type': 'Organization',
             name: 'Klosslabbet'
@@ -306,11 +328,17 @@ export default function Product() {
               >
                 {title}
               </h1>
-              {/* ✅ NEW: Article Number Display - Below Title */}
+              
+              {/* ✅ JUDGE.ME: Star Rating below title */}
+              <div className="my-3">
+                <JudgemePreviewBadge id={product.id} />
+              </div>
+              
+              {/* ✅ NEW: Article Number Display - Below Star Rating */}
               {selectedVariant?.sku && (
                 <div 
-                  className="inline-flex items-center px-3 py-1.5 bg-gray-100 rounded-lg border border-gray-200"
-                  style={{margin: '0 !important', padding: '6px 12px !important'}}
+                  className="inline-flex items-center px-3 py-1.5 bg-gray-100 rounded-lg border border-gray-200 mt-2"
+                  style={{margin: '0 !important', padding: '6px 12px !important', marginTop: '8px !important'}}
                 >
                   <span className="text-xs font-medium text-gray-600 uppercase tracking-wide">
                     Artikelnummer:
@@ -500,6 +528,14 @@ export default function Product() {
             </div>
           </div>
         )}
+
+        {/* ✅ JUDGE.ME: Reviews Widget below description */}
+        <div className="mt-12 border-t border-gray-200 pt-8">
+          <h3 className="text-xl font-semibold text-gray-900 mb-4">
+            Kundrecensioner
+          </h3>
+          <JudgemeReviewWidget id={product.id} />
+        </div>
 
         {/* ✅ UPDATED: Recommended Products Section - Now uses ProductItem */}
         <Suspense fallback={<RecommendedProductsSkeleton />}>
