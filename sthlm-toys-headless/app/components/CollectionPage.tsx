@@ -10,7 +10,7 @@ interface CollectionPageProps {
   collection: Collection;
   products: any;
   totalProductCount: number;
-  filteredTotalCount?: number; // ✅ NEW: Actual filtered total count
+  filteredTotalCount?: number;
   appliedFilters?: any;
   sortKey?: string;
 }
@@ -28,17 +28,14 @@ export function CollectionPage({
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  // ✅ FIXED: Use actual filtered total count from API
   const hasActiveFilters = Array.from(searchParams.keys()).some(key => 
     !['sort_by', '_routes'].includes(key)
   );
   
-  // Use the filtered total count from the API, or fall back to total
   const displayProductCount = hasActiveFilters && filteredTotalCount !== undefined 
     ? filteredTotalCount 
     : totalProductCount;
 
-  // ✅ SWEDISH: Product count text function
   const getProductCountText = (count: number, hasFilters: boolean, total: number) => {
     const productText = count === 1 ? 'produkt' : 'produkter';
     
@@ -62,7 +59,6 @@ export function CollectionPage({
     );
   };
 
-  // Sort options in Swedish
   const sortOptions = [
     { label: 'Bäst säljande', value: 'BEST_SELLING' },
     { label: 'Alfabetisk: A-Ö', value: 'TITLE' },
@@ -73,10 +69,8 @@ export function CollectionPage({
     { label: 'Datum: Äldst först', value: 'CREATED' },
   ];
 
-  // ✅ CLEAN: Extract filters from Shopify API response
   const shopifyFilters = products?.filters || [];
   
-  // ✅ CLEAN: Find specific filters by ID/label
   const themesFilter = shopifyFilters.find((filter: any) => 
     filter.id?.includes('themes') || filter.label?.toLowerCase().includes('themes')
   );
@@ -97,7 +91,6 @@ export function CollectionPage({
     filter.type === 'BOOLEAN' && filter.label?.toLowerCase().includes('availability')
   );
 
-  // ✅ CLEAN: Custom price ranges with calculated counts
   const calculatePriceCounts = () => {
     const counts = {
       under_220: 0,
@@ -127,7 +120,6 @@ export function CollectionPage({
     { value: 'over_1100', label: 'Över 1100 kr', active: searchParams.get('price_range') === 'over_1100', count: priceCounts.over_1100 },
   ];
 
-  // ✅ CLEAN: Age group label mapping
   const ageGroupMapping: Record<string, string> = {
     '1+': '1+ år',
     '2+': '2+ år', 
@@ -143,7 +135,6 @@ export function CollectionPage({
     '0-3': '0-3 år',
   };
 
-  // ✅ CLEAN: Helper functions with loading feedback
   const updateSearchParams = (updates: Record<string, string | null>) => {
     setIsLoading(true);
     
@@ -188,15 +179,13 @@ export function CollectionPage({
     return searchParams.get(filterType) === value;
   };
 
-  // Calculate active filter count
   const activeFilterCount = Array.from(searchParams.keys()).filter(key => 
     !['sort_by', '_routes'].includes(key)
   ).length;
 
   return (
     <>
-      {/* ✅ FIXED: Simplified responsive styles */}
-      <style jsx>{`
+      <style>{`
         .custom-scrollbar::-webkit-scrollbar {
           width: 6px;
         }
@@ -296,13 +285,12 @@ export function CollectionPage({
                   </div>
                 )}
 
-                {/* ✅ MODERN: Scrollable Filter Content with loading state */}
                 <div 
                   className={`overflow-y-auto p-4 space-y-4 custom-scrollbar ${isLoading ? 'filter-loading' : ''}`}
                   style={{ maxHeight: 'calc(100vh - 6rem)' }}
                 >
 
-                {/* ✅ CLEAN: Themes Filter (limited to 5, compact spacing) */}
+                {/* Themes Filter */}
                 {themesFilter && themesFilter.values?.length > 0 && (
                   <div className="border-b border-gray-200 pb-3">
                     <div className="flex items-center justify-between mb-2">
@@ -323,7 +311,6 @@ export function CollectionPage({
                           <span className="text-sm text-gray-400 ml-auto">({option.count})</span>
                         </label>
                       ))}
-                      {/* Clear option */}
                       <label className="flex items-center space-x-2 filter-transition p-1 rounded cursor-pointer">
                         <input
                           type="radio"
@@ -338,7 +325,7 @@ export function CollectionPage({
                   </div>
                 )}
 
-                {/* ✅ CLEAN: Age Group Filter (compact spacing) */}
+                {/* Age Group Filter */}
                 {ageGroupFilter && ageGroupFilter.values?.length > 0 && (
                   <div className="border-b border-gray-200 pb-3">
                     <div className="flex items-center justify-between mb-2">
@@ -361,7 +348,6 @@ export function CollectionPage({
                           <span className="text-sm text-gray-400 ml-auto">({option.count})</span>
                         </label>
                       ))}
-                      {/* Clear option */}
                       <label className="flex items-center space-x-2 filter-transition p-1 rounded cursor-pointer">
                         <input
                           type="radio"
@@ -376,7 +362,7 @@ export function CollectionPage({
                   </div>
                 )}
 
-                {/* ✅ CLEAN: Piece Count Filter (compact spacing) */}
+                {/* Piece Count Filter */}
                 {pieceCountFilter && pieceCountFilter.values?.length > 0 && (
                   <div className="border-b border-gray-200 pb-3">
                     <div className="flex items-center justify-between mb-2">
@@ -397,7 +383,6 @@ export function CollectionPage({
                           <span className="text-sm text-gray-400 ml-auto">({option.count})</span>
                         </label>
                       ))}
-                      {/* Clear option */}
                       <label className="flex items-center space-x-2 filter-transition p-1 rounded cursor-pointer">
                         <input
                           type="radio"
@@ -412,7 +397,7 @@ export function CollectionPage({
                   </div>
                 )}
 
-                {/* ✅ CLEAN: Custom Price Range Filter with counts (compact spacing) */}
+                {/* Custom Price Range Filter */}
                 <div className="border-b border-gray-200 pb-3">
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-medium text-gray-900">Pris</span>
@@ -432,7 +417,6 @@ export function CollectionPage({
                         <span className="text-sm text-gray-400 ml-auto">({range.count})</span>
                       </label>
                     ))}
-                    {/* Clear option */}
                     <label className="flex items-center space-x-2 filter-transition p-1 rounded cursor-pointer">
                       <input
                         type="radio"
@@ -446,7 +430,7 @@ export function CollectionPage({
                   </div>
                 </div>
 
-                {/* ✅ CLEAN: Availability Filter (compact spacing) */}
+                {/* Availability Filter */}
                 {availabilityFilter && availabilityFilter.values?.length > 0 && (
                   <div className="pb-3">
                     <div className="flex items-center justify-between mb-2">
@@ -471,7 +455,6 @@ export function CollectionPage({
                           <span className="text-sm text-gray-400 ml-auto">({option.count})</span>
                         </label>
                       ))}
-                      {/* Clear option */}
                       <label className="flex items-center space-x-2 filter-transition p-1 rounded cursor-pointer">
                         <input
                           type="radio"
@@ -491,13 +474,11 @@ export function CollectionPage({
 
             {/* Desktop Products Area */}
             <div className="flex-1">
-              {/* Products Header with Loading Indicator */}
+              {/* Products Header */}
               <div className="bg-white rounded-lg p-4 mb-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
-                    {/* ✅ FIXED: Show actual filtered count in Swedish */}
                     {getProductCountText(displayProductCount, hasActiveFilters, totalProductCount)}
-                    {/* ✅ NEW: Loading indicator */}
                     {isLoading && (
                       <div className="flex items-center space-x-2 text-blue-600 ml-4">
                         <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full loading-spin"></div>
@@ -524,7 +505,7 @@ export function CollectionPage({
                 </div>
               </div>
 
-              {/* ✅ FIXED: Desktop Products Grid - 3 columns like ToysRUs */}
+              {/* Desktop Products Grid */}
               <div className={`bg-white rounded-lg p-6 products-transition ${isLoading ? 'opacity-50' : 'opacity-100'}`}>
                 <PaginatedResourceSection
                   connection={products}
@@ -533,7 +514,7 @@ export function CollectionPage({
                   {({ node: product, index }: { node: Product; index: number }) => (
                     <div key={product.id} className="h-full">
                       <ProductItem
-                        product={product}
+                        product={product as any}
                         loading={index < 6 ? "eager" : undefined}
                       />
                     </div>
@@ -544,15 +525,13 @@ export function CollectionPage({
           </div>
         </div>
 
-        {/* ✅ FIXED: Mobile Products Grid - 1 column on mobile, 2 on tablet */}
+        {/* Mobile Products Grid */}
         <div className="lg:hidden">
           {/* Mobile Products Header */}
           <div className="bg-white rounded-lg p-4 mb-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                {/* ✅ FIXED: Show actual filtered count on mobile too in Swedish */}
                 {getProductCountText(displayProductCount, hasActiveFilters, totalProductCount)}
-                {/* Loading indicator for mobile */}
                 {isLoading && (
                   <div className="flex items-center space-x-2 text-blue-600">
                     <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full loading-spin"></div>
@@ -587,7 +566,7 @@ export function CollectionPage({
               {({ node: product, index }: { node: Product; index: number }) => (
                 <div key={product.id} className="h-full">
                   <ProductItem
-                    product={product}
+                    product={product as any}
                     loading={index < 4 ? "eager" : undefined}
                   />
                 </div>
@@ -597,17 +576,15 @@ export function CollectionPage({
         </div>
       </div>
 
-      {/* ✅ FIXED: Complete Mobile Filters with Swedish translations */}
+      {/* Mobile Filters */}
       {mobileFiltersOpen && (
         <>
-          {/* ✅ FIXED: Transparent overlay */}
           <div 
             className="fixed inset-0 z-40 lg:hidden"
             style={{ backgroundColor: 'rgba(0, 0, 0, 0.2)' }}
             onClick={() => setMobileFiltersOpen(false)}
           />
           
-          {/* ✅ FIXED: Sidebar with complete filter functionality */}
           <div className="fixed right-0 top-0 h-full w-80 bg-white flex flex-col shadow-2xl z-50 lg:hidden">
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white">
@@ -620,10 +597,9 @@ export function CollectionPage({
               </button>
             </div>
             
-            {/* ✅ FIXED: Complete mobile filters content with Swedish translations */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
               
-              {/* ✅ MOBILE: Themes Filter */}
+              {/* Mobile Themes Filter */}
               {themesFilter && themesFilter.values?.length > 0 && (
                 <div className="border-b border-gray-200 pb-3">
                   <div className="flex items-center justify-between mb-3">
@@ -644,7 +620,6 @@ export function CollectionPage({
                         <span className="text-sm text-gray-400">({option.count})</span>
                       </label>
                     ))}
-                    {/* Clear option */}
                     <label className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50 cursor-pointer">
                       <input
                         type="radio"
@@ -659,7 +634,7 @@ export function CollectionPage({
                 </div>
               )}
 
-              {/* ✅ MOBILE: Age Group Filter */}
+              {/* Mobile Age Group Filter */}
               {ageGroupFilter && ageGroupFilter.values?.length > 0 && (
                 <div className="border-b border-gray-200 pb-3">
                   <div className="flex items-center justify-between mb-3">
@@ -682,7 +657,6 @@ export function CollectionPage({
                         <span className="text-sm text-gray-400">({option.count})</span>
                       </label>
                     ))}
-                    {/* Clear option */}
                     <label className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50 cursor-pointer">
                       <input
                         type="radio"
@@ -697,7 +671,7 @@ export function CollectionPage({
                 </div>
               )}
 
-              {/* ✅ MOBILE: Piece Count Filter */}
+              {/* Mobile Piece Count Filter */}
               {pieceCountFilter && pieceCountFilter.values?.length > 0 && (
                 <div className="border-b border-gray-200 pb-3">
                   <div className="flex items-center justify-between mb-3">
@@ -718,7 +692,6 @@ export function CollectionPage({
                         <span className="text-sm text-gray-400">({option.count})</span>
                       </label>
                     ))}
-                    {/* Clear option */}
                     <label className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50 cursor-pointer">
                       <input
                         type="radio"
@@ -733,7 +706,7 @@ export function CollectionPage({
                 </div>
               )}
 
-              {/* ✅ MOBILE: Price Range Filter */}
+              {/* Mobile Price Range Filter */}
               <div className="border-b border-gray-200 pb-3">
                 <div className="flex items-center justify-between mb-3">
                   <span className="font-medium text-gray-900">Pris</span>
@@ -753,7 +726,6 @@ export function CollectionPage({
                       <span className="text-sm text-gray-400">({range.count})</span>
                     </label>
                   ))}
-                  {/* Clear option */}
                   <label className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50 cursor-pointer">
                     <input
                       type="radio"
@@ -767,7 +739,7 @@ export function CollectionPage({
                 </div>
               </div>
 
-              {/* ✅ MOBILE: Availability Filter */}
+              {/* Mobile Availability Filter */}
               {availabilityFilter && availabilityFilter.values?.length > 0 && (
                 <div className="pb-3">
                   <div className="flex items-center justify-between mb-3">
@@ -792,7 +764,6 @@ export function CollectionPage({
                         <span className="text-sm text-gray-400">({option.count})</span>
                       </label>
                     ))}
-                    {/* Clear option */}
                     <label className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50 cursor-pointer">
                       <input
                         type="radio"
@@ -832,7 +803,6 @@ export function CollectionPage({
         </>
       )}
 
-      {/* Analyticss */}
       <Analytics.CollectionView data={{ collection: { id: collection.id, handle: collection.handle } }} />
       </div>
     </>

@@ -75,15 +75,6 @@ export async function action({request, context}: ActionFunctionArgs) {
   try {
     const {env} = context;
 
-    // Debug logging
-    console.log('🔍 Contact Form Debug:', {
-      hasToken: !!env.PRIVATE_ADMIN_API_TOKEN,
-      hasVersion: !!env.PRIVATE_ADMIN_API_VERSION,
-      tokenPrefix: env.PRIVATE_ADMIN_API_TOKEN?.substring(0, 10),
-      version: env.PRIVATE_ADMIN_API_VERSION,
-      storeDomain: env.PUBLIC_STORE_DOMAIN,
-    });
-
     // Check for required environment variables
     if (!env.PRIVATE_ADMIN_API_TOKEN || !env.PRIVATE_ADMIN_API_VERSION) {
       throw new Error(
@@ -92,8 +83,6 @@ export async function action({request, context}: ActionFunctionArgs) {
     }
 
     const adminApiUrl = `https://${env.PUBLIC_STORE_DOMAIN}/admin/api/${env.PRIVATE_ADMIN_API_VERSION}/graphql.json`;
-
-    console.log('🔍 Admin API URL:', adminApiUrl);
 
     // GraphQL mutation to create metaobject entry
     const mutation = `
@@ -125,8 +114,6 @@ export async function action({request, context}: ActionFunctionArgs) {
       },
     };
 
-    console.log('🔍 Mutation variables:', JSON.stringify(variables, null, 2));
-
     const response = await fetch(adminApiUrl, {
       method: 'POST',
       headers: {
@@ -135,8 +122,6 @@ export async function action({request, context}: ActionFunctionArgs) {
       },
       body: JSON.stringify({query: mutation, variables}),
     });
-
-    console.log('🔍 Response status:', response.status);
 
     const result = (await response.json()) as {
       data?: {
@@ -156,10 +141,7 @@ export async function action({request, context}: ActionFunctionArgs) {
       }>;
     };
 
-    console.log('🔍 Response result:', JSON.stringify(result, null, 2));
-
     if (result.errors || result.data?.metaobjectCreate?.userErrors?.length) {
-      console.error('❌ Metaobject creation error:', result);
       throw new Error(
         result.data?.metaobjectCreate?.userErrors?.[0]?.message ||
           result.errors?.[0]?.message ||
@@ -167,15 +149,12 @@ export async function action({request, context}: ActionFunctionArgs) {
       );
     }
 
-    console.log('✅ Contact form submitted successfully!');
-
     return data<ActionData>({
       success: true,
       message:
         'Tack för ditt meddelande! Vi återkommer till dig inom 24 timmar.',
     });
   } catch (error) {
-    console.error('❌ Contact form error:', error);
     return data<ActionData>(
       {
         error:
@@ -211,10 +190,10 @@ export default function ContactPage() {
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       {/* Header */}
       <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginBottom: '64px'}}>
-        <h1 className="text-5xl font-bold text-gray-900 mb-4 tracking-tight" style={{textAlign: 'center !important'}}>
+        <h1 className="text-5xl font-bold text-gray-900 mb-4 tracking-tight" style={{textAlign: 'center'}}>
           Kontakta oss
         </h1>
-        <p className="text-xl text-gray-600 leading-relaxed" style={{textAlign: 'center !important', maxWidth: '672px', margin: '0 auto'}}>
+        <p className="text-xl text-gray-600 leading-relaxed" style={{textAlign: 'center', maxWidth: '672px', margin: '0 auto'}}>
           Vi finns här för att hjälpa dig med frågor om produkter,
           beställningar och leveranser.
         </p>

@@ -26,7 +26,6 @@ export function FeaturedProducts({
 }: FeaturedProductsProps) {
   // Early return if no products
   if (!products?.length) {
-    console.log('⚠️ FeaturedProducts: No products provided');
     return null;
   }
 

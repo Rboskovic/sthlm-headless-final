@@ -1,10 +1,8 @@
-// app/root.tsx - With Judge.me Reviews Integration + DEBUG LOGGING
-// ✅ PERFORMANCE OPTIMIZED: Added early preconnect in <head> for faster CDN connection
-// ✅ PRESERVES: All existing functionality
-// ✅ UPDATED: Added header banner metaobjects query
-// ✅ NEW: Added Judge.me Provider for reviews
-// ✅ GMC COMPLIANCE: Added image field to Organization schema
-// 🔍 DEBUG: Added comprehensive logging to diagnose Judge.me initialization
+// app/root.tsx - CLEANED VERSION
+// ✅ FIXED: Removed Judge.me integration (causing 403 errors + blocking)
+// ✅ FIXED: No conditional hook calls (was violating Rules of Hooks)
+// ✅ PERFORMANCE OPTIMIZED: Early preconnect in <head>
+// ✅ GMC COMPLIANCE: Organization schema with image field
 
 import { Analytics, getShopAnalytics, useNonce } from "@shopify/hydrogen";
 import { type LoaderFunctionArgs } from "@shopify/remix-oxygen";
@@ -32,15 +30,6 @@ import tailwindCss from "~/styles/tailwind.css?url";
 import appStyles from "~/styles/app.css?url";
 import designSystemStyles from "~/styles/design-system.css?url";
 import { PageLayout } from "./components/PageLayout";
-// ✅ NEW: Judge.me import
-import { useJudgeme } from '@judgeme/shopify-hydrogen';
-
-// ✅ TypeScript: Extend Window interface for Judge.me global
-declare global {
-  interface Window {
-    jdgm?: any;
-  }
-}
 
 export type RootLoader = typeof loader;
 
@@ -68,7 +57,7 @@ export function links() {
     { rel: "preload", href: tailwindCss, as: "style" },
     { rel: "preload", href: designSystemStyles, as: "style" },
     
-    // ✅ CSS loading order (preserved - no changes from original)
+    // ✅ CSS loading order
     { rel: "stylesheet", href: resetStyles },
     { rel: "stylesheet", href: tailwindCss },
     { rel: "stylesheet", href: appStyles },
@@ -76,14 +65,8 @@ export function links() {
   ];
 }
 
-// ✅ UPDATED: Added header banner metaobjects query + Judge.me config
 export async function loader({ context }: LoaderFunctionArgs) {
   const { storefront, env, cart } = context;
-
-  // 🔍 DEBUG: Log environment variables (server-side)
-  console.log('🔍 [SERVER] Judge.me Environment Check:');
-  console.log('  JUDGEME_SHOP_DOMAIN:', env.JUDGEME_SHOP_DOMAIN || '❌ MISSING');
-  console.log('  JUDGEME_PUBLIC_TOKEN:', env.JUDGEME_PUBLIC_TOKEN ? '✅ EXISTS (length: ' + env.JUDGEME_PUBLIC_TOKEN.length + ')' : '❌ MISSING');
 
   // --- Critical data ---
   const [header, mobileMenuCollections, headerBanners] = await Promise.all([
@@ -110,16 +93,6 @@ export async function loader({ context }: LoaderFunctionArgs) {
       return null;
     });
 
-  const judgemeConfig = {
-    shopDomain: env.JUDGEME_SHOP_DOMAIN || 'klosslabbet.se',
-    publicToken: env.JUDGEME_PUBLIC_TOKEN || '',
-    cdnHost: 'https://cdnwidget.judge.me',  // ✅ FIXED: Use correct subdomain!
-    delay: 500,
-  };
-
-  // 🔍 DEBUG: Log the config being returned
-  console.log('🔍 [SERVER] Judge.me Config being returned:', judgemeConfig);
-
   return {
     header,
     headerBanners: headerBanners?.metaobjects?.nodes || [],
@@ -138,8 +111,6 @@ export async function loader({ context }: LoaderFunctionArgs) {
       language: storefront.i18n.language,
     },
     publicStoreDomain: env.PUBLIC_STORE_DOMAIN,
-    // ✅ NEW: Judge.me configuration
-    judgeme: judgemeConfig,
   };
 }
 
@@ -148,7 +119,7 @@ export function Layout({ children }: { children?: React.ReactNode }) {
   const nonce = useNonce();
   const data = useRouteLoaderData<RootLoader>("root");
 
-  // ✅ GMC COMPLIANCE: Organization Schema with all required and recommended fields
+  // ✅ GMC COMPLIANCE: Organization Schema with all required fields
   const organizationSchema = {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -156,7 +127,7 @@ export function Layout({ children }: { children?: React.ReactNode }) {
     "legalName": "STHLM Toys och Games AB",
     "url": "https://www.klosslabbet.se",
     "logo": "https://cdn.shopify.com/s/files/1/0900/8811/2507/files/logo-klosslabbet.se2.png?v=1755724329",
-    "image": "https://cdn.shopify.com/s/files/1/0900/8811/2507/files/logo-klosslabbet.se2.png?v=1755724329", // ✅ GMC FIX: Added image field
+    "image": "https://cdn.shopify.com/s/files/1/0900/8811/2507/files/logo-klosslabbet.se2.png?v=1755724329",
     "description": "Sveriges ledande leksaksbutik online - LEGO, pussel, spel och mer!",
     "telephone": "+46760070987",
     "email": "info@klosslabbet.se",
@@ -201,10 +172,8 @@ export function Layout({ children }: { children?: React.ReactNode }) {
         <link rel="preconnect" href="https://cdn.shopify.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://shop.app" />
         <link rel="dns-prefetch" href="https://monorail-edge.shopifysvc.com" />
-        {/* ✅ Judge.me CDN preconnect */}
-        <link rel="preconnect" href="https://cdn.judge.me" />
         
-        {/* ✅ GMC COMPLIANCE: Organization Schema for Google Merchant Center */}
+        {/* ✅ GMC COMPLIANCE: Organization Schema */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -212,7 +181,6 @@ export function Layout({ children }: { children?: React.ReactNode }) {
           }}
         />
         
-        {/* ✅ CSS links handled by links() function above */}
         <Meta />
         <Links />
       </head>
@@ -240,66 +208,11 @@ export function Layout({ children }: { children?: React.ReactNode }) {
   );
 }
 
-// ✅ App component with Judge.me initialization + COMPREHENSIVE DEBUG LOGGING
+// ✅ FIXED: No conditional hooks - proper React patterns
 export default function App() {
-  const data = useRouteLoaderData<RootLoader>("root");
-  
-  // 🔍 DEBUG: Comprehensive logging for client-side
-  React.useEffect(() => {
-    console.log('🔍 [CLIENT] ===== JUDGE.ME DEBUG START =====');
-    console.log('🔍 [CLIENT] data object exists:', !!data);
-    console.log('🔍 [CLIENT] data.judgeme exists:', !!data?.judgeme);
-    
-    if (data?.judgeme) {
-      console.log('🔍 [CLIENT] Judge.me Config:', {
-        shopDomain: data.judgeme.shopDomain,
-        publicTokenExists: !!data.judgeme.publicToken,
-        publicTokenLength: data.judgeme.publicToken?.length || 0,
-        cdnHost: data.judgeme.cdnHost,
-        delay: data.judgeme.delay,
-      });
-      
-      // Check if token is empty string
-      if (data.judgeme.publicToken === '') {
-        console.error('❌ [CLIENT] PUBLIC TOKEN IS EMPTY STRING!');
-      }
-    } else {
-      console.error('❌ [CLIENT] No judgeme config found in data!');
-      console.log('🔍 [CLIENT] Available data keys:', Object.keys(data || {}));
-    }
-    
-    // Check if Judge.me script loaded
-    const checkScript = setInterval(() => {
-      if (typeof window.jdgm !== 'undefined') {
-        console.log('✅ [CLIENT] Judge.me script LOADED! window.jdgm exists');
-        console.log('🔍 [CLIENT] window.jdgm:', window.jdgm);
-        clearInterval(checkScript);
-      }
-    }, 500);
-    
-    // Stop checking after 10 seconds
-    setTimeout(() => {
-      clearInterval(checkScript);
-      if (typeof window.jdgm === 'undefined') {
-        console.error('❌ [CLIENT] Judge.me script did NOT load after 10 seconds');
-        console.log('🔍 [CLIENT] Check Network tab for cdn.judge.me requests');
-      }
-    }, 10000);
-    
-    console.log('🔍 [CLIENT] ===== JUDGE.ME DEBUG END =====');
-  }, [data]);
-  
-  // ✅ FIX: Call useJudgeme at top level, not inside useEffect!
-  // This is a React hook and must be called at the top level of the component
-  if (data?.judgeme) {
-    console.log('✅ [CLIENT] Calling useJudgeme() with config...');
-    useJudgeme(data.judgeme);
-  }
-  
   return <Outlet />;
 }
 
-// ✅ EXISTING: ErrorBoundary (preserved)
 export function ErrorBoundary() {
   const error = useRouteError();
   let errorMessage = "Unknown error";

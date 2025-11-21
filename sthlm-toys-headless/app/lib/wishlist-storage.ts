@@ -31,7 +31,7 @@ export class WishlistStorage {
                     sessionStorage.getItem(STORAGE_KEY);
       
       if (stored) {
-        const items = JSON.parse(stored);
+        const items = JSON.parse(stored) as WishlistItem[];
         return Array.isArray(items) ? items : [];
       }
     } catch (error) {

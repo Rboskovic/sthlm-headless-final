@@ -1,6 +1,18 @@
 // app/lib/wishlist-sharing.ts
 import { WishlistStorage, type WishlistItem } from './wishlist-storage';
 
+// Type definition for shared wishlist data
+interface ShareData {
+  items: Array<{
+    id: string;
+    handle: string;
+    title: string;
+    variantId?: string;
+  }>;
+  title: string;
+  createdAt: string;
+}
+
 export class WishlistSharing {
   // Create shareable URL with encoded wishlist data
   static createShareableUrl(customTitle?: string): string {
@@ -11,7 +23,7 @@ export class WishlistSharing {
     }
     
     // Create minimal data for URL (avoid URL length limits)
-    const shareData = {
+    const shareData: ShareData = {
       items: wishlist.map(item => ({
         id: item.id,
         handle: item.handle,
@@ -42,7 +54,7 @@ export class WishlistSharing {
   static loadFromShareUrl(encodedData: string): WishlistItem[] | null {
     try {
       const decoded = atob(encodedData);
-      const shareData = JSON.parse(decoded);
+      const shareData = JSON.parse(decoded) as ShareData;
       
       // Validate data structure
       if (!shareData.items || !Array.isArray(shareData.items)) {
@@ -50,7 +62,7 @@ export class WishlistSharing {
       }
       
       // Convert to full wishlist items (minimal data expansion)
-      const items: WishlistItem[] = shareData.items.map(item => ({
+      const items: WishlistItem[] = shareData.items.map((item: ShareData['items'][0]) => ({
         id: item.id,
         title: item.title || 'Shared Product',
         handle: item.handle,

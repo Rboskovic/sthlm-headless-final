@@ -1,8 +1,8 @@
 // FILE: app/components/FeaturedBanners.tsx
-// ✅ METAOBJECTS: Now loads from metaobject instead of collection metafields
-// ✅ PERFORMANCE OPTIMIZED: Better responsive images with proper srcset
+// ✅ METAOBJECTS: Loads from metaobject instead of collection metafields
+// ✅ PERFORMANCE OPTIMIZED: Responsive images with proper srcset and WebP format
 // ✅ MAX 2 BANNERS: Only shows first 2 active entries
-// ✅ FIXED: Using correct lowercase field keys
+// ✅ PRODUCTION READY: All debug logging removed
 
 import {Link} from 'react-router';
 
@@ -28,7 +28,7 @@ interface CollectionWithBanner extends CollectionFragment {
 }
 
 interface FeaturedBannersProps {
-  metaobjects: any[]; // Metaobject entries from Shopify
+  metaobjects: any[];
 }
 
 // Fallback banners for testing/development
@@ -60,15 +60,9 @@ const fallbackBanners: CollectionWithBanner[] = [
 ];
 
 export function FeaturedBanners({metaobjects}: FeaturedBannersProps) {
-  // ✅ DEBUG: Log metaobjects to see structure
-  console.log('🎨 FeaturedBanners - Received metaobjects:', metaobjects);
-  console.log('🎨 FeaturedBanners - First entry:', metaobjects?.[0]);
-  console.log('🎨 FeaturedBanners - First entry fields:', JSON.stringify(metaobjects?.[0]?.fields, null, 2));
-
   // ✅ PERFORMANCE: Generate responsive image URLs with WebP format
   const getOptimizedImageUrl = (url: string, width: number): string => {
     if (!url) return url;
-    // Check if it's a Shopify CDN URL
     if (!url.includes('cdn.shopify.com')) return url;
     
     const base = url.split('?')[0];
@@ -85,31 +79,22 @@ export function FeaturedBanners({metaobjects}: FeaturedBannersProps) {
       .join(', ');
   };
 
-  // ✅ FIXED: Extract data from metaobject fields - prioritize reference over value for reference types
+  // Extract field value from metaobject - prioritize reference over value for reference types
   const getFieldValue = (fields: any[], key: string): any => {
     const field = fields?.find((f: any) => f.key === key);
-    // For reference types, return the reference object, not the GID string value
     return field?.reference || field?.value || null;
   };
 
-  // ✅ FIXED: Process metaobjects into banner format with correct field keys
+  // Process metaobjects into banner format
   const featuredBanners: CollectionWithBanner[] = metaobjects
     ?.slice(0, 2) // Only take first 2 entries (max 2 banners)
     ?.map((entry) => {
       const fields = entry.fields || [];
-      console.log('🔍 Processing entry:', entry.id);
-      console.log('🔍 Entry fields:', fields);
       
-      // ✅ FIXED: Use lowercase 'kolekcija' instead of 'Kolekcija'
-      const collection = getFieldValue(fields, 'kolekcija'); // Collection reference
-      console.log('🔍 Collection found:', collection);
-      
-      // ✅ FIXED: Use lowercase 'banner_slika' 
+      // Use lowercase field keys as defined in metaobject
+      const collection = getFieldValue(fields, 'kolekcija');
       const bannerImageField = fields.find((f: any) => f.key === 'banner_slika');
-      console.log('🔍 Banner image field:', bannerImageField);
-      
       const bannerImage = bannerImageField?.reference?.image || null;
-      console.log('🔍 Banner image:', bannerImage);
       
       return {
         id: entry.id,
@@ -123,14 +108,8 @@ export function FeaturedBanners({metaobjects}: FeaturedBannersProps) {
         },
       };
     })
-    .filter((banner) => {
-      const isValid = banner.handle && banner.bannerImage.url;
-      console.log(`🔍 Banner ${banner.id} valid:`, isValid, {handle: banner.handle, hasImage: !!banner.bannerImage.url});
-      return isValid;
-    }) // Only show banners with both collection and image
+    .filter((banner) => banner.handle && banner.bannerImage.url)
     || [];
-
-  console.log('✅ Final banners to display:', featuredBanners.length, featuredBanners);
 
   const displayBanners = featuredBanners.length > 0 ? featuredBanners : fallbackBanners;
   
@@ -156,7 +135,6 @@ export function FeaturedBanners({metaobjects}: FeaturedBannersProps) {
                     className="relative overflow-hidden rounded-2xl group-hover:shadow-lg transition-shadow duration-200"
                     style={{height: '400px'}}
                   >
-                    {/* ✅ OPTIMIZED: Desktop images with explicit dimensions and srcset */}
                     {imageUrl ? (
                       isShopifyImage ? (
                         <img
@@ -260,7 +238,6 @@ export function FeaturedBanners({metaobjects}: FeaturedBannersProps) {
                     className="relative overflow-hidden rounded-xl group-hover:shadow-lg transition-shadow duration-200"
                     style={{height: '200px'}}
                   >
-                    {/* ✅ OPTIMIZED: Mobile images with explicit dimensions and srcset */}
                     {imageUrl ? (
                       isShopifyImage ? (
                         <img
