@@ -329,10 +329,10 @@ export default function Product() {
                 {title}
               </h1>
               
-              {/* ✅ JUDGE.ME: Star Rating below title */}
+              {/* ✅ JUDGE.ME: Star Rating below title - FIXED: Added template prop */}
               <div className="my-3">
-                <JudgemePreviewBadge id={product.id} />
-              </div>
+                <JudgemePreviewBadge id={product.id} template="preview-badge" />
+              </div>;
               
               {/* ✅ NEW: Article Number Display - Below Star Rating */}
               {selectedVariant?.sku && (

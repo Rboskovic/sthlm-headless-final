@@ -22,6 +22,10 @@ declare global {
     // Admin API for contact form metaobjects (auto-injected from Oxygen)
     PRIVATE_ADMIN_API_TOKEN: string;
     PRIVATE_ADMIN_API_VERSION: string;
+    
+    // ✅ Judge.me environment variables (auto-injected from Oxygen)
+    JUDGEME_PUBLIC_TOKEN: string;
+    JUDGEME_SHOP_DOMAIN: string;
   }
 }
 

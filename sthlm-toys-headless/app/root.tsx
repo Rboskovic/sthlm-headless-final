@@ -1,8 +1,9 @@
-// app/root.tsx - With Judge.me Reviews Integration
+// app/root.tsx - With Judge.me Reviews Integration + DEBUG LOGGING
 // ✅ PERFORMANCE OPTIMIZED: Added early preconnect in <head> for faster CDN connection
 // ✅ PRESERVES: All existing functionality
 // ✅ UPDATED: Added header banner metaobjects query
 // ✅ NEW: Added Judge.me Provider for reviews
+// 🔍 DEBUG: Added comprehensive logging to diagnose Judge.me initialization
 
 import { Analytics, getShopAnalytics, useNonce } from "@shopify/hydrogen";
 import { type LoaderFunctionArgs } from "@shopify/remix-oxygen";
@@ -17,6 +18,7 @@ import {
   ScrollRestoration,
   useRouteLoaderData,
 } from "react-router";
+import React from "react";
 import favicon from "~/assets/favicon.svg";
 import {
   FOOTER_QUERY,
@@ -31,6 +33,13 @@ import designSystemStyles from "~/styles/design-system.css?url";
 import { PageLayout } from "./components/PageLayout";
 // ✅ NEW: Judge.me import
 import { useJudgeme } from '@judgeme/shopify-hydrogen';
+
+// ✅ TypeScript: Extend Window interface for Judge.me global
+declare global {
+  interface Window {
+    jdgm?: any;
+  }
+}
 
 export type RootLoader = typeof loader;
 
@@ -70,6 +79,11 @@ export function links() {
 export async function loader({ context }: LoaderFunctionArgs) {
   const { storefront, env, cart } = context;
 
+  // 🔍 DEBUG: Log environment variables (server-side)
+  console.log('🔍 [SERVER] Judge.me Environment Check:');
+  console.log('  JUDGEME_SHOP_DOMAIN:', env.JUDGEME_SHOP_DOMAIN || '❌ MISSING');
+  console.log('  JUDGEME_PUBLIC_TOKEN:', env.JUDGEME_PUBLIC_TOKEN ? '✅ EXISTS (length: ' + env.JUDGEME_PUBLIC_TOKEN.length + ')' : '❌ MISSING');
+
   // --- Critical data ---
   const [header, mobileMenuCollections, headerBanners] = await Promise.all([
     storefront.query(HEADER_QUERY, {
@@ -95,6 +109,16 @@ export async function loader({ context }: LoaderFunctionArgs) {
       return null;
     });
 
+  const judgemeConfig = {
+    shopDomain: env.JUDGEME_SHOP_DOMAIN || 'klosslabbet.myshopify.com',
+    publicToken: env.JUDGEME_PUBLIC_TOKEN || '',
+    cdnHost: 'https://cdnwidget.judge.me',  // ✅ FIXED: Use correct subdomain!
+    delay: 500,
+  };
+
+  // 🔍 DEBUG: Log the config being returned
+  console.log('🔍 [SERVER] Judge.me Config being returned:', judgemeConfig);
+
   return {
     header,
     headerBanners: headerBanners?.metaobjects?.nodes || [],
@@ -114,12 +138,7 @@ export async function loader({ context }: LoaderFunctionArgs) {
     },
     publicStoreDomain: env.PUBLIC_STORE_DOMAIN,
     // ✅ NEW: Judge.me configuration
-    judgeme: {
-      shopDomain: env.JUDGEME_SHOP_DOMAIN || 'klosslabbet.myshopify.com',
-      publicToken: env.JUDGEME_PUBLIC_TOKEN || '',
-      cdnHost: 'https://cdn.judge.me',
-      delay: 500,
-    },
+    judgeme: judgemeConfig,
   };
 }
 
@@ -216,12 +235,59 @@ export function Layout({ children }: { children?: React.ReactNode }) {
   );
 }
 
-// ✅ App component with Judge.me initialization
+// ✅ App component with Judge.me initialization + COMPREHENSIVE DEBUG LOGGING
 export default function App() {
   const data = useRouteLoaderData<RootLoader>("root");
   
-  // ✅ Initialize Judge.me
+  // 🔍 DEBUG: Comprehensive logging for client-side
+  React.useEffect(() => {
+    console.log('🔍 [CLIENT] ===== JUDGE.ME DEBUG START =====');
+    console.log('🔍 [CLIENT] data object exists:', !!data);
+    console.log('🔍 [CLIENT] data.judgeme exists:', !!data?.judgeme);
+    
+    if (data?.judgeme) {
+      console.log('🔍 [CLIENT] Judge.me Config:', {
+        shopDomain: data.judgeme.shopDomain,
+        publicTokenExists: !!data.judgeme.publicToken,
+        publicTokenLength: data.judgeme.publicToken?.length || 0,
+        cdnHost: data.judgeme.cdnHost,
+        delay: data.judgeme.delay,
+      });
+      
+      // Check if token is empty string
+      if (data.judgeme.publicToken === '') {
+        console.error('❌ [CLIENT] PUBLIC TOKEN IS EMPTY STRING!');
+      }
+    } else {
+      console.error('❌ [CLIENT] No judgeme config found in data!');
+      console.log('🔍 [CLIENT] Available data keys:', Object.keys(data || {}));
+    }
+    
+    // Check if Judge.me script loaded
+    const checkScript = setInterval(() => {
+      if (typeof window.jdgm !== 'undefined') {
+        console.log('✅ [CLIENT] Judge.me script LOADED! window.jdgm exists');
+        console.log('🔍 [CLIENT] window.jdgm:', window.jdgm);
+        clearInterval(checkScript);
+      }
+    }, 500);
+    
+    // Stop checking after 10 seconds
+    setTimeout(() => {
+      clearInterval(checkScript);
+      if (typeof window.jdgm === 'undefined') {
+        console.error('❌ [CLIENT] Judge.me script did NOT load after 10 seconds');
+        console.log('🔍 [CLIENT] Check Network tab for cdn.judge.me requests');
+      }
+    }, 10000);
+    
+    console.log('🔍 [CLIENT] ===== JUDGE.ME DEBUG END =====');
+  }, [data]);
+  
+  // ✅ FIX: Call useJudgeme at top level, not inside useEffect!
+  // This is a React hook and must be called at the top level of the component
   if (data?.judgeme) {
+    console.log('✅ [CLIENT] Calling useJudgeme() with config...');
     useJudgeme(data.judgeme);
   }
   
