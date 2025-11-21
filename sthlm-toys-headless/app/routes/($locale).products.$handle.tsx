@@ -2,7 +2,7 @@
 // ✅ SHOPIFY HYDROGEN STANDARD: Complete Product Detail Page with metafields
 // ✅ INVENTORY VALIDATION: Added quantityAvailable to fragment and AddToCartButton
 // ✅ JUDGE.ME: Star rating and reviews widgets integrated
-// ✅ GMC COMPLIANCE: Fixed structured data with SKU, brand, images, proper availability
+// ✅ GMC COMPLIANCE: Complete structured data with shipping & return policy matching actual policies
 
 import {redirect, type LoaderFunctionArgs} from '@shopify/remix-oxygen';
 import {useLoaderData, type MetaFunction, Await, Link, useNavigate} from 'react-router';
@@ -43,6 +43,81 @@ export const meta: MetaFunction<typeof loader> = ({data}) => {
     ? 'https://schema.org/InStock' 
     : 'https://schema.org/OutOfStock';
   
+  // ✅ GMC FIX: Shipping details matching actual Klosslabbet policy
+  // Delivery to pickup point (ombud): 59 kr (free over 799 kr threshold)
+  // Delivery time: 2-7 working days (0-1 handling + 2-6 transport)
+  const shippingDetails = {
+    '@type': 'OfferShippingDetails',
+    'shippingRate': {
+      '@type': 'MonetaryAmount',
+      'value': '59',
+      'currency': 'SEK'
+    },
+    'shippingDestination': {
+      '@type': 'DefinedRegion',
+      'addressCountry': 'SE'
+    },
+    'deliveryTime': {
+      '@type': 'ShippingDeliveryTime',
+      'handlingTime': {
+        '@type': 'QuantitativeValue',
+        'minValue': 0,
+        'maxValue': 1,
+        'unitCode': 'DAY'
+      },
+      'transitTime': {
+        '@type': 'QuantitativeValue',
+        'minValue': 2,
+        'maxValue': 6,
+        'unitCode': 'DAY'
+      }
+    }
+  };
+
+  // ✅ GMC FIX: Return policy matching actual Klosslabbet policy
+  // 14 days return window, return by mail
+  // Customer pays return shipping for ångerrätt (general returns)
+  // NOTE: Free returns only for defective/wrong items, not general returns
+  const returnPolicy = {
+    '@type': 'MerchantReturnPolicy',
+    'applicableCountry': 'SE',
+    'returnPolicyCategory': 'https://schema.org/MerchantReturnFiniteReturnWindow',
+    'merchantReturnDays': 14,
+    'returnMethod': 'https://schema.org/ReturnByMail',
+    'returnFees': 'https://schema.org/ReturnShippingFees' // Customer pays for general returns
+  };
+
+  // ✅ GMC COMPLIANCE: Complete Product structured data
+  const productSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    'name': product?.title,
+    'description': product?.description,
+    'sku': variant?.sku,
+    'image': imageArray,
+    'brand': {
+      '@type': 'Brand',
+      'name': product?.vendor || 'Klosslabbet'
+    },
+    'url': `https://www.klosslabbet.se/products/${product?.handle}`,
+    'offers': {
+      '@type': 'Offer',
+      'price': variant?.price?.amount,
+      'priceCurrency': 'SEK',
+      'availability': availabilityStatus,
+      'itemCondition': 'https://schema.org/NewCondition',
+      'priceValidUntil': new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      'shippingDetails': shippingDetails, // ✅ GMC FIX: Added accurate shipping details
+      'hasMerchantReturnPolicy': returnPolicy, // ✅ GMC FIX: Added accurate return policy
+      'seller': {
+        '@type': 'Organization',
+        'name': 'Klosslabbet'
+      }
+    }
+    // Note: aggregateRating and review fields will be added automatically by Judge.me
+    // when you have customer reviews. Judge.me injects its own structured data.
+  };
+  
   return [
     {title: `${product?.title ?? ''} | Klosslabbet`},
     {
@@ -55,31 +130,7 @@ export const meta: MetaFunction<typeof loader> = ({data}) => {
       href: getCanonicalUrlForPath(`/products/${product?.handle}`),
     },
     {
-      'script:ld+json': {
-        '@context': 'https://schema.org',
-        '@type': 'Product',
-        name: product?.title,
-        description: product?.description,
-        sku: variant?.sku, // ✅ GMC FIX: Added SKU
-        image: imageArray, // ✅ GMC FIX: Array of all images
-        brand: { // ✅ GMC FIX: Added brand
-          '@type': 'Brand',
-          name: product?.vendor || 'Klosslabbet'
-        },
-        url: `https://www.klosslabbet.se/products/${product?.handle}`,
-        offers: {
-          '@type': 'Offer',
-          price: variant?.price?.amount,
-          priceCurrency: 'SEK',
-          availability: availabilityStatus, // ✅ GMC FIX: Schema.org URL format
-          itemCondition: 'https://schema.org/NewCondition', // ✅ GMC FIX: Added
-          priceValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // ✅ GMC FIX: 30 days
-          seller: {
-            '@type': 'Organization',
-            name: 'Klosslabbet'
-          }
-        }
-      }
+      'script:ld+json': productSchema
     }
   ];
 };

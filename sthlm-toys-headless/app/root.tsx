@@ -3,6 +3,7 @@
 // ✅ PRESERVES: All existing functionality
 // ✅ UPDATED: Added header banner metaobjects query
 // ✅ NEW: Added Judge.me Provider for reviews
+// ✅ GMC COMPLIANCE: Added image field to Organization schema
 // 🔍 DEBUG: Added comprehensive logging to diagnose Judge.me initialization
 
 import { Analytics, getShopAnalytics, useNonce } from "@shopify/hydrogen";
@@ -147,7 +148,7 @@ export function Layout({ children }: { children?: React.ReactNode }) {
   const nonce = useNonce();
   const data = useRouteLoaderData<RootLoader>("root");
 
-  // ✅ EXISTING: Organization Schema for Google Merchant Center compliance
+  // ✅ GMC COMPLIANCE: Organization Schema with all required and recommended fields
   const organizationSchema = {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -155,6 +156,7 @@ export function Layout({ children }: { children?: React.ReactNode }) {
     "legalName": "STHLM Toys och Games AB",
     "url": "https://www.klosslabbet.se",
     "logo": "https://cdn.shopify.com/s/files/1/0900/8811/2507/files/logo-klosslabbet.se2.png?v=1755724329",
+    "image": "https://cdn.shopify.com/s/files/1/0900/8811/2507/files/logo-klosslabbet.se2.png?v=1755724329", // ✅ GMC FIX: Added image field
     "description": "Sveriges ledande leksaksbutik online - LEGO, pussel, spel och mer!",
     "telephone": "+46760070987",
     "email": "info@klosslabbet.se",
@@ -163,7 +165,10 @@ export function Layout({ children }: { children?: React.ReactNode }) {
       "streetAddress": "Filgränd 8",
       "addressLocality": "Västerhaninge",
       "postalCode": "13738",
-      "addressCountry": "SE"
+      "addressCountry": {
+        "@type": "Country",
+        "name": "SE"
+      }
     },
     "vatID": "SE559517564601",
     "taxID": "559517-5646",
@@ -199,7 +204,7 @@ export function Layout({ children }: { children?: React.ReactNode }) {
         {/* ✅ Judge.me CDN preconnect */}
         <link rel="preconnect" href="https://cdn.judge.me" />
         
-        {/* ✅ EXISTING: Organization Schema for Google Merchant Center */}
+        {/* ✅ GMC COMPLIANCE: Organization Schema for Google Merchant Center */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
