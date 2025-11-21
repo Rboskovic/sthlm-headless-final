@@ -110,7 +110,7 @@ export async function loader({ context }: LoaderFunctionArgs) {
     });
 
   const judgemeConfig = {
-    shopDomain: env.JUDGEME_SHOP_DOMAIN || 'klosslabbet.myshopify.com',
+    shopDomain: env.JUDGEME_SHOP_DOMAIN || 'klosslabbet.se',
     publicToken: env.JUDGEME_PUBLIC_TOKEN || '',
     cdnHost: 'https://cdnwidget.judge.me',  // ✅ FIXED: Use correct subdomain!
     delay: 500,
