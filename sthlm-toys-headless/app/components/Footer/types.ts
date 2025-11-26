@@ -13,13 +13,21 @@ export interface FooterMenu {
   }>;
 }
 
-// ✅ UPDATED: Added shop with paymentSettings for official payment icons
 export interface FooterQuery {
   menu?: FooterMenu | null;
   shop?: {
     paymentSettings?: {
       acceptedCardBrands: string[];
     } | null;
+  } | null;
+  footerSettings?: {
+    nodes: Array<{
+      id: string;
+      fields: Array<{
+        key: string;
+        value: string;
+      }>;
+    }>;
   } | null;
 }
 

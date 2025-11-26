@@ -275,6 +275,13 @@ export type FooterQuery = {
       >;
     }
   >;
+  footerSettings: {
+    nodes: Array<
+      Pick<StorefrontAPI.Metaobject, 'id'> & {
+        fields: Array<Pick<StorefrontAPI.MetaobjectField, 'key' | 'value'>>;
+      }
+    >;
+  };
 };
 
 export type MobileMenuCollectionFragment = Pick<
@@ -2193,7 +2200,7 @@ interface GeneratedQueryTypes {
     return: HeaderQuery;
     variables: HeaderQueryVariables;
   };
-  '#graphql\n  query Footer(\n    $country: CountryCode\n    $footerMenuHandle: String!\n    $language: LanguageCode\n  ) @inContext(language: $language, country: $country) {\n    shop {\n      paymentSettings {\n        acceptedCardBrands\n      }\n    }\n    menu(handle: $footerMenuHandle) {\n      ...Menu\n    }\n  }\n  #graphql\n  fragment MenuItem on MenuItem {\n    id\n    resourceId\n    tags\n    title\n    type\n    url\n    items {\n      id\n      resourceId\n      tags\n      title\n      type\n      url\n      items {\n        id\n        resourceId\n        tags\n        title\n        type\n        url\n      }\n    }\n  }\n  fragment Menu on Menu {\n    id\n    items {\n      ...MenuItem\n    }\n  }\n\n': {
+  '#graphql\n  query Footer(\n    $country: CountryCode\n    $footerMenuHandle: String!\n    $language: LanguageCode\n  ) @inContext(language: $language, country: $country) {\n    shop {\n      paymentSettings {\n        acceptedCardBrands\n      }\n    }\n    menu(handle: $footerMenuHandle) {\n      ...Menu\n    }\n    footerSettings: metaobjects(type: "footer_settings", first: 1) {\n      nodes {\n        id\n        fields {\n          key\n          value\n        }\n      }\n    }\n  }\n  #graphql\n  fragment MenuItem on MenuItem {\n    id\n    resourceId\n    tags\n    title\n    type\n    url\n    items {\n      id\n      resourceId\n      tags\n      title\n      type\n      url\n      items {\n        id\n        resourceId\n        tags\n        title\n        type\n        url\n      }\n    }\n  }\n  fragment Menu on Menu {\n    id\n    items {\n      ...MenuItem\n    }\n  }\n\n': {
     return: FooterQuery;
     variables: FooterQueryVariables;
   };

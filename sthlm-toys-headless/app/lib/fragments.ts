@@ -209,6 +209,15 @@ export const FOOTER_QUERY = `#graphql
     menu(handle: $footerMenuHandle) {
       ...Menu
     }
+    footerSettings: metaobjects(type: "footer_settings", first: 1) {
+      nodes {
+        id
+        fields {
+          key
+          value
+        }
+      }
+    }
   }
   ${MENU_FRAGMENT}
 ` as const;

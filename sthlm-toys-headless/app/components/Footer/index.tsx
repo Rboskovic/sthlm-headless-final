@@ -8,6 +8,16 @@ import {PaymentIcons} from './PaymentIcons';
 import {ContactUs} from './ContactUs';
 import type {FooterProps} from './types';
 
+// Helper to extract field value from metaobject
+function getFieldValue(
+  fields: Array<{key: string; value: string}> | undefined,
+  key: string
+): string | null {
+  if (!fields) return null;
+  const field = fields.find((f) => f.key === key);
+  return field?.value || null;
+}
+
 export function Footer({
   footer: footerPromise,
   header,
@@ -42,9 +52,24 @@ export function Footer({
               </div>
             </div>
 
-            {/* Middle - Contact Us (4 columns) - NOW USING COMPONENT */}
+            {/* Middle - Contact Us (4 columns) */}
             <div className="col-span-4">
-              <ContactUs />
+              <Suspense fallback={<ContactUsFallback />}>
+                <Await resolve={footerPromise}>
+                  {(footer) => {
+                    const settings = footer?.footerSettings?.nodes?.[0];
+                    const fields = settings?.fields || [];
+                    
+                    return (
+                      <ContactUs
+                        email={getFieldValue(fields, 'email')}
+                        phone={getFieldValue(fields, 'broj_telefona')}
+                        workingHours={getFieldValue(fields, 'radno_vreme')}
+                      />
+                    );
+                  }}
+                </Await>
+              </Suspense>
             </div>
 
             {/* Right side - Newsletter (3 columns) */}
@@ -59,12 +84,38 @@ export function Footer({
               {/* Logo and Social Media */}
               <div className="flex items-center gap-8">
                 <FooterLogo shop={header.shop as any} />
-                <SocialMedia />
+                <Suspense fallback={<div className="h-6 w-32 bg-white/10 animate-pulse rounded" />}>
+                  <Await resolve={footerPromise}>
+                    {(footer) => {
+                      const settings = footer?.footerSettings?.nodes?.[0];
+                      const fields = settings?.fields || [];
+                      
+                      return (
+                        <SocialMedia
+                          facebookUrl={getFieldValue(fields, 'facebook_url')}
+                          instagramUrl={getFieldValue(fields, 'instagram_url')}
+                          youtubeUrl={getFieldValue(fields, 'youtube_url')}
+                          tiktokUrl={getFieldValue(fields, 'tiktok_url')}
+                        />
+                      );
+                    }}
+                  </Await>
+                </Suspense>
               </div>
 
               {/* Copyright */}
               <div className="text-white text-sm">
-                Klosslabbet.se drivs av STHLM Toys och Games AB, Org.nr 559517-5646, Momsreg.nr SE559517564601 Filgränd 8, 13738 Västerhaninge
+                <Suspense fallback="Klosslabbet.se drivs av STHLM Toys och Games AB, Org.nr 559517-5646, Momsreg.nr SE559517564601 Filgränd 8, 13738 Västerhaninge">
+                  <Await resolve={footerPromise}>
+                    {(footer) => {
+                      const settings = footer?.footerSettings?.nodes?.[0];
+                      const fields = settings?.fields || [];
+                      const companyInfo = getFieldValue(fields, 'informacije_o_kompaniji');
+                      
+                      return companyInfo || 'Klosslabbet.se drivs av STHLM Toys och Games AB, Org.nr 559517-5646, Momsreg.nr SE559517564601 Filgränd 8, 13738 Västerhaninge';
+                    }}
+                  </Await>
+                </Suspense>
               </div>
             </div>
           </div>
@@ -97,13 +148,45 @@ export function Footer({
 
             {/* Second row: Kontakta and Hitta oss på */}
             <div className="grid grid-cols-2 gap-6 mt-6">
-              {/* Kontakta section - NOW USING COMPONENT */}
-              <ContactUs />
+              {/* Kontakta section */}
+              <Suspense fallback={<ContactUsFallback />}>
+                <Await resolve={footerPromise}>
+                  {(footer) => {
+                    const settings = footer?.footerSettings?.nodes?.[0];
+                    const fields = settings?.fields || [];
+                    
+                    return (
+                      <ContactUs
+                        email={getFieldValue(fields, 'email')}
+                        phone={getFieldValue(fields, 'broj_telefona')}
+                        workingHours={getFieldValue(fields, 'radno_vreme')}
+                      />
+                    );
+                  }}
+                </Await>
+              </Suspense>
 
               {/* Hitta oss på section */}
               <div>
                 <h4 className="text-white font-bold text-lg mb-3">Hitta oss på</h4>
-                <SocialMedia isMobile />
+                <Suspense fallback={<div className="h-6 bg-white/10 animate-pulse rounded" />}>
+                  <Await resolve={footerPromise}>
+                    {(footer) => {
+                      const settings = footer?.footerSettings?.nodes?.[0];
+                      const fields = settings?.fields || [];
+                      
+                      return (
+                        <SocialMedia
+                          facebookUrl={getFieldValue(fields, 'facebook_url')}
+                          instagramUrl={getFieldValue(fields, 'instagram_url')}
+                          youtubeUrl={getFieldValue(fields, 'youtube_url')}
+                          tiktokUrl={getFieldValue(fields, 'tiktok_url')}
+                          isMobile
+                        />
+                      );
+                    }}
+                  </Await>
+                </Suspense>
               </div>
             </div>
           </div>
@@ -119,7 +202,17 @@ export function Footer({
               <FooterLogo shop={header.shop as any} />
             </div>
             <div className="text-white text-sm">
-              Klosslabbet.se drivs av STHLM Toys och Games AB, Org.nr 559517-5646, Momsreg.nr SE559517564601 Filgränd 8, 13738 Västerhaninge
+              <Suspense fallback="Klosslabbet.se drivs av STHLM Toys och Games AB, Org.nr 559517-5646, Momsreg.nr SE559517564601 Filgränd 8, 13738 Västerhaninge">
+                <Await resolve={footerPromise}>
+                  {(footer) => {
+                    const settings = footer?.footerSettings?.nodes?.[0];
+                    const fields = settings?.fields || [];
+                    const companyInfo = getFieldValue(fields, 'informacije_o_kompaniji');
+                    
+                    return companyInfo || 'Klosslabbet.se drivs av STHLM Toys och Games AB, Org.nr 559517-5646, Momsreg.nr SE559517564601 Filgränd 8, 13738 Västerhaninge';
+                  }}
+                </Await>
+              </Suspense>
             </div>
           </div>
         </div>
@@ -153,6 +246,19 @@ function FooterLinksFallback() {
           </div>
         </div>
       ))}
+    </div>
+  );
+}
+
+function ContactUsFallback() {
+  return (
+    <div className="space-y-3">
+      <div className="h-6 bg-white/20 rounded w-24 animate-pulse"></div>
+      <div className="space-y-2">
+        <div className="h-4 bg-white/10 rounded w-full animate-pulse"></div>
+        <div className="h-4 bg-white/10 rounded w-3/4 animate-pulse"></div>
+        <div className="h-4 bg-white/10 rounded w-full animate-pulse"></div>
+      </div>
     </div>
   );
 }

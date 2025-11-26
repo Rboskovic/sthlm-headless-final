@@ -1,5 +1,5 @@
 // FILE: app/routes/($locale).handla-efter-pris.tsx
-// ✅ Production ready with proper TypeScript types
+// ✅ FIXED: Square image cards + hardcoded image header
 
 import {type LoaderFunctionArgs, type MetaFunction} from '@shopify/remix-oxygen';
 import {useLoaderData, Link} from 'react-router';
@@ -7,27 +7,6 @@ import type {Collection} from '@shopify/hydrogen/storefront-api-types';
 import {Image} from '@shopify/hydrogen';
 import {useState} from 'react';
 import { getCanonicalUrlForPath } from '~/lib/canonical';
-
-interface Article {
-  id: string;
-  title: string;
-  handle: string;
-  excerpt?: string;
-  publishedAt: string;
-  blogHandle: string;
-  image?: {
-    id: string;
-    altText?: string;
-    url: string;
-    width: number;
-    height: number;
-  };
-  metafields?: Array<{
-    key: string;
-    value: string;
-    namespace: string;
-  }>;
-}
 
 export const meta: MetaFunction = () => {
   return [
@@ -45,9 +24,11 @@ export async function loader({context}: LoaderFunctionArgs) {
   const {storefront} = context;
 
   try {
+    // Fetch discount page collections
     const discountCollectionsData = await storefront.query(DISCOUNT_COLLECTIONS_QUERY);
     const allCollections = discountCollectionsData?.collections?.nodes || [];
 
+    // Filter collections that have BOTH discountpage_collection=true AND age_lifestyle_image
     const filteredDiscountCollections = allCollections.filter((collection: Collection) => {
       const getMetafieldValue = (key: string) => {
         const metafield = collection.metafields?.find(field => 
@@ -71,13 +52,15 @@ export async function loader({context}: LoaderFunctionArgs) {
       return getSortOrder(a) - getSortOrder(b);
     });
 
+    // Fetch blog articles for discount page
     const blogsData = await storefront.query(DISCOUNT_BLOGS_QUERY);
-    const allArticles: Article[] = [];
+    const allArticles = [];
 
+    // Collect all articles from all blogs
     if (blogsData?.blogs?.nodes) {
       for (const blog of blogsData.blogs.nodes) {
         if (blog.articles?.nodes) {
-          allArticles.push(...blog.articles.nodes.map((article) => ({
+          allArticles.push(...blog.articles.nodes.map((article: any) => ({
             ...article,
             blogHandle: blog.handle
           })));
@@ -85,9 +68,10 @@ export async function loader({context}: LoaderFunctionArgs) {
       }
     }
 
-    const discountArticles = allArticles.filter((article) => {
+    // Filter articles that have discount_page=true metafield
+    const discountArticles = allArticles.filter((article: any) => {
       const discountPageMetafield = article.metafields?.find(
-        (field) => field?.key === 'discount_page' && 
+        (field: any) => field?.key === 'discount_page' && 
         (field.namespace === 'custom' || field.namespace === 'app')
       );
       return discountPageMetafield?.value === 'true';
@@ -110,7 +94,7 @@ export default function HandlaEfterPrisPage() {
 
   return (
     <div className="bg-white">
-      {/* Hardcoded Image Header */}
+      {/* ✅ FIXED: Hardcoded Image Header */}
       <div className="container py-6">
         <div className="rounded-xl overflow-hidden">
           <img
@@ -122,7 +106,7 @@ export default function HandlaEfterPrisPage() {
         </div>
       </div>
 
-      {/* Description Section */}
+      {/* ✅ Description Section - Updated content */}
       <div className="container pt-2 pb-8">
         <div className="max-w-4xl mx-auto text-center">
           <p className="text-gray-700 text-lg leading-relaxed">
@@ -135,7 +119,7 @@ export default function HandlaEfterPrisPage() {
         </div>
       </div>
 
-      {/* Price Collections Grid */}
+      {/* ✅ Price Collections Grid */}
       <div className="container pb-4">
         {discountCollections.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -152,15 +136,20 @@ export default function HandlaEfterPrisPage() {
         )}
       </div>
 
-      {/* Blog Articles Section with Carousel */}
+      {/* ✅ Blog Articles Section with Carousel */}
       {discountArticles && discountArticles.length > 0 && (
         <BlogCarouselSection articles={discountArticles} />
       )}
+
+      {/* ✅ REMOVED: Blog placeholder section - show nothing if no articles */}
     </div>
   );
 }
 
-function BlogCarouselSection({articles}: {articles: Article[]}) {
+/**
+ * Blog Carousel Section Component
+ */
+function BlogCarouselSection({articles}: {articles: any[]}) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const articlesPerView = 4;
   const maxIndex = Math.max(0, articles.length - articlesPerView);
@@ -178,6 +167,7 @@ function BlogCarouselSection({articles}: {articles: Article[]}) {
   return (
     <div className="bg-gray-50 pt-8 pb-16">
       <div className="container">
+        {/* Section Header */}
         <div className="flex justify-between items-center mb-8">
           <h2 className="text-2xl font-bold text-gray-900">Välja rätt LEGO®-leksak efter åldersgrupp</h2>
           <Link 
@@ -188,15 +178,19 @@ function BlogCarouselSection({articles}: {articles: Article[]}) {
           </Link>
         </div>
 
+        {/* Carousel Container */}
         <div className="relative">
+          {/* Articles Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {visibleArticles.map((article) => (
               <BlogArticleCard key={article.id} article={article} />
             ))}
           </div>
 
+          {/* Navigation Arrows */}
           {articles.length > articlesPerView && (
             <>
+              {/* Previous Arrow */}
               <button
                 onClick={handlePrevious}
                 disabled={currentIndex === 0}
@@ -222,6 +216,7 @@ function BlogCarouselSection({articles}: {articles: Article[]}) {
                 </svg>
               </button>
 
+              {/* Next Arrow */}
               <button
                 onClick={handleNext}
                 disabled={currentIndex >= maxIndex}
@@ -254,7 +249,10 @@ function BlogCarouselSection({articles}: {articles: Article[]}) {
   );
 }
 
-function BlogArticleCard({article}: {article: Article}) {
+/**
+ * ✅ FIXED: Blog Article Card Component - Square Images for 750x750
+ */
+function BlogArticleCard({article}: {article: any}) {
   const publishedDate = new Intl.DateTimeFormat('sv-SE', {
     year: 'numeric',
     month: 'long',
@@ -264,6 +262,7 @@ function BlogArticleCard({article}: {article: Article}) {
   return (
     <article className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow">
       <Link to={`/blogs/${article.blogHandle}/${article.handle}`}>
+        {/* ✅ FIXED: Square Image Container for 750x750 Blog Images */}
         <div className="relative w-full" style={{ aspectRatio: '1/1' }}>
           {article.image ? (
             <Image
@@ -280,6 +279,7 @@ function BlogArticleCard({article}: {article: Article}) {
           )}
         </div>
 
+        {/* Article Content */}
         <div className="p-4">
           <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
             {article.title}
@@ -303,7 +303,11 @@ function BlogArticleCard({article}: {article: Article}) {
   );
 }
 
+/**
+ * ✅ REVERTED: Price Card Component - Back to Original Rectangle Format
+ */
 function PriceCard({collection}: {collection: Collection}) {
+  // Extract metafield values with proper namespace checking
   const getMetafieldValue = (key: string) => {
     const metafield = collection.metafields?.find(field => 
       field?.key === key && (field.namespace === 'custom' || field.namespace === 'app')
@@ -314,6 +318,7 @@ function PriceCard({collection}: {collection: Collection}) {
   const displayTitle = collection.title;
   const lifestyleImageValue = getMetafieldValue('age_lifestyle_image');
 
+  // TypeScript interface for parsed JSON
   interface ShopifyImageData {
     url?: string;
     src?: string;
@@ -327,6 +332,7 @@ function PriceCard({collection}: {collection: Collection}) {
       const parsed = JSON.parse(lifestyleImageValue) as ShopifyImageData;
       lifestyleImageUrl = parsed.url || parsed.src || lifestyleImageValue;
     } catch {
+      // If not JSON, use as direct URL
       lifestyleImageUrl = lifestyleImageValue;
     }
   }
@@ -334,6 +340,7 @@ function PriceCard({collection}: {collection: Collection}) {
   return (
     <Link to={`/collections/${collection.handle}`} className="group">
       <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+        {/* ✅ REVERTED: Original Rectangle Format for Price Cards */}
         <div className="relative w-full bg-gray-100" style={{ aspectRatio: '420/200' }}>
           {lifestyleImageUrl ? (
             <img
@@ -351,6 +358,7 @@ function PriceCard({collection}: {collection: Collection}) {
           )}
         </div>
 
+        {/* Content */}
         <div className="p-6">
           <h3 className="text-xl font-bold text-gray-900 mb-3">{displayTitle}</h3>
           
@@ -369,6 +377,7 @@ function PriceCard({collection}: {collection: Collection}) {
   );
 }
 
+// GraphQL Query for Discount Page Collections
 const DISCOUNT_COLLECTIONS_QUERY = `#graphql
   query DiscountCollections($country: CountryCode, $language: LanguageCode)
     @inContext(country: $country, language: $language) {
@@ -395,6 +404,7 @@ const DISCOUNT_COLLECTIONS_QUERY = `#graphql
   }
 ` as const;
 
+// GraphQL Query for Blog Articles with discount_page metafield
 const DISCOUNT_BLOGS_QUERY = `#graphql
   query DiscountBlogs($country: CountryCode, $language: LanguageCode)
     @inContext(country: $country, language: $language) {

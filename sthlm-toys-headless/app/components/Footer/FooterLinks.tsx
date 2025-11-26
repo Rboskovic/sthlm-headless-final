@@ -1,11 +1,21 @@
-// FILE: app/components/Footer/FooterLinks.tsx
-// ✅ UPDATED: Added Garanti link to Support section
-
 import {Link} from 'react-router';
 import {Heart} from 'lucide-react';
 import type {FooterLinksProps} from './types';
 
-const FALLBACK_FOOTER_SECTIONS = [
+interface FooterLink {
+  id: string;
+  title: string;
+  url: string;
+  icon?: string;
+}
+
+interface FooterSection {
+  id: string;
+  title: string;
+  links: FooterLink[];
+}
+
+const FALLBACK_FOOTER_SECTIONS: FooterSection[] = [
   {
     id: 'support',
     title: 'Support',
@@ -16,7 +26,7 @@ const FALLBACK_FOOTER_SECTIONS = [
       {id: 'terms', title: 'Köpvillkor', url: '/pages/kopvillkor'},
       {id: 'shipping', title: 'Leveranspolicy', url: '/pages/leveranspolicy'},
       {id: 'returns', title: 'Retur och återbetalningspolicy', url: '/pages/returpolicy'},
-      {id: 'warranty', title: 'Garanti', url: '/pages/garanti'}, // ✅ NEW
+      {id: 'warranty', title: 'Garanti', url: '/pages/garanti'},
       {id: 'privacy', title: 'Integritetspolicy', url: '/pages/integritetspolicy'},
       {id: 'cookies', title: 'Cookies', url: '/pages/cookies'},
       {id: 'legal', title: 'Rättsligt meddelande', url: '/pages/rattsligt-meddelande'},
@@ -44,8 +54,8 @@ export function FooterLinks({
   publicStoreDomain,
   isMobile = false,
 }: FooterLinksProps) {
-  const sections = menu?.items
-    ? parseMenuIntoSections(menu.items)
+  const sections = menu?.items && menu.items.length > 0
+    ? parseMenuIntoSections(menu.items, primaryDomainUrl, publicStoreDomain)
     : FALLBACK_FOOTER_SECTIONS;
 
   const getUrl = (url: string | null | undefined): string => {
@@ -62,7 +72,6 @@ export function FooterLinks({
   };
 
   if (isMobile) {
-    // Mobile: Both columns side by side
     return (
       <div className="grid grid-cols-2 gap-6">
         {sections.map((section) => (
@@ -71,7 +80,7 @@ export function FooterLinks({
               {section.title}
             </h4>
             <ul className="space-y-2">
-              {section.links.map((link) => (
+              {section.links.map((link: FooterLink) => (
                 <li key={link.id}>
                   <Link
                     to={getUrl(link.url)}
@@ -98,14 +107,13 @@ export function FooterLinks({
     );
   }
 
-  // Desktop: 2 columns instead of 3
   return (
     <div className="grid grid-cols-2 gap-8">
       {sections.map((section) => (
         <div key={section.id}>
           <h4 className="text-white font-bold text-lg mb-4">{section.title}</h4>
           <ul className="space-y-2">
-            {section.links.map((link) => (
+            {section.links.map((link: FooterLink) => (
               <li key={link.id}>
                 <Link
                   to={getUrl(link.url)}
@@ -132,6 +140,23 @@ export function FooterLinks({
   );
 }
 
-function parseMenuIntoSections(menuItems: any[]) {
-  return FALLBACK_FOOTER_SECTIONS;
+function parseMenuIntoSections(
+  menuItems: any[],
+  primaryDomainUrl: string,
+  publicStoreDomain: string
+): FooterSection[] {
+  return menuItems.map((section) => {
+    const sectionLinks: FooterLink[] = section.items?.map((item: any) => ({
+      id: item.id,
+      title: item.title,
+      url: item.url,
+      icon: item.title.toLowerCase().includes('önskelista') ? 'heart' : undefined,
+    })) || [];
+
+    return {
+      id: section.id,
+      title: section.title,
+      links: sectionLinks,
+    };
+  });
 }

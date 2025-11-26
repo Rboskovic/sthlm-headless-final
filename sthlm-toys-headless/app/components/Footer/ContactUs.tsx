@@ -1,7 +1,17 @@
 // FILE: app/components/Footer/ContactUs.tsx
-// ✅ FIXED: Exact DOM structure match with FooterLinks for proper alignment
+// ✅ UPDATED: Added dynamic props while keeping exact DOM structure
 
-export function ContactUs() {
+interface ContactUsProps {
+  email?: string | null;
+  phone?: string | null;
+  workingHours?: string | null;
+}
+
+export function ContactUs({
+  email = 'info@klosslabbet.se',
+  phone = '+46760070987',
+  workingHours = 'Måndag–Fredag: 09:00–17:00',
+}: ContactUsProps) {
   return (
     <div>
       <h4 className="text-white font-bold text-lg mb-4">Kontakta</h4>
@@ -10,7 +20,7 @@ export function ContactUs() {
           <div className="flex items-center gap-2 text-sm" style={{color: 'white'}}>
             Mejla oss:{' '}
             <a 
-              href="mailto:info@klosslabbet.se" 
+              href={`mailto:${email}`}
               className="transition-colors"
               style={{color: 'white', textDecoration: 'underline'}}
               onMouseEnter={(e) => {
@@ -20,7 +30,7 @@ export function ContactUs() {
                 (e.target as HTMLElement).style.color = 'white';
               }}
             >
-              info@klosslabbet.se
+              {email}
             </a>
           </div>
         </li>
@@ -28,7 +38,7 @@ export function ContactUs() {
           <div className="flex items-center gap-2 text-sm" style={{color: 'white'}}>
             Ring oss:{' '}
             <a 
-              href="tel:+46760070987" 
+              href={`tel:${phone?.replace(/\s/g, '')}`}
               className="transition-colors"
               style={{color: 'white', textDecoration: 'underline'}}
               onMouseEnter={(e) => {
@@ -38,13 +48,13 @@ export function ContactUs() {
                 (e.target as HTMLElement).style.color = 'white';
               }}
             >
-              +46760070987
+              {phone}
             </a>
           </div>
         </li>
         <li>
           <div className="flex items-center gap-2 text-sm" style={{color: 'rgba(255, 255, 255, 0.8)'}}>
-            Måndag–Fredag: 09:00–17:00
+            {workingHours}
           </div>
         </li>
       </ul>

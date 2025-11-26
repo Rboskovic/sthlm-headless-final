@@ -1,9 +1,4 @@
-// app/root.tsx - CLEANED VERSION
-// ✅ FIXED: Removed Judge.me integration (causing 403 errors + blocking)
-// ✅ FIXED: No conditional hook calls (was violating Rules of Hooks)
-// ✅ PERFORMANCE OPTIMIZED: Early preconnect in <head>
-// ✅ GMC COMPLIANCE: Organization schema with image field
-
+// app/root.tsx - UPDATED with correct footer handle and footer settings metaobject
 import { Analytics, getShopAnalytics, useNonce } from "@shopify/hydrogen";
 import { type LoaderFunctionArgs } from "@shopify/remix-oxygen";
 import {
@@ -83,10 +78,11 @@ export async function loader({ context }: LoaderFunctionArgs) {
   ]);
 
   // --- Deferred data (footer, cart) ---
+  // ✅ FIXED: Changed from "footer" to "footer-1" to match your Shopify menu handle
   const footer = storefront
     .query(FOOTER_QUERY, {
       cache: storefront.CacheLong(),
-      variables: { footerMenuHandle: "footer" },
+      variables: { footerMenuHandle: "footer-1" },
     })
     .catch((error) => {
       console.error(error);
@@ -208,7 +204,6 @@ export function Layout({ children }: { children?: React.ReactNode }) {
   );
 }
 
-// ✅ FIXED: No conditional hooks - proper React patterns
 export default function App() {
   return <Outlet />;
 }
