@@ -1,15 +1,42 @@
 import {SiYoutube, SiInstagram, SiFacebook, SiTiktok} from 'react-icons/si';
 
 interface SocialMediaProps {
+  facebookUrl?: string | null;
+  instagramUrl?: string | null;
+  youtubeUrl?: string | null;
+  tiktokUrl?: string | null;
   isMobile?: boolean;
 }
 
-export function SocialMedia({isMobile = false}: SocialMediaProps) {
+export function SocialMedia({
+  facebookUrl,
+  instagramUrl,
+  youtubeUrl,
+  tiktokUrl,
+  isMobile = false,
+}: SocialMediaProps) {
+  // Use metaobject URLs or fallback to hardcoded defaults
   const socialLinks = [
-    {name: 'YouTube', icon: SiYoutube, url: 'https://www.youtube.com/@klosslabbet'},
-    {name: 'Instagram', icon: SiInstagram, url: 'https://www.instagram.com/klosslabbet.se/'},
-    {name: 'Facebook', icon: SiFacebook, url: 'https://www.facebook.com/profile.php?id=61573161414339'},
-    {name: 'TikTok', icon: SiTiktok, url: 'http://www.tiktok.com/@klosslabbet'},
+    {
+      name: 'YouTube',
+      icon: SiYoutube,
+      url: youtubeUrl || 'https://www.youtube.com/@klosslabbet',
+    },
+    {
+      name: 'Instagram',
+      icon: SiInstagram,
+      url: instagramUrl || 'https://www.instagram.com/klosslabbet.se/',
+    },
+    {
+      name: 'Facebook',
+      icon: SiFacebook,
+      url: facebookUrl || 'https://www.facebook.com/profile.php?id=61573161414339',
+    },
+    {
+      name: 'TikTok',
+      icon: SiTiktok,
+      url: tiktokUrl || 'http://www.tiktok.com/@klosslabbet',
+    },
   ];
 
   // Responsive border radius: square on very small screens, rounded on mobile, circular on desktop

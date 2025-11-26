@@ -43,7 +43,7 @@ export function HeaderBanner({banners = []}: HeaderBannerProps) {
 
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % bannerTexts.length);
-    }, 5000);
+    }, 8000);
 
     return () => clearInterval(interval);
   }, [bannerTexts.length]);

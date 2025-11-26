@@ -12,6 +12,7 @@ export async function action({request, context}: ActionFunctionArgs) {
     const body = await request.json() as {email?: string};
     const {email} = body;
 
+    // Validate email exists
     if (!email || typeof email !== 'string') {
       return new Response(JSON.stringify({error: 'E-postadress krävs'}), {
         status: 400,
@@ -19,6 +20,7 @@ export async function action({request, context}: ActionFunctionArgs) {
       });
     }
 
+    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return new Response(JSON.stringify({error: 'Ogiltig e-postadress'}), {
@@ -29,12 +31,17 @@ export async function action({request, context}: ActionFunctionArgs) {
 
     const {storefront} = context;
 
+    // Create customer with email marketing consent
     const mutation = `
       mutation customerCreate($input: CustomerCreateInput!) {
         customerCreate(input: $input) {
           customer {
             id
             email
+            emailMarketingConsent {
+              marketingState
+              marketingOptInLevel
+            }
           }
           customerUserErrors {
             field
@@ -47,23 +54,29 @@ export async function action({request, context}: ActionFunctionArgs) {
 
     const variables = {
       input: {
-        email: email,
+        email: email.toLowerCase().trim(),
+        acceptsMarketing: true,
         emailMarketingConsent: {
           marketingState: 'SUBSCRIBED',
           marketingOptInLevel: 'SINGLE_OPT_IN',
         },
-        acceptsMarketing: true,
       },
     };
 
     const response: any = await storefront.mutate(mutation, {variables});
 
+    // Check for errors
     if (response.customerCreate?.customerUserErrors?.length > 0) {
-      const error = response.customerCreate.customerUserErrors[0];
+      const errors = response.customerCreate.customerUserErrors;
+      const firstError = errors[0];
       
-      if (error.code === 'TAKEN') {
+      // If email is already taken, treat as success
+      if (firstError.code === 'TAKEN') {
         return new Response(
-          JSON.stringify({success: true, message: 'E-post redan registrerad'}),
+          JSON.stringify({
+            success: true, 
+            message: 'Tack! Du är redan registrerad för vårt nyhetsbrev.'
+          }),
           {
             status: 200,
             headers: {'Content-Type': 'application/json'},
@@ -71,8 +84,12 @@ export async function action({request, context}: ActionFunctionArgs) {
         );
       }
 
+      // Handle other errors
+      console.error('Customer creation errors:', errors);
       return new Response(
-        JSON.stringify({error: error.message || 'Något gick fel'}),
+        JSON.stringify({
+          error: firstError.message || 'Något gick fel. Försök igen.'
+        }),
         {
           status: 400,
           headers: {'Content-Type': 'application/json'},
@@ -80,17 +97,40 @@ export async function action({request, context}: ActionFunctionArgs) {
       );
     }
 
+    // Success - customer created with marketing consent
+    if (response.customerCreate?.customer) {
+      console.log('Newsletter signup successful:', {
+        email: response.customerCreate.customer.email,
+        customerId: response.customerCreate.customer.id,
+        marketingState: response.customerCreate.customer.emailMarketingConsent?.marketingState,
+      });
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: 'Tack för att du registrerade dig! Välkommen till Klosslabbet-familjen.'
+        }),
+        {
+          status: 200,
+          headers: {'Content-Type': 'application/json'},
+        }
+      );
+    }
+
+    // Unexpected response structure
+    console.error('Unexpected mutation response:', response);
     return new Response(
-      JSON.stringify({success: true, message: 'Prenumeration skapad'}),
+      JSON.stringify({error: 'Något gick fel. Försök igen.'}),
       {
-        status: 200,
+        status: 500,
         headers: {'Content-Type': 'application/json'},
       }
     );
+
   } catch (error) {
     console.error('Newsletter signup error:', error);
     return new Response(
-      JSON.stringify({error: 'Ett oväntat fel inträffade'}),
+      JSON.stringify({error: 'Ett oväntat fel inträffade. Försök igen senare.'}),
       {
         status: 500,
         headers: {'Content-Type': 'application/json'},
