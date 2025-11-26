@@ -1,4 +1,4 @@
-// app/root.tsx - UPDATED with correct footer handle and footer settings metaobject
+// app/root.tsx - UPDATED to use popular_collections metaobject
 import { Analytics, getShopAnalytics, useNonce } from "@shopify/hydrogen";
 import { type LoaderFunctionArgs } from "@shopify/remix-oxygen";
 import {
@@ -17,7 +17,7 @@ import favicon from "~/assets/favicon.svg";
 import {
   FOOTER_QUERY,
   HEADER_QUERY,
-  MOBILE_MENU_COLLECTIONS_QUERY,
+  POPULAR_COLLECTIONS_QUERY,
   HEADER_BANNER_QUERY,
 } from "~/lib/fragments";
 import resetStyles from "~/styles/reset.css?url";
@@ -60,16 +60,28 @@ export function links() {
   ];
 }
 
+// ✅ NEW: Helper to extract collections from metaobject
+function extractPopularCollections(metaobjects: any): any[] {
+  if (!metaobjects?.nodes?.[0]?.fields) return [];
+  
+  const fields = metaobjects.nodes[0].fields;
+  const collectionsField = fields.find((f: any) => f.key === 'kolekcija');
+  
+  if (!collectionsField?.references?.nodes) return [];
+  
+  return collectionsField.references.nodes;
+}
+
 export async function loader({ context }: LoaderFunctionArgs) {
   const { storefront, env, cart } = context;
 
   // --- Critical data ---
-  const [header, mobileMenuCollections, headerBanners] = await Promise.all([
+  const [header, popularCollectionsData, headerBanners] = await Promise.all([
     storefront.query(HEADER_QUERY, {
       cache: storefront.CacheLong(),
       variables: { headerMenuHandle: "mega-menu" },
     }),
-    storefront.query(MOBILE_MENU_COLLECTIONS_QUERY, {
+    storefront.query(POPULAR_COLLECTIONS_QUERY, {
       cache: storefront.CacheLong(),
     }),
     storefront.query(HEADER_BANNER_QUERY, {
@@ -77,8 +89,12 @@ export async function loader({ context }: LoaderFunctionArgs) {
     }),
   ]);
 
+  // ✅ UPDATED: Extract collections from metaobject
+  const popularCollections = extractPopularCollections(
+    popularCollectionsData?.popularCollections
+  );
+
   // --- Deferred data (footer, cart) ---
-  // ✅ FIXED: Changed from "footer" to "footer-1" to match your Shopify menu handle
   const footer = storefront
     .query(FOOTER_QUERY, {
       cache: storefront.CacheLong(),
@@ -92,7 +108,7 @@ export async function loader({ context }: LoaderFunctionArgs) {
   return {
     header,
     headerBanners: headerBanners?.metaobjects?.nodes || [],
-    popularCollections: (mobileMenuCollections?.collections?.nodes || []) as any,
+    popularCollections: popularCollections as any,
     footer,
     cart: cart.get(),
     shop: getShopAnalytics({

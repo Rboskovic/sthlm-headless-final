@@ -1,5 +1,5 @@
 // FILE: app/components/CartMain.tsx
-// ✅ MINIMAL FIX: Made popular collections responsive based on layout
+// ✅ UPDATED: Now uses collections directly from popular_collections metaobject (no filtering)
 
 import {Link} from 'react-router';
 import {useOptimisticCart} from '@shopify/hydrogen';
@@ -109,7 +109,6 @@ function CartEmpty({layout, popularCollections}: {layout: CartLayout; popularCol
           <h4 className="text-sm font-medium text-gray-900 text-center">Populära</h4>
         </div>
         
-        {/* ✅ FIXED: Pass layout prop for responsive sizing */}
         <PopularCategoriesGrid 
           collections={popularCollections} 
           onClose={layout === 'aside' ? close : undefined}
@@ -120,7 +119,7 @@ function CartEmpty({layout, popularCollections}: {layout: CartLayout; popularCol
   );
 }
 
-// ✅ FIXED: Made responsive based on layout prop
+// ✅ UPDATED: No more filtering - uses collections directly from metaobject
 function PopularCategoriesGrid({
   collections,
   onClose,
@@ -139,17 +138,6 @@ function PopularCategoriesGrid({
     return metafield && metafield.value ? metafield.value : null;
   };
 
-  const isTrueValue = (value: string | null): boolean => {
-    if (!value) return false;
-    const normalizedValue = value.toLowerCase().trim();
-    return (
-      normalizedValue === 'true' ||
-      normalizedValue === 'True' ||
-      normalizedValue === '1' ||
-      normalizedValue === 'yes'
-    );
-  };
-
   // ✅ RESPONSIVE: Different image sizes for different layouts
   const getOptimizedImageUrl = (url: string | undefined): string | undefined => {
     if (!url) return undefined;
@@ -161,17 +149,10 @@ function PopularCategoriesGrid({
       : `${url}?width=${width}`;
   };
 
-  const featuredCollections =
-    collections
-      ?.filter((collection) => {
-        const featuredValue = getMetafieldValue(
-          collection.metafields,
-          'mobile_menu_featured',
-        );
-        return isTrueValue(featuredValue);
-      })
-      ?.slice(0, 9) || [];
+  // ✅ UPDATED: No filtering! Use collections directly, limit to 9
+  const displayCollections = collections?.slice(0, 9) || [];
 
+  // Fallback items (only show if NO collections provided)
   const fallbackItems = [
     {id: 'deals', title: 'Erbjudanden', image: null, handle: 'deals'},
     {id: 'new', title: 'Nytt & Populärt', image: null, handle: 'new'},
@@ -184,8 +165,7 @@ function PopularCategoriesGrid({
     {id: 'outdoor', title: 'Utomhus', image: null, handle: 'outdoor'},
   ];
 
-  const displayItems =
-    featuredCollections.length > 0 ? featuredCollections : fallbackItems;
+  const displayItems = displayCollections.length > 0 ? displayCollections : fallbackItems;
 
   // ✅ RESPONSIVE: Different grid layouts
   // Aside: 3 columns always (narrow sidebar)

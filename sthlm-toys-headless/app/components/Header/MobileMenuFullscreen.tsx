@@ -1,5 +1,5 @@
 // FILE: app/components/Header/MobileMenuFullscreen.tsx
-// ✅ PERFORMANCE FIX: Optimized collection images (saves ~200 KiB)
+// ✅ UPDATED: Now uses collections directly from popular_collections metaobject (no filtering)
 
 import {useState} from 'react';
 import {Link} from 'react-router';
@@ -440,6 +440,7 @@ function DynamicMainNavigation({
   );
 }
 
+// ✅ UPDATED: No more filtering - uses collections directly from metaobject
 function PopularGrid({
   collections,
   onClose,
@@ -456,17 +457,6 @@ function PopularGrid({
     return metafield && metafield.value ? metafield.value : null;
   };
 
-  const isTrueValue = (value: string | null): boolean => {
-    if (!value) return false;
-    const normalizedValue = value.toLowerCase().trim();
-    return (
-      normalizedValue === 'true' ||
-      normalizedValue === 'True' ||
-      normalizedValue === '1' ||
-      normalizedValue === 'yes'
-    );
-  };
-
   // ✅ PERFORMANCE FIX: Optimize image URL with Shopify CDN
   const getOptimizedImageUrl = (url: string | undefined): string | undefined => {
     if (!url) return undefined;
@@ -476,18 +466,10 @@ function PopularGrid({
       : `${url}?width=280`;
   };
 
-  const featuredCollections =
-    collections
-      ?.filter((collection) => {
-        const featuredValue = getMetafieldValue(
-          collection.metafields,
-          'mobile_menu_featured',
-        );
-        return isTrueValue(featuredValue);
-      }) || [];
-  
-  const finalFeaturedCollections = featuredCollections.slice(0, 9);
+  // ✅ UPDATED: No filtering! Use collections directly, limit to 9
+  const displayCollections = collections.slice(0, 9);
 
+  // Fallback items (only show if NO collections provided)
   const fallbackItems = [
     {id: 'deals', title: 'Erbjudanden', image: null, handle: 'deals'},
     {id: 'new', title: 'Nytt & Populärt', image: null, handle: 'new'},
@@ -500,8 +482,7 @@ function PopularGrid({
     {id: 'outdoor', title: 'Utomhus', image: null, handle: 'outdoor'},
   ];
 
-  const displayItems =
-    finalFeaturedCollections.length > 0 ? finalFeaturedCollections : fallbackItems;
+  const displayItems = displayCollections.length > 0 ? displayCollections : fallbackItems;
 
   return (
     <div className="grid grid-cols-3 gap-1 px-1">

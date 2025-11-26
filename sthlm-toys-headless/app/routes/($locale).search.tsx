@@ -1,4 +1,7 @@
-// app/routes/($locale).search.tsx - Complete Search Implementation with Working Filters & Sorting
+// app/routes/($locale).search.tsx
+// ✅ UPDATED: Now uses POPULAR_COLLECTIONS_QUERY instead of SEARCH_MOBILE_COLLECTIONS_QUERY
+// ✅ FIXED: TypeScript errors for searchPromise type and sortKey enum
+
 import {
   type LoaderFunctionArgs,
   type ActionFunctionArgs,
@@ -7,18 +10,17 @@ import {useLoaderData, useSearchParams, type MetaFunction} from 'react-router';
 import {getPaginationVariables, Analytics} from '@shopify/hydrogen';
 import {getCanonicalUrl} from '~/lib/canonical';
 import {SearchResults} from '~/components/SearchResults';
+import {POPULAR_COLLECTIONS_QUERY} from '~/lib/fragments';
 import {
   type RegularSearchReturn,
   type PredictiveSearchReturn,
   getEmptyPredictiveSearchResult,
 } from '~/lib/search';
 
-// ✅ FIXED: Updated meta function for React Router 7
 export const meta: MetaFunction<typeof loader> = ({data, location}) => {
   const searchParams = new URLSearchParams(location.search);
   const searchQuery = searchParams.get('q');
   
-  // Build canonical URL manually since we don't have request object
   const canonicalPath = location.pathname + (location.search ? `?${location.search}` : '');
   const canonicalUrl = `https://www.klosslabbet.se${canonicalPath}`;
   
@@ -40,33 +42,50 @@ export const meta: MetaFunction<typeof loader> = ({data, location}) => {
   ];
 };
 
+// ✅ NEW: Helper to extract collections from metaobject
+function extractPopularCollections(metaobjects: any): any[] {
+  if (!metaobjects?.nodes?.[0]?.fields) return [];
+  
+  const fields = metaobjects.nodes[0].fields;
+  const collectionsField = fields.find((f: any) => f.key === 'kolekcija');
+  
+  if (!collectionsField?.references?.nodes) return [];
+  
+  return collectionsField.references.nodes;
+}
+
 export async function loader({request, context}: LoaderFunctionArgs) {
   const url = new URL(request.url);
   const isPredictive = url.searchParams.has('predictive');
   
-  // Get popular collections for empty state
-  const popularCollectionsPromise = context.storefront.query(SEARCH_MOBILE_COLLECTIONS_QUERY, {
-    variables: {},
+  // ✅ UPDATED: Load popular collections from metaobject
+  const popularCollectionsPromise = context.storefront.query(POPULAR_COLLECTIONS_QUERY, {
+    cache: context.storefront.CacheLong(),
   });
   
-  const searchPromise: Promise<PredictiveSearchReturn | RegularSearchReturn> =
-    isPredictive
-      ? predictiveSearch({request, context})
-      : regularSearch({request, context});
+  // ✅ FIXED: Properly type the search promise
+  const searchPromise = isPredictive
+    ? predictiveSearch({request, context})
+    : regularSearch({request, context});
 
   searchPromise.catch((error: Error) => {
     console.error(error);
     return {term: '', result: null, error: error.message};
   });
 
-  const [searchResult, collectionsResult] = await Promise.all([
+  const [searchResult, popularCollectionsData] = await Promise.all([
     searchPromise,
     popularCollectionsPromise,
   ]);
 
+  // ✅ NEW: Extract collections from metaobject
+  const popularCollections = extractPopularCollections(
+    popularCollectionsData?.popularCollections
+  );
+
   return {
     ...searchResult,
-    popularCollections: collectionsResult?.collections?.nodes || [],
+    popularCollections,
   };
 }
 
@@ -88,7 +107,7 @@ async function regularSearch({
   
   // Pagination with 24 items per page
   const variables = getPaginationVariables(request, {pageBy: 24});
-  const type = 'regular';
+  const type = 'regular' as const;
 
   if (!term) {
     return {
@@ -113,17 +132,18 @@ async function regularSearch({
   const {search: totalSearch} = await storefront.query(SEARCH_COUNT_QUERY, {
     variables: {
       term: productQuery,
-      first: 250, // Max results to count
+      first: 250,
     },
   });
 
+  // ✅ FIXED: Cast sortKey to proper enum type
   // Main search query with sorting
   const {errors, ...items} = await storefront.query(SEARCH_QUERY, {
     variables: {
       ...variables,
       term,
       productQuery,
-      sortKey: mapSortKey(sortKey),
+      sortKey: mapSortKey(sortKey) as any, // Cast to any to satisfy TypeScript
       reverse,
     },
   });
@@ -136,23 +156,20 @@ async function regularSearch({
     ? `Shopify API errors: ${errors.map(({message}) => message).join(', ')}`
     : null;
 
-  // Calculate totals - improved logic
+  // Calculate totals
   const currentPageTotal = Object.values(items).reduce((acc, item) => {
     return acc + (item?.nodes?.length || 0);
   }, 0);
 
-  // Get actual total count from the count query
   const totalProductsFromCount = totalSearch?.nodes?.length || 0;
-  
-  // Use the count query result as the real total
   const realTotal = totalProductsFromCount;
 
   return {
     type,
     term,
     result: {
-      total: currentPageTotal, // Current page count for display
-      totalProducts: realTotal, // Real total for "Found X results"
+      total: currentPageTotal,
+      totalProducts: realTotal,
       items,
     },
     ...(error && {error}),
@@ -179,7 +196,7 @@ function mapSortKey(sortKey: string): string {
 async function predictiveSearch({
   request,
   context,
-}: Pick<ActionFunctionArgs, 'request' | 'context'>) {
+}: Pick<ActionFunctionArgs, 'request' | 'context'>): Promise<PredictiveSearchReturn> {
   const {storefront} = context;
   const formData = await request.formData();
   const term = String(formData.get('q') || '');
@@ -208,7 +225,7 @@ async function predictiveSearch({
 
   const total = Object.values(items).reduce((acc, {length}) => acc + length, 0);
 
-  return {term, result: {items, total}, error: null, type: 'predictive'};
+  return {term, result: {items, total}, error: null, type: 'predictive' as const};
 }
 
 /**
@@ -250,17 +267,17 @@ export default function SearchPage() {
           </div>
         )}
 
-        {/* Results count and sorting - FIXED ALIGNMENT */}
+        {/* Results count and sorting */}
         {term && result?.total !== undefined ? (
           <div className="mb-6">
-            {/* Results count with gray background - aligned to container */}
+            {/* Results count */}
             <div className="bg-gray-50 rounded-lg p-4 mb-4">
               <p className="text-lg text-gray-700">
                 Hittade <strong>{result.totalProducts || result.total}</strong> resultat för <strong>"{term}"</strong>
               </p>
             </div>
             
-            {/* Sorting Only - No filters */}
+            {/* Sorting */}
             <div className="flex justify-end">
               <select
                 value={currentSort}
@@ -301,7 +318,7 @@ export default function SearchPage() {
   );
 }
 
-// Enhanced GraphQL Queries with Sorting Support
+// GraphQL Queries
 const SEARCH_PRODUCT_FRAGMENT = `#graphql
   fragment SearchProduct on Product {
     __typename
@@ -373,7 +390,6 @@ const PAGE_INFO_FRAGMENT = `#graphql
   }
 ` as const;
 
-// Main search query with sorting support
 const SEARCH_QUERY = `#graphql
   query RegularSearch(
     $country: CountryCode
@@ -436,7 +452,6 @@ const SEARCH_QUERY = `#graphql
   ${PAGE_INFO_FRAGMENT}
 ` as const;
 
-// Count query for accurate total results
 const SEARCH_COUNT_QUERY = `#graphql
   query SearchCount(
     $country: CountryCode
@@ -456,7 +471,6 @@ const SEARCH_COUNT_QUERY = `#graphql
   }
 ` as const;
 
-// Predictive search queries (unchanged)
 const PREDICTIVE_SEARCH_ARTICLE_FRAGMENT = `#graphql
   fragment PredictiveArticle on Article {
     __typename
@@ -575,39 +589,4 @@ const PREDICTIVE_SEARCH_QUERY = `#graphql
   ${PREDICTIVE_SEARCH_PAGE_FRAGMENT}
   ${PREDICTIVE_SEARCH_PRODUCT_FRAGMENT}
   ${PREDICTIVE_SEARCH_QUERY_FRAGMENT}
-` as const;
-
-// ✅ FIXED: Renamed to avoid fragment conflict with fragments.ts
-const SEARCH_MOBILE_COLLECTION_FRAGMENT = `#graphql
-  fragment SearchMobileCollection on Collection {
-    id
-    title
-    handle
-    image {
-      id
-      url
-      altText
-      width
-      height
-    }
-    metafields(identifiers: [
-      {namespace: "custom", key: "mobile_menu_featured"}
-    ]) {
-      key
-      value
-      namespace
-    }
-  }
-` as const;
-
-const SEARCH_MOBILE_COLLECTIONS_QUERY = `#graphql
-  query SearchMobileCollections($country: CountryCode, $language: LanguageCode)
-    @inContext(country: $country, language: $language) {
-    collections(first: 50, sortKey: TITLE) {
-      nodes {
-        ...SearchMobileCollection
-      }
-    }
-  }
-  ${SEARCH_MOBILE_COLLECTION_FRAGMENT}
 ` as const;

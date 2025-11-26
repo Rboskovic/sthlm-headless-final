@@ -1,5 +1,5 @@
 // FILE: app/lib/fragments.ts
-// ✅ FIXED: Added discountAllocations to CART_FRAGMENT for savings display
+// ✅ ADDED: POPULAR_COLLECTIONS_QUERY for metaobject-based popular collections
 
 // Fragment for money fields
 const MONEY_FRAGMENT = `#graphql
@@ -262,6 +262,7 @@ export const HEADER_BANNER_QUERY = `#graphql
   }
 ` as const;
 
+// ✅ KEPT: Original query for backward compatibility (can be removed after full migration)
 export const MOBILE_MENU_COLLECTIONS_QUERY = `#graphql
   query MobileMenuCollections($country: CountryCode, $language: LanguageCode)
     @inContext(country: $country, language: $language) {
@@ -272,6 +273,53 @@ export const MOBILE_MENU_COLLECTIONS_QUERY = `#graphql
     }
   }
   ${MOBILE_MENU_COLLECTION_FRAGMENT}
+` as const;
+
+// ✅ NEW: Popular Collections Metaobject Query
+// Replaces filtering collections by mobile_menu_featured metafield
+const POPULAR_COLLECTION_FRAGMENT = `#graphql
+  fragment PopularCollection on Collection {
+    id
+    title
+    handle
+    image {
+      id
+      url
+      altText
+      width
+      height
+    }
+    metafields(identifiers: [
+      {namespace: "custom", key: "mobile_menu_image"}
+    ]) {
+      key
+      value
+      namespace
+    }
+  }
+` as const;
+
+export const POPULAR_COLLECTIONS_QUERY = `#graphql
+  query PopularCollections($country: CountryCode, $language: LanguageCode)
+    @inContext(country: $country, language: $language) {
+    popularCollections: metaobjects(type: "popular_collections", first: 1) {
+      nodes {
+        id
+        fields {
+          key
+          value
+          references(first: 10) {
+            nodes {
+              ... on Collection {
+                ...PopularCollection
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  ${POPULAR_COLLECTION_FRAGMENT}
 ` as const;
 
 const THEMES_COLLECTION_FRAGMENT = `#graphql
@@ -318,4 +366,5 @@ export {
   SHOP_FRAGMENT,
   MOBILE_MENU_COLLECTION_FRAGMENT,
   THEMES_COLLECTION_FRAGMENT,
+  POPULAR_COLLECTION_FRAGMENT,
 };

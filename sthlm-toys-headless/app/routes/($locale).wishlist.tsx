@@ -1,7 +1,5 @@
 // FILE: app/routes/($locale).wishlist.tsx
-// ✅ FIXED: Load collections data for WishlistEmpty like cart and mobile menu do
-// ✅ FIXED: Removed duplicate query, now imports from fragments.ts
-// ✅ FIXED: TypeScript type issues
+// ✅ UPDATED: Now uses POPULAR_COLLECTIONS_QUERY instead of MOBILE_MENU_COLLECTIONS_QUERY
 
 import { type MetaFunction, type LoaderFunctionArgs } from '@shopify/remix-oxygen';
 import { useLoaderData } from 'react-router';
@@ -9,7 +7,7 @@ import { useSessionWishlist } from '~/hooks/useSessionWishlist';
 import { ProductItem } from '~/components/ProductItem';
 import { WishlistHeader } from '~/components/WishlistHeader';
 import { WishlistEmpty } from '~/components/WishlistEmpty';
-import { MOBILE_MENU_COLLECTIONS_QUERY } from '~/lib/fragments';
+import { POPULAR_COLLECTIONS_QUERY } from '~/lib/fragments';
 import { getCanonicalUrlForPath } from '~/lib/canonical';
 
 export const meta: MetaFunction = () => [
@@ -22,19 +20,33 @@ export const meta: MetaFunction = () => [
   },
 ];
 
+// ✅ NEW: Helper to extract collections from metaobject
+function extractPopularCollections(metaobjects: any): any[] {
+  if (!metaobjects?.nodes?.[0]?.fields) return [];
+  
+  const fields = metaobjects.nodes[0].fields;
+  const collectionsField = fields.find((f: any) => f.key === 'kolekcija');
+  
+  if (!collectionsField?.references?.nodes) return [];
+  
+  return collectionsField.references.nodes;
+}
+
 export async function loader({ context }: LoaderFunctionArgs) {
   const { storefront } = context;
 
-  // ✅ ADDED: Load collections data like cart and mobile menu do
-  const { collections } = await storefront.query(MOBILE_MENU_COLLECTIONS_QUERY, {
-    variables: {
-      country: context.storefront.i18n.country,
-      language: context.storefront.i18n.language,
-    },
+  // ✅ UPDATED: Load collections from popular_collections metaobject
+  const popularCollectionsData = await storefront.query(POPULAR_COLLECTIONS_QUERY, {
+    cache: storefront.CacheLong(),
   });
 
+  // ✅ NEW: Extract collections from metaobject
+  const popularCollections = extractPopularCollections(
+    popularCollectionsData?.popularCollections
+  );
+
   return {
-    popularCollections: collections.nodes,
+    popularCollections,
   };
 }
 
@@ -66,7 +78,6 @@ export default function WishlistPage() {
   }
 
   if (wishlistCount === 0) {
-    // ✅ FIXED: Type assertion for collections data
     return <WishlistEmpty popularCollections={popularCollections as any} />;
   }
 
@@ -80,18 +91,18 @@ export default function WishlistPage() {
         createShareableLink={createShareableLink}
       />
 
-      {/* ✅ Use ProductItem instead of custom grid */}
+      {/* Product Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {wishlistItems.map((item, index) => {
-          // ✅ FIXED: Transform WishlistItem to match ProductItem expectations
+          // Transform WishlistItem to match ProductItem expectations
           const transformedProduct = {
             ...item,
             featuredImage: item.featuredImage ? {
               url: item.featuredImage.url,
-              altText: item.featuredImage.altText || undefined, // Convert null to undefined
-              id: '', // WishlistItem doesn't have id, provide default
-              width: 300, // WishlistItem doesn't have width, provide default
-              height: 300, // WishlistItem doesn't have height, provide default
+              altText: item.featuredImage.altText || undefined,
+              id: '',
+              width: 300,
+              height: 300,
             } : null,
           };
 

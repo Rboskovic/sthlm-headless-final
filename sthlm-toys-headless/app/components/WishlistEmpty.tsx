@@ -1,5 +1,5 @@
 // app/components/WishlistEmpty.tsx
-// ✅ UPDATED: Swedish translation + Better UX + Cart-style popular section
+// ✅ UPDATED: Now uses collections directly from popular_collections metaobject (no filtering)
 
 import { Link } from 'react-router';
 import { Heart, ShoppingBag } from 'lucide-react';
@@ -30,12 +30,11 @@ export function WishlistEmpty({ popularCollections = [] }: WishlistEmptyProps) {
           Spara produkter du älskar för senare och missa aldrig vad du vill ha!
         </p>
         
-        {/* ✅ UPDATED: Single CTA with padding and themes link */}
         <div className="pt-4">
           <Link 
             to="/themes"
             className="inline-flex items-center justify-center px-8 py-3 bg-blue-600 hover:bg-blue-700 font-medium rounded-lg transition-colors"
-            style={{ color: 'white' }} // Force white text
+            style={{ color: 'white' }}
           >
             <ShoppingBag size={20} className="mr-2" style={{ color: 'white' }} />
             <span style={{ color: 'white' }}>Börja Handla</span>
@@ -43,7 +42,7 @@ export function WishlistEmpty({ popularCollections = [] }: WishlistEmptyProps) {
         </div>
       </div>
       
-      {/* ✅ UPDATED: Popular Section using inline grid styles since CSS classes may not be available */}
+      {/* Popular Section */}
       <div className="bg-gray-50 rounded-lg p-6">
         <div className="mb-4">
           <h4 className="text-base font-medium text-gray-900 text-center">Populära just nu</h4>
@@ -55,15 +54,12 @@ export function WishlistEmpty({ popularCollections = [] }: WishlistEmptyProps) {
   );
 }
 
-/**
- * Popular Categories Grid Component (Same as Cart - Using CSS classes)
- */
+// ✅ UPDATED: No more filtering - uses collections directly from metaobject
 function PopularCategoriesGrid({
   collections = [],
 }: {
   collections?: Collection[];
 }) {
-  // Helper functions from mobile menu
   const getMetafieldValue = (
     metafields: Array<{key: string; value: string; namespace: string} | null> | null | undefined,
     key: string
@@ -73,30 +69,10 @@ function PopularCategoriesGrid({
     return metafield && metafield.value ? metafield.value : null;
   };
 
-  const isTrueValue = (value: string | null): boolean => {
-    if (!value) return false;
-    const normalizedValue = value.toLowerCase().trim();
-    return (
-      normalizedValue === 'true' ||
-      normalizedValue === 'True' ||
-      normalizedValue === '1' ||
-      normalizedValue === 'yes'
-    );
-  };
+  // ✅ UPDATED: No filtering! Use collections directly, limit to 9
+  const displayCollections = collections.slice(0, 9);
 
-  // Get featured collections from metafields
-  const featuredCollections =
-    collections
-      ?.filter((collection) => {
-        const featuredValue = getMetafieldValue(
-          collection.metafields,
-          'mobile_menu_featured',
-        );
-        return isTrueValue(featuredValue);
-      })
-      ?.slice(0, 9) || [];
-
-  // Fallback items (should only show if no real collections found)
+  // Fallback items (only show if NO collections provided)
   const fallbackItems = [
     {id: 'deals', title: 'Erbjudanden', image: null, handle: 'deals'},
     {id: 'new', title: 'Nytt & Populärt', image: null, handle: 'new'},
@@ -109,8 +85,7 @@ function PopularCategoriesGrid({
     {id: 'outdoor', title: 'Utomhus', image: null, handle: 'outdoor'},
   ];
 
-  const displayItems =
-    featuredCollections.length > 0 ? featuredCollections : fallbackItems;
+  const displayItems = displayCollections.length > 0 ? displayCollections : fallbackItems;
 
   return (
     <div className="mobile-menu-popular-grid">

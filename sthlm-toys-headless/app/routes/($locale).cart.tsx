@@ -1,5 +1,5 @@
 // FILE: app/routes/($locale).cart.tsx
-// ✅ MINIMAL FIX: Only added collections loading, everything else preserved
+// ✅ UPDATED: Now uses popular_collections metaobject instead of filtering by metafield
 
 import {type MetaFunction, useLoaderData} from 'react-router';
 import type {CartQueryDataReturn} from '@shopify/hydrogen';
@@ -13,7 +13,7 @@ import {
 import {CartMain} from '~/components/CartMain';
 import {ShopLinkButton} from '~/components/ui/ShopButton';
 import {ArrowLeft} from 'lucide-react';
-import {MOBILE_MENU_COLLECTIONS_QUERY} from '~/lib/fragments';
+import {POPULAR_COLLECTIONS_QUERY} from '~/lib/fragments';
 import type {Collection} from '@shopify/hydrogen/storefront-api-types';
 
 export const meta: MetaFunction = () => {
@@ -107,21 +107,38 @@ export async function action({request, context}: ActionFunctionArgs) {
   );
 }
 
-// ✅ ONLY CHANGE: Added collections loading
+// ✅ NEW: Helper to extract collections from metaobject
+function extractPopularCollections(metaobjects: any): any[] {
+  if (!metaobjects?.nodes?.[0]?.fields) return [];
+  
+  const fields = metaobjects.nodes[0].fields;
+  const collectionsField = fields.find((f: any) => f.key === 'kolekcija');
+  
+  if (!collectionsField?.references?.nodes) return [];
+  
+  return collectionsField.references.nodes;
+}
+
+// ✅ UPDATED: Now uses POPULAR_COLLECTIONS_QUERY
 export async function loader({context}: LoaderFunctionArgs) {
   const {cart, storefront} = context;
   
-  // Load both cart and collections in parallel
-  const [cartData, collectionsData] = await Promise.all([
+  // Load both cart and popular collections in parallel
+  const [cartData, popularCollectionsData] = await Promise.all([
     cart.get(),
-    storefront.query(MOBILE_MENU_COLLECTIONS_QUERY, {
+    storefront.query(POPULAR_COLLECTIONS_QUERY, {
       cache: storefront.CacheLong(),
     }),
   ]);
 
+  // ✅ UPDATED: Extract collections from metaobject
+  const popularCollections = extractPopularCollections(
+    popularCollectionsData?.popularCollections
+  );
+
   return {
     cart: cartData,
-    popularCollections: (collectionsData?.collections?.nodes || []) as Collection[],
+    popularCollections: popularCollections as Collection[],
   };
 }
 
@@ -152,7 +169,7 @@ export default function Cart() {
         </div>
       </div>
 
-      {/* Cart Content - ✅ ONLY CHANGE: Pass popularCollections */}
+      {/* Cart Content */}
       <div className="py-8">
         <CartMain layout="page" cart={cart} popularCollections={popularCollections} />
       </div>

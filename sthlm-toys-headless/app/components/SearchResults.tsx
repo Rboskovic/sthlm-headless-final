@@ -1,4 +1,6 @@
-// app/components/SearchResults.tsx - Enhanced Search Results with ProductItem
+// app/components/SearchResults.tsx
+// ✅ UPDATED: Now uses collections directly from popular_collections metaobject (no filtering)
+
 import {Link} from 'react-router';
 import {Image, Money, Pagination} from '@shopify/hydrogen';
 import {urlWithTrackingParams, type RegularSearchReturn} from '~/lib/search';
@@ -122,7 +124,7 @@ function SearchResultsProducts({
         {({nodes, isLoading, NextLink, PreviousLink}) => {
           return (
             <>
-              {/* ✅ UPDATED: Product Grid using ProductItem for consistency */}
+              {/* Product Grid using ProductItem for consistency */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12">
                 {nodes.map((product, index) => {
                   const productUrl = urlWithTrackingParams({
@@ -134,7 +136,7 @@ function SearchResultsProducts({
                   // Transform product to be compatible with ProductItem
                   const transformedProduct = {
                     ...product,
-                    handle: product.handle, // Keep original handle for ProductItem
+                    handle: product.handle,
                   };
 
                   return (
@@ -147,7 +149,7 @@ function SearchResultsProducts({
                 })}
               </div>
 
-              {/* Blue "Show more" Button - Fixed white text */}
+              {/* Blue "Show more" Button */}
               <div className="flex justify-center py-8">
                 <NextLink 
                   className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-10 rounded-full transition-colors duration-200"
@@ -200,48 +202,25 @@ function SearchResultsEmpty({popularCollections}: {popularCollections?: any[]}) 
   );
 }
 
-/**
- * Popular Categories Grid Component - Same as mobile menu and cart
- */
+// ✅ UPDATED: No more filtering - uses collections directly from metaobject
 function PopularCategoriesGrid({
   collections,
 }: {
   collections?: any[];
 }) {
-  // Helper functions
-  const getMetafieldValue = (metafields: any[], key: string) => {
-    const metafield = metafields?.find(
-      (field) =>
-        field?.namespace === 'custom' &&
-        field?.key === key &&
-        field?.value
-    );
-    return metafield ? metafield.value : null;
+  const getMetafieldValue = (
+    metafields: Array<{key: string; value: string; namespace: string} | null> | null | undefined,
+    key: string
+  ): string | null => {
+    if (!metafields || !Array.isArray(metafields)) return null;
+    const metafield = metafields.find((field) => field && field.key === key);
+    return metafield && metafield.value ? metafield.value : null;
   };
 
-  const isTrueValue = (value: string | null): boolean => {
-    if (!value) return false;
-    const normalizedValue = value.toLowerCase().trim();
-    return (
-      normalizedValue === 'true' ||
-      normalizedValue === '1' ||
-      normalizedValue === 'yes'
-    );
-  };
+  // ✅ UPDATED: No filtering! Use collections directly, limit to 9
+  const displayCollections = collections?.slice(0, 9) || [];
 
-  // Get featured collections from metafields
-  const featuredCollections =
-    collections
-      ?.filter((collection) => {
-        const featuredValue = getMetafieldValue(
-          collection.metafields,
-          'mobile_menu_featured',
-        );
-        return isTrueValue(featuredValue);
-      })
-      ?.slice(0, 9) || [];
-
-  // Fallback items
+  // Fallback items (only show if NO collections provided)
   const fallbackItems = [
     {id: 'deals', title: 'Erbjudanden', image: null, handle: 'rea'},
     {id: 'new', title: 'Nytt & Populärt', image: null, handle: 'new'},
@@ -254,49 +233,57 @@ function PopularCategoriesGrid({
     {id: 'outdoor', title: 'Utomhus', image: null, handle: 'outdoor'},
   ];
 
-  const displayItems =
-    featuredCollections.length > 0 ? featuredCollections : fallbackItems;
+  const displayItems = displayCollections.length > 0 ? displayCollections : fallbackItems;
 
   return (
     <div className="grid grid-cols-3 gap-4 justify-items-center">
-      {displayItems.map((item) => (
-        <Link
-          key={item.id}
-          to={`/collections/${item.handle}`}
-          className="flex flex-col items-center text-center w-20"
-        >
-          <div
-            className="w-20 h-20 bg-gray-200 rounded-xl flex items-center justify-center overflow-hidden mb-2"
-            style={{
-              backgroundColor: item.image?.url ? 'transparent' : '#f3f4f6',
-            }}
+      {displayItems.map((item) => {
+        const customImageUrl = 'metafields' in item ? getMetafieldValue(
+          item.metafields,
+          'mobile_menu_image'
+        ) : null;
+        
+        const imageUrl = customImageUrl || item.image?.url;
+
+        return (
+          <Link
+            key={item.id}
+            to={`/collections/${item.handle}`}
+            className="flex flex-col items-center text-center w-20"
           >
-            {item.image?.url ? (
-              <img
-                src={item.image.url}
-                alt={item.image.altText || item.title}
-                className="w-full h-full object-cover"
-                loading="lazy"
-              />
-            ) : (
-              <div className="w-8 h-8 bg-gray-300 rounded"></div>
-            )}
-          </div>
-          <h3
-            className="text-xs font-medium text-gray-700 leading-tight"
-            style={{
-              fontSize: '12px',
-              fontWeight: 500,
-              lineHeight: '1.2',
-              whiteSpace: 'normal',
-              textAlign: 'center',
-              maxWidth: '80px',
-            }}
-          >
-            {item.title}
-          </h3>
-        </Link>
-      ))}
+            <div
+              className="w-20 h-20 bg-gray-200 rounded-xl flex items-center justify-center overflow-hidden mb-2"
+              style={{
+                backgroundColor: imageUrl ? 'transparent' : '#f3f4f6',
+              }}
+            >
+              {imageUrl ? (
+                <img
+                  src={imageUrl}
+                  alt={item.title}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                />
+              ) : (
+                <div className="w-8 h-8 bg-gray-300 rounded"></div>
+              )}
+            </div>
+            <h3
+              className="text-xs font-medium text-gray-700 leading-tight"
+              style={{
+                fontSize: '12px',
+                fontWeight: 500,
+                lineHeight: '1.2',
+                whiteSpace: 'normal',
+                textAlign: 'center',
+                maxWidth: '80px',
+              }}
+            >
+              {item.title}
+            </h3>
+          </Link>
+        );
+      })}
     </div>
   );
 }
