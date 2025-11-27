@@ -1,4 +1,4 @@
-// app/components/Header/index.tsx - Simplified without isLoggedIn
+// app/components/Header/index.tsx - Updated with megaMenuBanners support
 import {useState} from 'react';
 import {HeaderBanner} from './HeaderBanner';
 import {HeaderMain} from './HeaderMain';
@@ -12,6 +12,7 @@ export function Header({
   publicStoreDomain,
   popularCollections = [],
   headerBanners = [],
+  megaMenuBanners = [],
 }: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -38,6 +39,7 @@ export function Header({
           menu={header.menu}
           primaryDomainUrl={header.shop.primaryDomain.url}
           publicStoreDomain={publicStoreDomain}
+          megaMenuBanners={megaMenuBanners}
         />
 
         {/* 3. Announcement Banner - Now with metaobject rotation support */}

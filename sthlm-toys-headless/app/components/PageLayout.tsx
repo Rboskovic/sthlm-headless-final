@@ -20,6 +20,7 @@ interface PageLayoutProps {
   headerBanners?: any[];
   publicStoreDomain: string;
   children?: React.ReactNode;
+  megaMenuBanners?: any[];
   popularCollections?: Collection[];
 }
 
@@ -31,6 +32,7 @@ export function PageLayout({
   headerBanners = [],
   publicStoreDomain,
   popularCollections = [],
+  megaMenuBanners = [],
 }: PageLayoutProps) {
 
   return (
@@ -45,6 +47,7 @@ export function PageLayout({
           publicStoreDomain={publicStoreDomain}
           popularCollections={popularCollections}
           headerBanners={headerBanners}
+          megaMenuBanners={megaMenuBanners}
         />
       )}
       <main>{children}</main>

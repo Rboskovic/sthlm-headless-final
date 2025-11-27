@@ -1,90 +1,81 @@
 // FILE: app/routes/($locale).themes.tsx
-// ✅ SHOPIFY HYDROGEN STANDARDS: Themes Page for LEGO® collections
+// ✅ UPDATED: Uses themes metaobject for dynamic content management
 
 import {type LoaderFunctionArgs} from '@shopify/remix-oxygen';
 import {useLoaderData, type MetaFunction} from 'react-router';
-import type {Collection} from '@shopify/hydrogen/storefront-api-types';
-import {THEMES_COLLECTIONS_QUERY} from '~/lib/fragments';
+import {THEMES_PAGE_QUERY} from '~/lib/fragments';
 import {ThemesGrid} from '~/components/ThemesGrid';
 import {getCanonicalUrlForPath} from '~/lib/canonical';
 
-export const meta: MetaFunction = () => {
+export const meta: MetaFunction<typeof loader> = ({data}) => {
+  const title = data?.metaobject?.naslov || 'LEGO® Teman';
+  const description = data?.metaobject?.podnaslov || 'Upptäck LEGO® set efter tema';
+  
   return [
-    {title: 'LEGO® Teman | Klosslabbet'},
-    {
-      name: 'description',
-      content: 'Upptäck LEGO® set efter tema - från Star Wars™ och Harry Potter™ till Technic, City, Marvel och mycket mer. Hitta det perfekta LEGO® setet för alla åldrar.',
-    },
-    {
-      tagName: 'link',
-      rel: 'canonical',
-      href: getCanonicalUrlForPath('/themes'),
-    },
+    {title: `${title} | Klosslabbet`},
+    {name: 'description', content: description},
+    {tagName: 'link', rel: 'canonical', href: getCanonicalUrlForPath('/themes')},
   ];
 };
 
-export async function loader(args: LoaderFunctionArgs) {
-  const deferredData = loadDeferredData(args);
-  const criticalData = await loadCriticalData(args);
-  return {...deferredData, ...criticalData};
-}
+export async function loader({context}: LoaderFunctionArgs) {
+  const {storefront} = context;
 
-/**
- * Load critical data for themes page
- */
-async function loadCriticalData({context}: LoaderFunctionArgs) {
-  const [{collections}] = await Promise.all([
-    context.storefront.query(THEMES_COLLECTIONS_QUERY, {
-      variables: {},
-    }),
-  ]);
+  const data = await storefront.query(THEMES_PAGE_QUERY, {
+    cache: storefront.CacheLong(),
+  });
 
-  return {collections: collections?.nodes || []};
-}
+  // Extract metaobject data
+  const metaobject = data?.themesPage?.nodes?.[0];
+  const fields = metaobject?.fields || [];
+  
+  const naslov = fields.find((f: any) => f.key === 'naslov')?.value || 'Upptäck LEGO® set efter tema';
+  const podnaslov = fields.find((f: any) => f.key === 'podnaslov')?.value || '';
+  const seoOpis = fields.find((f: any) => f.key === 'seo_opis')?.value || '';
+  const kolekcije = fields.find((f: any) => f.key === 'kolekcije')?.references?.nodes || [];
 
-/**
- * Load deferred data
- */
-function loadDeferredData({context}: LoaderFunctionArgs) {
-  return {};
+  return {
+    metaobject: {
+      naslov,
+      podnaslov,
+      seoOpis,
+    },
+    collections: kolekcije,
+  };
 }
 
 export default function ThemesPage() {
-  const {collections} = useLoaderData<typeof loader>();
+  const {metaobject, collections} = useLoaderData<typeof loader>();
 
   return (
     <div className="themes-page">
-      {/* Page Header */}
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        {/* Page Header - Dynamic from metaobject */}
         <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 text-center mb-6">
-          Upptäck LEGO® set efter tema
+          {metaobject.naslov}
         </h1>
         
-        {/* SEO Intro */}
-        <div className="max-w-4xl mx-auto text-center mb-12">
-          <p className="text-gray-600 text-lg leading-relaxed">
-            Upptäck LEGO® set efter tema – från Star Wars™ och Harry Potter™ till Technic, City, Marvel och mycket mer. Hitta det perfekta LEGO® setet för alla åldrar, intressen och byggare.
-          </p>
-        </div>
-
-        {/* Themes Grid */}
-        <ThemesGrid collections={collections} />
-
-        {/* SEO Outro */}
-        <div className="mt-16 pt-8 border-t border-gray-200">
-          <div className="text-gray-700 leading-relaxed space-y-4">
-            <p>
-              Utforska världen av LEGO® set efter tema och handla från ett av de bredaste utbuden online. 
-              Oavsett om du är en ung byggare, en förälder som letar efter den perfekta presenten, 
-              eller en vuxen samlare som söker avancerade modeller – LEGO® har något för alla.
-            </p>
-            <p>
-              Populära teman som LEGO® Star Wars™, LEGO® Harry Potter™, LEGO® Marvel Super Heroes, LEGO® Ninjago 
-              och LEGO® Technic väcker berättelser och kreativitet till liv, medan tidlösa kollektioner 
-              som LEGO® City, LEGO® Creator och LEGO® Classic fortsätter att inspirera fantasin i generationer.
+        {/* SEO Intro - Dynamic from metaobject */}
+        {metaobject.podnaslov && (
+          <div className="max-w-4xl mx-auto text-center mb-12">
+            <p className="text-gray-600 text-lg leading-relaxed">
+              {metaobject.podnaslov}
             </p>
           </div>
-        </div>
+        )}
+
+        {/* Themes Grid - Dynamic collections from metaobject */}
+        <ThemesGrid collections={collections} />
+
+        {/* SEO Outro - Dynamic from metaobject */}
+        {metaobject.seoOpis && (
+          <div className="mt-16 pt-8 border-t border-gray-200">
+            <div className="text-gray-700 leading-relaxed space-y-4">
+              <p>{metaobject.seoOpis}</p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

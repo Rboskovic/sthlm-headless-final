@@ -1,5 +1,5 @@
 // app/components/Header/MegaMenu.tsx
-// ✅ PERFORMANCE FIX: Optimized banner images
+// ✅ UPDATED: Dynamic mega menu banners from metaobject
 
 import {Link} from 'react-router';
 import type {MegaMenuProps} from './types';
@@ -9,6 +9,7 @@ export function MegaMenu({
   activeMenu,
   primaryDomainUrl,
   publicStoreDomain,
+  megaMenuBanners = [],
 }: MegaMenuProps) {
   const getUrl = (url: string | null | undefined): string => {
     if (!url) return '/';
@@ -45,16 +46,39 @@ export function MegaMenu({
 
   const level2Items = activeMenuItem.items || [];
 
-  const trendingBanners = [
-    {
-      id: 'duplo-characters',
-      title: 'LEGO DUPLO Characters',
-      image: 'https://cdn.shopify.com/s/files/1/0900/8811/2507/files/MTO_NO_DUPLO_Email_Automation_1HY25_Section1_Disney_Alicia_PeppaPig_Portrait_1080x1350_cbeeeba0-4361-4320-8f4e-3346977a638e.jpg?v=1756080334',
-      link: '/collections/lego-duplo',
+  // ✅ NEW: Get banner based on active menu URL/handle
+  // Extract the menu handle from the active menu item's URL
+  const getMenuHandleFromUrl = (url: string | null | undefined): string => {
+    if (!url) return '';
+    try {
+      const pathname = url.includes('myshopify.com') || url.includes('http')
+        ? new URL(url).pathname
+        : url;
+      // Extract handle from pathname like "/collections/lego-teman" → "lego-teman"
+      const parts = pathname.split('/').filter(Boolean);
+      return parts[parts.length - 1] || '';
+    } catch {
+      return '';
     }
-  ];
+  };
 
-  const displayBanners = trendingBanners.slice(0, 1);
+  const activeMenuHandle = getMenuHandleFromUrl(activeMenuItem.url);
+  
+  // Find matching banner based on menu_handle field
+  const matchedBanner = megaMenuBanners.find(
+    (banner: any) => banner.menuHandle === activeMenuHandle
+  );
+
+  // ✅ Fallback banner if no match found (LEGO Duplo)
+  const fallbackBanner = {
+    id: 'duplo-fallback',
+    title: 'LEGO DUPLO Characters',
+    image: 'https://cdn.shopify.com/s/files/1/0900/8811/2507/files/MTO_NO_DUPLO_Email_Automation_1HY25_Section1_Disney_Alicia_PeppaPig_Portrait_1080x1350_cbeeeba0-4361-4320-8f4e-3346977a638e.jpg?v=1756080334',
+    link: '/collections/lego-duplo',
+    altText: 'LEGO DUPLO Characters',
+  };
+
+  const displayBanner = matchedBanner || fallbackBanner;
 
   const sectionsWithChildren: { [key: string]: any[] } = {};
   const directItems: any[] = [];
@@ -165,6 +189,7 @@ export function MegaMenu({
             </div>
           ))}
 
+          {/* ✅ Dynamic Trending Banner Section */}
           <div className="flex flex-col space-y-6">
             <h3 
               className="font-bold text-gray-900 mb-4 pb-2 border-b-2 border-blue-600"
@@ -181,52 +206,49 @@ export function MegaMenu({
             </h3>
 
             <div className="space-y-4">
-              {displayBanners.map((banner) => (
-                <Link
-                  key={banner.id}
-                  to={banner.link}
-                  className="block group"
+              <Link
+                to={getUrl(displayBanner.link)}
+                className="block group"
+              >
+                <div
+                  className="relative rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 group-hover:scale-[1.02]"
+                  style={{
+                    backgroundColor: '#f8fafc',
+                    aspectRatio: '1/1',
+                    width: '100%',
+                    maxWidth: '280px',
+                  }}
                 >
-                  <div
-                    className="relative rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 group-hover:scale-[1.02]"
+                  <img
+                    src={getOptimizedImageUrl(displayBanner.image)}
+                    alt={displayBanner.altText || displayBanner.title}
+                    className="w-full h-full object-contain"
+                    loading="lazy"
                     style={{
+                      objectFit: 'contain',
+                      objectPosition: 'center',
                       backgroundColor: '#f8fafc',
-                      aspectRatio: '1/1',
-                      width: '100%',
-                      maxWidth: '280px',
                     }}
-                  >
-                    <img
-                      src={getOptimizedImageUrl(banner.image)}
-                      alt={banner.title}
-                      className="w-full h-full object-contain"
-                      loading="lazy"
-                      style={{
-                        objectFit: 'contain',
-                        objectPosition: 'center',
-                        backgroundColor: '#f8fafc',
-                      }}
-                      onError={(e) => {
-                        const target = e.target as HTMLElement;
-                        target.style.display = 'none';
-                        if (target.parentElement) {
-                          target.parentElement.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-                        }
-                      }}
-                    />
+                    onError={(e) => {
+                      const target = e.target as HTMLElement;
+                      target.style.display = 'none';
+                      if (target.parentElement) {
+                        target.parentElement.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                      }
+                    }}
+                  />
 
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-all duration-300"></div>
-                    
-                    <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <div className="w-6 h-6 bg-white/80 rounded-full flex items-center justify-center backdrop-blur-sm shadow-sm">
-                        <svg className="w-3 h-3 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                      </div>
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-all duration-300"></div>
+                  
+                  <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="w-6 h-6 bg-white/80 rounded-full flex items-center justify-center backdrop-blur-sm shadow-sm">
+                      <svg className="w-3 h-3 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
                     </div>
                   </div>
-                </Link>
-              ))}
+                </div>
+              </Link>
             </div>
           </div>
         </div>

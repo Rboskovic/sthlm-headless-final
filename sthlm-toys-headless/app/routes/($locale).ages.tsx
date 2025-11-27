@@ -7,6 +7,7 @@ import type {Collection} from '@shopify/hydrogen/storefront-api-types';
 import {Image} from '@shopify/hydrogen';
 import {useState} from 'react';
 import { getCanonicalUrlForPath } from '~/lib/canonical';
+import {PRICE_AGE_PAGE_QUERY} from '~/lib/fragments';
 
 export const meta: MetaFunction = () => {
   return [
@@ -24,39 +25,18 @@ export async function loader({context}: LoaderFunctionArgs) {
   const {storefront} = context;
 
   try {
-    // Fetch age collections
-    const ageCollectionsData = await storefront.query(AGE_COLLECTIONS_QUERY);
-    const allCollections = ageCollectionsData?.collections?.nodes || [];
+    const data = await storefront.query(PRICE_AGE_PAGE_QUERY);
+    const metaobject = data?.priceAgePage?.nodes?.[0];
+    const fields = metaobject?.fields || [];
+    
+    // ✅ FIX: Remove space in variable name
+    const kolecijePoUzrastuField = fields.find((f: any) => f.key === 'kolekcije_kupuj_po_uzrastu');
+    const ageCollections = kolecijePoUzrastuField?.references?.nodes || [];
 
-    // ✅ FIXED: Use any types to fix TypeScript errors
-    const filteredAgeCollections = allCollections.filter((collection: any) => {
-      const getMetafieldValue = (key: string) => {
-        const metafield = collection.metafields?.find((field: any) => 
-          field?.key === key && (field.namespace === 'custom' || field.namespace === 'app')
-        );
-        return metafield?.value || null;
-      };
-
-      const isAgeCollection = getMetafieldValue('age_collection') === 'true';
-      const lifestyleImageValue = getMetafieldValue('age_lifestyle_image');
-      
-      return isAgeCollection && lifestyleImageValue;
-    }).sort((a: any, b: any) => {
-      const getSortOrder = (collection: any) => {
-        const sortOrderField = collection.metafields?.find((field: any) => 
-          field?.key === 'sort_order' && (field.namespace === 'custom' || field.namespace === 'app')
-        );
-        return sortOrderField?.value ? parseInt(sortOrderField.value) : 999;
-      };
-      
-      return getSortOrder(a) - getSortOrder(b);
-    });
-
-    // Fetch blog articles for age page
+    // Fetch blog articles (keep existing)
     const blogsData = await storefront.query(AGE_BLOGS_QUERY);
     const allArticles = [];
 
-    // Collect all articles from all blogs
     if (blogsData?.blogs?.nodes) {
       for (const blog of blogsData.blogs.nodes) {
         if (blog.articles?.nodes) {
@@ -68,7 +48,6 @@ export async function loader({context}: LoaderFunctionArgs) {
       }
     }
 
-    // Filter articles that have age_page=true metafield
     const ageArticles = allArticles.filter((article: any) => {
       const agePageMetafield = article.metafields?.find(
         (field: any) => field?.key === 'age_page' && 
@@ -78,8 +57,8 @@ export async function loader({context}: LoaderFunctionArgs) {
     });
 
     return {
-      ageCollections: filteredAgeCollections,
-      ageArticles: ageArticles,
+      ageCollections,
+      ageArticles,
     };
   } catch (error) {
     return {

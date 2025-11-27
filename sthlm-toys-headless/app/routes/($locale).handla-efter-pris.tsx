@@ -7,6 +7,7 @@ import type {Collection} from '@shopify/hydrogen/storefront-api-types';
 import {Image} from '@shopify/hydrogen';
 import {useState} from 'react';
 import { getCanonicalUrlForPath } from '~/lib/canonical';
+import {PRICE_AGE_PAGE_QUERY} from '~/lib/fragments';
 
 export const meta: MetaFunction = () => {
   return [
@@ -24,39 +25,18 @@ export async function loader({context}: LoaderFunctionArgs) {
   const {storefront} = context;
 
   try {
-    // Fetch discount page collections
-    const discountCollectionsData = await storefront.query(DISCOUNT_COLLECTIONS_QUERY);
-    const allCollections = discountCollectionsData?.collections?.nodes || [];
+    const data = await storefront.query(PRICE_AGE_PAGE_QUERY);
+    const metaobject = data?.priceAgePage?.nodes?.[0];
+    const fields = metaobject?.fields || [];
+    
+    // ✅ FIX: Properly extract collections from references
+    const kolekcijePoCeniField = fields.find((f: any) => f.key === 'kolekcije_kupuj_po_ceni');
+    const discountCollections = kolekcijePoCeniField?.references?.nodes || [];
 
-    // Filter collections that have BOTH discountpage_collection=true AND age_lifestyle_image
-    const filteredDiscountCollections = allCollections.filter((collection: Collection) => {
-      const getMetafieldValue = (key: string) => {
-        const metafield = collection.metafields?.find(field => 
-          field?.key === key && (field.namespace === 'custom' || field.namespace === 'app')
-        );
-        return metafield?.value || null;
-      };
-
-      const isDiscountCollection = getMetafieldValue('discountpage_collection') === 'true';
-      const lifestyleImageValue = getMetafieldValue('age_lifestyle_image');
-      
-      return isDiscountCollection && lifestyleImageValue;
-    }).sort((a: Collection, b: Collection) => {
-      const getSortOrder = (collection: Collection) => {
-        const sortOrderField = collection.metafields?.find(field => 
-          field?.key === 'sort_order' && (field.namespace === 'custom' || field.namespace === 'app')
-        );
-        return sortOrderField?.value ? parseInt(sortOrderField.value) : 999;
-      };
-      
-      return getSortOrder(a) - getSortOrder(b);
-    });
-
-    // Fetch blog articles for discount page
+    // Fetch blog articles (keep existing)
     const blogsData = await storefront.query(DISCOUNT_BLOGS_QUERY);
     const allArticles = [];
 
-    // Collect all articles from all blogs
     if (blogsData?.blogs?.nodes) {
       for (const blog of blogsData.blogs.nodes) {
         if (blog.articles?.nodes) {
@@ -68,7 +48,6 @@ export async function loader({context}: LoaderFunctionArgs) {
       }
     }
 
-    // Filter articles that have discount_page=true metafield
     const discountArticles = allArticles.filter((article: any) => {
       const discountPageMetafield = article.metafields?.find(
         (field: any) => field?.key === 'discount_page' && 
@@ -78,8 +57,8 @@ export async function loader({context}: LoaderFunctionArgs) {
     });
 
     return {
-      discountCollections: filteredDiscountCollections,
-      discountArticles: discountArticles,
+      discountCollections,
+      discountArticles,
     };
   } catch (error) {
     return {

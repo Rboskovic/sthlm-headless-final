@@ -313,6 +313,32 @@ export type HeaderBannersQuery = {
   };
 };
 
+export type MegaMenuBannersQueryVariables = StorefrontAPI.Exact<{
+  country?: StorefrontAPI.InputMaybe<StorefrontAPI.CountryCode>;
+  language?: StorefrontAPI.InputMaybe<StorefrontAPI.LanguageCode>;
+}>;
+
+export type MegaMenuBannersQuery = {
+  megaMenuBanners: {
+    nodes: Array<
+      Pick<StorefrontAPI.Metaobject, 'id' | 'handle'> & {
+        fields: Array<
+          Pick<StorefrontAPI.MetaobjectField, 'key' | 'value' | 'type'> & {
+            reference?: StorefrontAPI.Maybe<{
+              image?: StorefrontAPI.Maybe<
+                Pick<
+                  StorefrontAPI.Image,
+                  'url' | 'altText' | 'width' | 'height'
+                >
+              >;
+            }>;
+          }
+        >;
+      }
+    >;
+  };
+};
+
 export type MobileMenuCollectionsQueryVariables = StorefrontAPI.Exact<{
   country?: StorefrontAPI.InputMaybe<StorefrontAPI.CountryCode>;
   language?: StorefrontAPI.InputMaybe<StorefrontAPI.LanguageCode>;
@@ -2220,6 +2246,10 @@ interface GeneratedQueryTypes {
   '#graphql\n  query HeaderBanners($country: CountryCode, $language: LanguageCode)\n    @inContext(country: $country, language: $language) {\n    metaobjects(type: "header_banner", first: 10) {\n      nodes {\n        id\n        handle\n        fields {\n          key\n          value\n        }\n      }\n    }\n  }\n': {
     return: HeaderBannersQuery;
     variables: HeaderBannersQueryVariables;
+  };
+  '#graphql\n  query MegaMenuBanners($country: CountryCode, $language: LanguageCode)\n    @inContext(country: $country, language: $language) {\n    megaMenuBanners: metaobjects(type: "mega_menu_promo", first: 10) {\n      nodes {\n        id\n        handle\n        fields {\n          key\n          value\n          type\n          reference {\n            ... on MediaImage {\n              image {\n                url\n                altText\n                width\n                height\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n': {
+    return: MegaMenuBannersQuery;
+    variables: MegaMenuBannersQueryVariables;
   };
   '#graphql\n  query MobileMenuCollections($country: CountryCode, $language: LanguageCode)\n    @inContext(country: $country, language: $language) {\n    collections(first: 75, sortKey: UPDATED_AT, reverse: true) {\n      nodes {\n        ...MobileMenuCollection\n      }\n    }\n  }\n  #graphql\n  fragment MobileMenuCollection on Collection {\n    id\n    title\n    handle\n    image {\n      id\n      url\n      altText\n      width\n      height\n    }\n    metafields(identifiers: [\n      {namespace: "custom", key: "mobile_menu_featured"},\n      {namespace: "custom", key: "mobile_menu_image"}\n    ]) {\n      key\n      value\n      namespace\n    }\n  }\n\n': {
     return: MobileMenuCollectionsQuery;

@@ -1,4 +1,4 @@
-// app/components/Header/types.ts - Simplified without isLoggedIn
+// app/components/Header/types.ts
 import type {CartApiQueryFragment} from 'storefrontapi.generated';
 import type {Collection} from '@shopify/hydrogen/storefront-api-types';
 
@@ -26,7 +26,6 @@ export interface Shop {
       };
     };
   } | null;
-  // ✅ NEW: Added metafields support for shop-level data like free shipping banner
   metafields?: Array<{
     key: string;
     value: string;
@@ -50,6 +49,7 @@ export interface HeaderProps {
   publicStoreDomain: string;
   popularCollections?: Collection[];
   headerBanners?: any[];
+  megaMenuBanners?: any[];
 }
 
 export interface HeaderMainProps {
@@ -62,6 +62,7 @@ export interface DesktopNavProps {
   menu?: Menu | null;
   primaryDomainUrl: string;
   publicStoreDomain: string;
+  megaMenuBanners?: any[];
 }
 
 export interface MobileNavProps {
@@ -77,6 +78,15 @@ export interface MegaMenuProps {
   activeMenu: string | null;
   primaryDomainUrl: string;
   publicStoreDomain: string;
+  megaMenuBanners?: Array<{
+    id: string;
+    handle: string;
+    menuHandle: string;
+    title: string;
+    image: string;
+    link: string;
+    altText: string;
+  }>;
 }
 
 export interface CartToggleProps {
@@ -88,7 +98,6 @@ export interface SearchBarProps {
   className?: string;
 }
 
-// Updated interface for fullscreen mobile menu with full drill-down support
 export interface MobileMenuFullscreenProps {
   isOpen: boolean;
   onClose: () => void;

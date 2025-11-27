@@ -1,4 +1,4 @@
-// app/root.tsx - DEBUG VERSION with console logging
+// app/root.tsx - UPDATED: Added Mega Menu Banners + Cleaned up debug logging
 import { Analytics, getShopAnalytics, useNonce } from "@shopify/hydrogen";
 import { type LoaderFunctionArgs } from "@shopify/remix-oxygen";
 import {
@@ -19,6 +19,7 @@ import {
   HEADER_QUERY,
   POPULAR_COLLECTIONS_QUERY,
   HEADER_BANNER_QUERY,
+  MEGA_MENU_BANNER_QUERY,
 } from "~/lib/fragments";
 import resetStyles from "~/styles/reset.css?url";
 import tailwindCss from "~/styles/tailwind.css?url";
@@ -51,75 +52,48 @@ export function links() {
   ];
 }
 
-// ✅ DEBUG: Enhanced helper with detailed logging
+// ✅ Helper: Extract popular collections from metaobject
 function extractPopularCollections(metaobjects: any): any[] {
-  console.log('🔍 [DEBUG] Starting extraction...');
-  console.log('🔍 [DEBUG] Full metaobjects response:', JSON.stringify(metaobjects, null, 2));
-  
-  if (!metaobjects) {
-    console.log('❌ [DEBUG] metaobjects is null/undefined');
-    return [];
-  }
-  
-  if (!metaobjects.nodes) {
-    console.log('❌ [DEBUG] metaobjects.nodes is missing');
-    console.log('🔍 [DEBUG] Available keys:', Object.keys(metaobjects));
-    return [];
-  }
-  
-  console.log('✅ [DEBUG] Found nodes:', metaobjects.nodes.length);
-  
-  if (!metaobjects.nodes[0]) {
-    console.log('❌ [DEBUG] First node is missing');
-    return [];
-  }
-  
-  if (!metaobjects.nodes[0].fields) {
-    console.log('❌ [DEBUG] fields array is missing');
-    console.log('🔍 [DEBUG] Node structure:', Object.keys(metaobjects.nodes[0]));
-    return [];
-  }
+  if (!metaobjects?.nodes?.[0]?.fields) return [];
   
   const fields = metaobjects.nodes[0].fields;
-  console.log('✅ [DEBUG] Found fields:', fields.length);
-  console.log('🔍 [DEBUG] Field keys:', fields.map((f: any) => f.key));
-  
   const collectionsField = fields.find((f: any) => f.key === 'kolekcije');
   
-  if (!collectionsField) {
-    console.log('❌ [DEBUG] kolekcije field not found');
-    console.log('🔍 [DEBUG] Available field keys:', fields.map((f: any) => f.key).join(', '));
-    return [];
-  }
+  if (!collectionsField?.references?.nodes) return [];
   
-  console.log('✅ [DEBUG] Found kolekcije field');
-  console.log('🔍 [DEBUG] kolekcije field structure:', JSON.stringify(collectionsField, null, 2));
+  return collectionsField.references.nodes;
+}
+
+// ✅ NEW: Helper to extract mega menu banners from metaobject
+function extractMegaMenuBanners(metaobjects: any): any[] {
+  if (!metaobjects?.nodes) return [];
   
-  if (!collectionsField.references) {
-    console.log('❌ [DEBUG] references is missing from kolekcije field');
-    console.log('🔍 [DEBUG] kolekcije field keys:', Object.keys(collectionsField));
-    return [];
-  }
-  
-  if (!collectionsField.references.nodes) {
-    console.log('❌ [DEBUG] references.nodes is missing');
-    console.log('🔍 [DEBUG] references structure:', Object.keys(collectionsField.references));
-    return [];
-  }
-  
-  const collections = collectionsField.references.nodes;
-  console.log('✅ [DEBUG] Found collections:', collections.length);
-  console.log('🔍 [DEBUG] Collection titles:', collections.map((c: any) => c.title).join(', '));
-  
-  return collections;
+  return metaobjects.nodes.map((node: any) => {
+    const fields = node.fields || [];
+    
+    const imeField = fields.find((f: any) => f.key === 'ime_menija');
+    const handleField = fields.find((f: any) => f.key === 'menu_handle');
+    const slikaField = fields.find((f: any) => f.key === 'slika_400x500px');
+    const kolekcjaField = fields.find((f: any) => f.key === 'kolekcija');
+    
+    const collection = kolekcjaField?.reference;
+    
+    return {
+      id: node.id,
+      handle: node.handle,
+      menuHandle: handleField?.value || '',
+      title: imeField?.value || '',
+      image: slikaField?.reference?.image?.url || '',
+      link: collection?.handle ? `/collections/${collection.handle}` : '',
+      altText: collection?.title || '',
+    };
+  }).filter((banner: any) => banner.menuHandle && banner.image);
 }
 
 export async function loader({ context }: LoaderFunctionArgs) {
   const { storefront, env, cart } = context;
 
-  console.log('🚀 [DEBUG] Starting loader...');
-
-  const [header, popularCollectionsData, headerBanners] = await Promise.all([
+  const [header, popularCollectionsData, headerBanners, megaMenuBannersData] = await Promise.all([
     storefront.query(HEADER_QUERY, {
       cache: storefront.CacheLong(),
       variables: { headerMenuHandle: "mega-menu" },
@@ -130,17 +104,18 @@ export async function loader({ context }: LoaderFunctionArgs) {
     storefront.query(HEADER_BANNER_QUERY, {
       cache: storefront.CacheLong(),
     }),
+    storefront.query(MEGA_MENU_BANNER_QUERY, {
+      cache: storefront.CacheLong(),
+    }),
   ]);
-
-  console.log('✅ [DEBUG] Queries completed');
-  console.log('🔍 [DEBUG] popularCollectionsData:', JSON.stringify(popularCollectionsData, null, 2));
 
   const popularCollections = extractPopularCollections(
     popularCollectionsData?.popularCollections
   );
 
-  console.log('✅ [DEBUG] Final extracted collections:', popularCollections.length);
-  console.log('🔍 [DEBUG] Collection data:', JSON.stringify(popularCollections, null, 2));
+  const megaMenuBanners = extractMegaMenuBanners(
+    megaMenuBannersData?.megaMenuBanners
+  );
 
   const footer = storefront
     .query(FOOTER_QUERY, {
@@ -156,6 +131,7 @@ export async function loader({ context }: LoaderFunctionArgs) {
     header,
     headerBanners: headerBanners?.metaobjects?.nodes || [],
     popularCollections: popularCollections as any,
+    megaMenuBanners: megaMenuBanners as any,
     footer,
     cart: cart.get(),
     shop: getShopAnalytics({
@@ -249,6 +225,7 @@ export function Layout({ children }: { children?: React.ReactNode }) {
             <PageLayout
               {...data}
               popularCollections={data.popularCollections || []}
+              megaMenuBanners={data.megaMenuBanners || []}
             >
               {children}
             </PageLayout>

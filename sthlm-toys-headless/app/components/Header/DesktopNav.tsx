@@ -1,4 +1,4 @@
-// app/components/Header/DesktopNav.tsx - Fixed: Fully dynamic, Shopify-driven navigation
+// app/components/Header/DesktopNav.tsx - Updated with megaMenuBanners support
 import {useState} from 'react';
 import {Link} from 'react-router';
 import {MegaMenu} from './MegaMenu';
@@ -8,6 +8,7 @@ export function DesktopNav({
   menu,
   primaryDomainUrl,
   publicStoreDomain,
+  megaMenuBanners = [],
 }: DesktopNavProps) {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
 
@@ -101,6 +102,7 @@ export function DesktopNav({
               activeMenu={activeMenu}
               primaryDomainUrl={primaryDomainUrl}
               publicStoreDomain={publicStoreDomain}
+              megaMenuBanners={megaMenuBanners}
             />
           </div>
         )}

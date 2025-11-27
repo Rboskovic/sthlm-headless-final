@@ -1,5 +1,5 @@
 // FILE: app/lib/fragments.ts
-// ✅ ADDED: POPULAR_COLLECTIONS_QUERY for metaobject-based popular collections
+// ✅ UPDATED: Added THEMES_PAGE_QUERY and PRICE_AGE_PAGE_QUERY for metaobject-based pages
 
 // Fragment for money fields
 const MONEY_FRAGMENT = `#graphql
@@ -222,29 +222,6 @@ export const FOOTER_QUERY = `#graphql
   ${MENU_FRAGMENT}
 ` as const;
 
-const MOBILE_MENU_COLLECTION_FRAGMENT = `#graphql
-  fragment MobileMenuCollection on Collection {
-    id
-    title
-    handle
-    image {
-      id
-      url
-      altText
-      width
-      height
-    }
-    metafields(identifiers: [
-      {namespace: "custom", key: "mobile_menu_featured"},
-      {namespace: "custom", key: "mobile_menu_image"}
-    ]) {
-      key
-      value
-      namespace
-    }
-  }
-` as const;
-
 // Header Banner metaobject query
 export const HEADER_BANNER_QUERY = `#graphql
   query HeaderBanners($country: CountryCode, $language: LanguageCode)
@@ -262,21 +239,39 @@ export const HEADER_BANNER_QUERY = `#graphql
   }
 ` as const;
 
-// ✅ KEPT: Original query for backward compatibility (can be removed after full migration)
-export const MOBILE_MENU_COLLECTIONS_QUERY = `#graphql
-  query MobileMenuCollections($country: CountryCode, $language: LanguageCode)
+// Mega Menu Banner metaobject query
+export const MEGA_MENU_BANNER_QUERY = `#graphql
+  query MegaMenuBanners($country: CountryCode, $language: LanguageCode)
     @inContext(country: $country, language: $language) {
-    collections(first: 75, sortKey: UPDATED_AT, reverse: true) {
+    megaMenuBanners: metaobjects(type: "mega_menu_promo", first: 10) {
       nodes {
-        ...MobileMenuCollection
+        id
+        handle
+        fields {
+          key
+          value
+          type
+          reference {
+            ... on MediaImage {
+              image {
+                url
+                altText
+                width
+                height
+              }
+            }
+            ... on Collection {
+              handle
+              title
+            }
+          }
+        }
       }
     }
   }
-  ${MOBILE_MENU_COLLECTION_FRAGMENT}
 ` as const;
 
-// ✅ NEW: Popular Collections Metaobject Query
-// Replaces filtering collections by mobile_menu_featured metafield
+// ✅ Popular Collections Metaobject Query
 const POPULAR_COLLECTION_FRAGMENT = `#graphql
   fragment PopularCollection on Collection {
     id
@@ -320,6 +315,109 @@ export const POPULAR_COLLECTIONS_QUERY = `#graphql
     }
   }
   ${POPULAR_COLLECTION_FRAGMENT}
+` as const;
+
+// ✅ NEW: Themes Page Metaobject Query
+export const THEMES_PAGE_QUERY = `#graphql
+  query ThemesPage($country: CountryCode, $language: LanguageCode)
+    @inContext(country: $country, language: $language) {
+    themesPage: metaobjects(type: "stranica_themes", first: 1) {
+      nodes {
+        id
+        fields {
+          key
+          value
+          references(first: 50) {
+            nodes {
+              ... on Collection {
+                id
+                title
+                handle
+                image {
+                  url
+                  altText
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+` as const;
+
+// ✅ NEW: Price & Age Landing Pages Metaobject Query
+// Shared by both /handla-efter-pris and /ages routes
+export const PRICE_AGE_PAGE_QUERY = `#graphql
+  query PriceAgePage($country: CountryCode, $language: LanguageCode)
+    @inContext(country: $country, language: $language) {
+    priceAgePage: metaobjects(type: "stranice_handla_efter_pris_alder", first: 1) {
+      nodes {
+        id
+        fields {
+          key
+          value
+          reference {
+            ... on MediaImage {
+              image {
+                url
+                altText
+              }
+            }
+          }
+          references(first: 50) {
+            nodes {
+              ... on Collection {
+                id
+                title
+                handle
+                image {
+                  url
+                  altText
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+` as const;
+
+// ✅ OLD QUERIES - Can be removed after full migration to metaobjects
+const MOBILE_MENU_COLLECTION_FRAGMENT = `#graphql
+  fragment MobileMenuCollection on Collection {
+    id
+    title
+    handle
+    image {
+      id
+      url
+      altText
+      width
+      height
+    }
+    metafields(identifiers: [
+      {namespace: "custom", key: "mobile_menu_featured"},
+      {namespace: "custom", key: "mobile_menu_image"}
+    ]) {
+      key
+      value
+      namespace
+    }
+  }
+` as const;
+
+export const MOBILE_MENU_COLLECTIONS_QUERY = `#graphql
+  query MobileMenuCollections($country: CountryCode, $language: LanguageCode)
+    @inContext(country: $country, language: $language) {
+    collections(first: 75, sortKey: UPDATED_AT, reverse: true) {
+      nodes {
+        ...MobileMenuCollection
+      }
+    }
+  }
+  ${MOBILE_MENU_COLLECTION_FRAGMENT}
 ` as const;
 
 const THEMES_COLLECTION_FRAGMENT = `#graphql
