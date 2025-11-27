@@ -25,7 +25,7 @@ function extractPopularCollections(metaobjects: any): any[] {
   if (!metaobjects?.nodes?.[0]?.fields) return [];
   
   const fields = metaobjects.nodes[0].fields;
-  const collectionsField = fields.find((f: any) => f.key === 'kolekcija');
+  const collectionsField = fields.find((f: any) => f.key === 'kolekcije');
   
   if (!collectionsField?.references?.nodes) return [];
   

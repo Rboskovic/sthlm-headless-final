@@ -1,4 +1,4 @@
-// app/root.tsx - UPDATED to use popular_collections metaobject
+// app/root.tsx - DEBUG VERSION with console logging
 import { Analytics, getShopAnalytics, useNonce } from "@shopify/hydrogen";
 import { type LoaderFunctionArgs } from "@shopify/remix-oxygen";
 import {
@@ -28,9 +28,6 @@ import { PageLayout } from "./components/PageLayout";
 
 export type RootLoader = typeof loader;
 
-/**
- * This is important to avoid re-fetching root queries on sub-navigations
- */
 export const shouldRevalidate: ShouldRevalidateFunction = ({
   formMethod,
   currentUrl,
@@ -41,18 +38,12 @@ export const shouldRevalidate: ShouldRevalidateFunction = ({
   return false;
 };
 
-// ✅ PERFORMANCE OPTIMIZED: Preload critical resources
 export function links() {
   return [
-    // Favicon
     { rel: "icon", type: "image/svg+xml", href: favicon },
-    
-    // ✅ PERFORMANCE: Preload critical CSS files
     { rel: "preload", href: resetStyles, as: "style" },
     { rel: "preload", href: tailwindCss, as: "style" },
     { rel: "preload", href: designSystemStyles, as: "style" },
-    
-    // ✅ CSS loading order
     { rel: "stylesheet", href: resetStyles },
     { rel: "stylesheet", href: tailwindCss },
     { rel: "stylesheet", href: appStyles },
@@ -60,22 +51,74 @@ export function links() {
   ];
 }
 
-// ✅ NEW: Helper to extract collections from metaobject
+// ✅ DEBUG: Enhanced helper with detailed logging
 function extractPopularCollections(metaobjects: any): any[] {
-  if (!metaobjects?.nodes?.[0]?.fields) return [];
+  console.log('🔍 [DEBUG] Starting extraction...');
+  console.log('🔍 [DEBUG] Full metaobjects response:', JSON.stringify(metaobjects, null, 2));
+  
+  if (!metaobjects) {
+    console.log('❌ [DEBUG] metaobjects is null/undefined');
+    return [];
+  }
+  
+  if (!metaobjects.nodes) {
+    console.log('❌ [DEBUG] metaobjects.nodes is missing');
+    console.log('🔍 [DEBUG] Available keys:', Object.keys(metaobjects));
+    return [];
+  }
+  
+  console.log('✅ [DEBUG] Found nodes:', metaobjects.nodes.length);
+  
+  if (!metaobjects.nodes[0]) {
+    console.log('❌ [DEBUG] First node is missing');
+    return [];
+  }
+  
+  if (!metaobjects.nodes[0].fields) {
+    console.log('❌ [DEBUG] fields array is missing');
+    console.log('🔍 [DEBUG] Node structure:', Object.keys(metaobjects.nodes[0]));
+    return [];
+  }
   
   const fields = metaobjects.nodes[0].fields;
-  const collectionsField = fields.find((f: any) => f.key === 'kolekcija');
+  console.log('✅ [DEBUG] Found fields:', fields.length);
+  console.log('🔍 [DEBUG] Field keys:', fields.map((f: any) => f.key));
   
-  if (!collectionsField?.references?.nodes) return [];
+  const collectionsField = fields.find((f: any) => f.key === 'kolekcije');
   
-  return collectionsField.references.nodes;
+  if (!collectionsField) {
+    console.log('❌ [DEBUG] kolekcije field not found');
+    console.log('🔍 [DEBUG] Available field keys:', fields.map((f: any) => f.key).join(', '));
+    return [];
+  }
+  
+  console.log('✅ [DEBUG] Found kolekcije field');
+  console.log('🔍 [DEBUG] kolekcije field structure:', JSON.stringify(collectionsField, null, 2));
+  
+  if (!collectionsField.references) {
+    console.log('❌ [DEBUG] references is missing from kolekcije field');
+    console.log('🔍 [DEBUG] kolekcije field keys:', Object.keys(collectionsField));
+    return [];
+  }
+  
+  if (!collectionsField.references.nodes) {
+    console.log('❌ [DEBUG] references.nodes is missing');
+    console.log('🔍 [DEBUG] references structure:', Object.keys(collectionsField.references));
+    return [];
+  }
+  
+  const collections = collectionsField.references.nodes;
+  console.log('✅ [DEBUG] Found collections:', collections.length);
+  console.log('🔍 [DEBUG] Collection titles:', collections.map((c: any) => c.title).join(', '));
+  
+  return collections;
 }
 
 export async function loader({ context }: LoaderFunctionArgs) {
   const { storefront, env, cart } = context;
 
-  // --- Critical data ---
+  console.log('🚀 [DEBUG] Starting loader...');
+
   const [header, popularCollectionsData, headerBanners] = await Promise.all([
     storefront.query(HEADER_QUERY, {
       cache: storefront.CacheLong(),
@@ -89,12 +132,16 @@ export async function loader({ context }: LoaderFunctionArgs) {
     }),
   ]);
 
-  // ✅ UPDATED: Extract collections from metaobject
+  console.log('✅ [DEBUG] Queries completed');
+  console.log('🔍 [DEBUG] popularCollectionsData:', JSON.stringify(popularCollectionsData, null, 2));
+
   const popularCollections = extractPopularCollections(
     popularCollectionsData?.popularCollections
   );
 
-  // --- Deferred data (footer, cart) ---
+  console.log('✅ [DEBUG] Final extracted collections:', popularCollections.length);
+  console.log('🔍 [DEBUG] Collection data:', JSON.stringify(popularCollections, null, 2));
+
   const footer = storefront
     .query(FOOTER_QUERY, {
       cache: storefront.CacheLong(),
@@ -126,12 +173,10 @@ export async function loader({ context }: LoaderFunctionArgs) {
   };
 }
 
-// ✅ PERFORMANCE OPTIMIZED: Early preconnect in <head>
 export function Layout({ children }: { children?: React.ReactNode }) {
   const nonce = useNonce();
   const data = useRouteLoaderData<RootLoader>("root");
 
-  // ✅ GMC COMPLIANCE: Organization Schema with all required fields
   const organizationSchema = {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -180,12 +225,10 @@ export function Layout({ children }: { children?: React.ReactNode }) {
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width,initial-scale=1" />
         
-        {/* ✅ CRITICAL PERFORMANCE: Early preconnect BEFORE any other resources */}
         <link rel="preconnect" href="https://cdn.shopify.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://shop.app" />
         <link rel="dns-prefetch" href="https://monorail-edge.shopifysvc.com" />
         
-        {/* ✅ GMC COMPLIANCE: Organization Schema */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
