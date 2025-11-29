@@ -321,7 +321,7 @@ export const POPULAR_COLLECTIONS_QUERY = `#graphql
 export const THEMES_PAGE_QUERY = `#graphql
   query ThemesPage($country: CountryCode, $language: LanguageCode)
     @inContext(country: $country, language: $language) {
-    themesPage: metaobjects(type: "stranica_themes", first: 1) {
+    themesPage: metaobjects(type: "lego_teman", first: 1) {
       nodes {
         id
         fields {
@@ -337,6 +337,14 @@ export const THEMES_PAGE_QUERY = `#graphql
                   url
                   altText
                 }
+                metafields(identifiers: [
+                  {namespace: "custom", key: "lego_theme"},
+                  {namespace: "custom", key: "theme_image"}
+                ]) {
+                  key
+                  value
+                  namespace
+                }
               }
             }
           }
@@ -351,7 +359,7 @@ export const THEMES_PAGE_QUERY = `#graphql
 export const PRICE_AGE_PAGE_QUERY = `#graphql
   query PriceAgePage($country: CountryCode, $language: LanguageCode)
     @inContext(country: $country, language: $language) {
-    priceAgePage: metaobjects(type: "stranice_handla_efter_pris_alder", first: 1) {
+    priceAgePage: metaobjects(type: "stranice_handla_efter_pris_alder_podesavanja", first: 1) {
       nodes {
         id
         fields {
@@ -371,9 +379,17 @@ export const PRICE_AGE_PAGE_QUERY = `#graphql
                 id
                 title
                 handle
+                description
                 image {
                   url
                   altText
+                }
+                metafields(identifiers: [
+                  {namespace: "custom", key: "age_lifestyle_image"}
+                ]) {
+                  key
+                  value
+                  namespace
                 }
               }
             }
