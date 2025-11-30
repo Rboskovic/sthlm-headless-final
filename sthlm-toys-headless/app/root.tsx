@@ -42,6 +42,8 @@ export const shouldRevalidate: ShouldRevalidateFunction = ({
 export function links() {
   return [
     { rel: "icon", type: "image/svg+xml", href: favicon },
+    { rel: "preconnect", href: "https://cdn.shopify.com", crossOrigin: "anonymous" },
+    { rel: "dns-prefetch", href: "https://cdn.shopify.com" },
     { rel: "preload", href: resetStyles, as: "style" },
     { rel: "preload", href: tailwindCss, as: "style" },
     { rel: "preload", href: designSystemStyles, as: "style" },

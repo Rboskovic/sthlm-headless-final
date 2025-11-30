@@ -89,16 +89,16 @@ export function ProductItem({
   const getOptimizedImageSrc = (img: any, width: number) => {
     if (!img?.url) return '';
     const base = img.url.split('?')[0];
-    return `${base}?width=${width}&format=webp&quality=85`;
+    return `${base}?width=${width}&format=webp&quality=80`;
   };
 
   const getImageSrcSet = (img: any) => {
     if (!img?.url) return '';
     const base = img.url.split('?')[0];
     return [
-      `${base}?width=150&format=webp 150w`,
-      `${base}?width=200&format=webp 200w`,
-      `${base}?width=280&format=webp 280w`,
+      `${base}?width=150&format=webp&quality=75 150w`,
+      `${base}?width=200&format=webp&quality=75 200w`,
+      `${base}?width=280&format=webp&quality=80 280w`,
     ].join(', ');
   };
 
