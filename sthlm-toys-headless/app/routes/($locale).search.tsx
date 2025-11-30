@@ -58,25 +58,42 @@ export async function loader({request, context}: LoaderFunctionArgs) {
   const url = new URL(request.url);
   const isPredictive = url.searchParams.has('predictive');
   
-  // ✅ UPDATED: Load popular collections from metaobject
-  const popularCollectionsPromise = context.storefront.query(POPULAR_COLLECTIONS_QUERY, {
+  // ✅ FIXED: Handle promises separately to avoid union type issues
+  let searchResult: RegularSearchReturn | PredictiveSearchReturn;
+  
+  if (isPredictive) {
+    searchResult = await predictiveSearch({request, context}).catch((error: any) => {
+      console.error(error);
+      return {
+        term: '', 
+        result: getEmptyPredictiveSearchResult(), 
+        error: undefined, 
+        type: 'predictive' as const
+      };
+    });
+  } else {
+    searchResult = await regularSearch({request, context}).catch((error: any) => {
+      console.error(error);
+      return {
+        term: '', 
+        result: {
+          total: 0,
+          totalProducts: 0,
+          items: {
+            articles: {nodes: []},
+            pages: {nodes: []},
+            products: {nodes: [], pageInfo: {hasNextPage: false, hasPreviousPage: false, startCursor: '', endCursor: ''}}
+          }
+        },
+        error: error.message, 
+        type: 'regular' as const
+      };
+    });
+  }
+
+  const popularCollectionsData = await context.storefront.query(POPULAR_COLLECTIONS_QUERY, {
     cache: context.storefront.CacheLong(),
   });
-  
-  // ✅ FIXED: Properly type the search promise
-  const searchPromise = isPredictive
-    ? predictiveSearch({request, context})
-    : regularSearch({request, context});
-
-  searchPromise.catch((error: Error) => {
-    console.error(error);
-    return {term: '', result: null, error: error.message};
-  });
-
-  const [searchResult, popularCollectionsData] = await Promise.all([
-    searchPromise,
-    popularCollectionsPromise,
-  ]);
 
   // ✅ NEW: Extract collections from metaobject
   const popularCollections = extractPopularCollections(
@@ -225,7 +242,7 @@ async function predictiveSearch({
 
   const total = Object.values(items).reduce((acc, {length}) => acc + length, 0);
 
-  return {term, result: {items, total}, error: null, type: 'predictive' as const};
+  return {term, result: {items, total}, error: undefined, type: 'predictive' as const};
 }
 
 /**

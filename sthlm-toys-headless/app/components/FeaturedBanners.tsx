@@ -2,7 +2,6 @@
 // ✅ METAOBJECTS: Loads from metaobject instead of collection metafields
 // ✅ PERFORMANCE OPTIMIZED: Responsive images with proper srcset and WebP format
 // ✅ MAX 2 BANNERS: Only shows first 2 active entries
-// ✅ PRODUCTION READY: All debug logging removed
 
 import {Link} from 'react-router';
 

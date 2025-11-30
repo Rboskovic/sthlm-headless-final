@@ -183,7 +183,7 @@ export default function Collection() {
 
   return (
     <CollectionPage
-      collection={collection}
+      collection={collection as any}
       products={products}
       totalProductCount={totalProductCount}
       filteredTotalCount={filteredTotalCount} // ✅ Pass filtered total
@@ -247,7 +247,6 @@ const COLLECTION_INFO_QUERY = `#graphql
       metafields(identifiers: [
         {namespace: "custom", key: "banner_image"},
         {namespace: "custom", key: "collection_color"},
-        {namespace: "custom", key: "mobile_menu_featured"}
       ]) {
         id
         key

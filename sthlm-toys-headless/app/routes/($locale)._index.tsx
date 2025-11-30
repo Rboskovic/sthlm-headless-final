@@ -18,14 +18,6 @@ import {ShopByDiscount} from '~/components/ShopByDiscount';
 import {FeaturedBanners} from '~/components/FeaturedBanners';
 import {ShopByAge} from '~/components/ShopByAge';
 import {ProductItem} from '~/components/ProductItem';
-import {RecommendedProductsHomepage} from '~/components/RecommendedProductsHomepage';
-
-// ✅ HELPERS: Product queries and utilities
-import {
-  HOMEPAGE_PRODUCTS_COMBINED_QUERY,
-  sampleFeaturedProducts,
-  sortSaleProductsByDiscount,
-} from '~/lib/homepage-product-queries';
 
 export const meta: MetaFunction = () => {
   return [
@@ -101,22 +93,26 @@ function loadDeferredData({context}: LoaderFunctionArgs) {
       return null;
     });
 
-  const homepageProducts = context.storefront
-    .query(HOMEPAGE_PRODUCTS_COMBINED_QUERY, {
-      variables: {
-        collectionsFirst: 75,
-        productsFirst: 20,
-        saleFirst: 30,
-      },
+  const recommendedProducts = context.storefront
+    .query(RECOMMENDED_PRODUCTS_QUERY)
+    .then((response) => {
+      if (!response?.collection) return null;
+      
+      return {
+        title: response.collection.title || 'Rekommenderade produkter',
+        products: {
+          nodes: response.collection.products?.nodes || []
+        }
+      };
     })
     .catch((error) => {
-      console.error('Homepage products error:', error);
+      console.error('Recommended products error:', error);
       return null;
     });
 
   return {
     newProducts,
-    homepageProducts,
+    recommendedProducts,
   };
 }
 
@@ -162,17 +158,16 @@ export default function Homepage() {
 
       {/* ✅ 6. Recommended Products Section */}
       <Suspense fallback={<ProductSectionSkeleton title="Rekommenderade produkter" />}>
-        <Await resolve={data.homepageProducts}>
+        <Await resolve={data.recommendedProducts}>
           {(response) => {
             if (!response) return null;
-            const collections = response.collections?.nodes || [];
-            const featuredProducts = sampleFeaturedProducts(collections, 12);
-            if (featuredProducts.length === 0) return null;
+            const recommendedProducts = response.products?.nodes || [];
+            if (recommendedProducts.length === 0) return null;
 
             return (
-              <RecommendedProductsHomepage
-                products={featuredProducts as ProductFragment[]}
-                title="Rekommenderade produkter"
+              <ProductCarouselSection
+                products={recommendedProducts as any}
+                title={response.title}
               />
             );
           }}
@@ -595,6 +590,64 @@ const CAMPAIGN_BANNER_QUERY = `#graphql
 const NEW_PRODUCTS_QUERY = `#graphql
   query FeaturedHomepageProducts {
     collection(handle: "featured-homepage") {
+      title
+      products(first: 12, sortKey: MANUAL) {
+        nodes {
+          id
+          title
+          handle
+          vendor
+          description
+          descriptionHtml
+          encodedVariantExistence
+          encodedVariantAvailability
+          updatedAt
+          featuredImage {
+            id
+            url
+            altText
+            width
+            height
+          }
+          priceRange {
+            minVariantPrice {
+              amount
+              currencyCode
+            }
+          }
+          compareAtPriceRange {
+            minVariantPrice {
+              amount
+              currencyCode
+            }
+          }
+          selectedOrFirstAvailableVariant(selectedOptions: []) {
+            id
+            availableForSale
+            price {
+              amount
+              currencyCode
+            }
+            compareAtPrice {
+              amount
+              currencyCode
+            }
+            image {
+              url
+              altText
+              width
+              height
+            }
+          }
+        }
+      }
+    }
+  }
+` as const;
+
+const RECOMMENDED_PRODUCTS_QUERY = `#graphql
+  query RecommendedHomepageProducts {
+    collection(handle: "rekommenderade-produkter") {
       title
       products(first: 12, sortKey: MANUAL) {
         nodes {

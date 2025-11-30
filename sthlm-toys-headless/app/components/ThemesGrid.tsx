@@ -13,16 +13,15 @@ interface ThemesGridProps {
  * ThemesGrid Component
  * 
  * Displays LEGO® theme collections in a responsive grid layout.
- * Reuses logic from mobile menu but adapted for themes page requirements.
+ * Collections come pre-filtered from metaobject - no filtering needed here.
  * 
  * Features:
  * - Responsive grid: 2 per row (small mobile) → 3 per row (mobile) → 4 per row (desktop)
- * - Filters collections by lego_theme metafield = true
- * - Uses theme_image metafield (renamed from mobile_menu_image as per requirement)
- * - Shows all collections (no 9-item limit like mobile menu)
+ * - Uses theme_image metafield for custom images
+ * - Shows all collections from metaobject
  * - Hover effects and smooth transitions
  * 
- * @param collections - Array of collections from Shopify
+ * @param collections - Array of collections from Shopify (already filtered by metaobject)
  * @param onItemClick - Optional callback when theme item is clicked
  */
 export function ThemesGrid({
@@ -30,38 +29,8 @@ export function ThemesGrid({
   onItemClick,
 }: ThemesGridProps) {
   
-  // Helper functions (reused from mobile menu logic for consistency)
-  const getMetafieldValue = (
-    metafields: Array<{key: string; value: string; namespace: string} | null> | null | undefined,
-    key: string
-  ): string | null => {
-    if (!metafields || !Array.isArray(metafields)) return null;
-    const metafield = metafields.find((field) => field && field.key === key);
-    return metafield && metafield.value ? metafield.value : null;
-  };
-
-  const isTrueValue = (value: string | null): boolean => {
-    if (!value) return false;
-    const normalizedValue = value.toLowerCase().trim();
-    return (
-      normalizedValue === 'true' ||
-      normalizedValue === 'True' ||
-      normalizedValue === '1' ||
-      normalizedValue === 'yes'
-    );
-  };
-
-  // Filter collections with lego_theme = true (no limit, unlike mobile menu)
-  const themeCollections = collections.filter((collection) => {
-    const themeValue = getMetafieldValue(
-      collection.metafields,
-      'lego_theme',
-    );
-    return isTrueValue(themeValue);
-  });
-
   // Show message if no themes found
-  if (themeCollections.length === 0) {
+  if (collections.length === 0) {
     return (
       <div className="themes-grid-empty">
         <div className="text-center py-12">
@@ -87,7 +56,7 @@ export function ThemesGrid({
           - Tablet: Adjusts naturally between mobile and desktop ✅
       */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
-        {themeCollections.map((collection) => (
+        {collections.map((collection) => (
           <ThemeCard
             key={collection.id}
             collection={collection}
@@ -99,7 +68,7 @@ export function ThemesGrid({
       {/* Collection Count Info (for debugging/admin purposes - remove if not needed) */}
       {process.env.NODE_ENV === 'development' && (
         <div className="mt-6 text-center text-xs text-gray-400">
-          Showing {themeCollections.length} LEGO® themes
+          Showing {collections.length} LEGO® themes
         </div>
       )}
     </div>
@@ -130,7 +99,7 @@ function ThemeCard({
     return metafield && metafield.value ? metafield.value : null;
   };
 
-  // Get theme_image (renamed from mobile_menu_image per requirement)
+  // Get theme_image metafield
   const customImageUrl = getMetafieldValue(
     collection.metafields,
     'theme_image'

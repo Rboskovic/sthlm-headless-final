@@ -112,7 +112,7 @@ export default function AgesPage() {
         ) : (
           <div className="text-center py-16">
             <p className="text-gray-600 text-lg">
-              Ålderssamlingar kommer snart! Kontrollera att kollektioner har både age_collection=true och age_lifestyle_image inställda.
+              Ålderssamlingar kommer snart!.
             </p>
           </div>
         )}
@@ -358,34 +358,6 @@ function AgeCard({collection}: {collection: any}) {
     </Link>
   );
 }
-
-// ✅ FIXED: Enhanced GraphQL Query with id field for metafields
-const AGE_COLLECTIONS_QUERY = `#graphql
-  query AgeCollections($country: CountryCode, $language: LanguageCode)
-    @inContext(country: $country, language: $language) {
-    collections(first: 100, sortKey: UPDATED_AT, reverse: true) {
-      nodes {
-        id
-        title
-        handle
-        description
-        metafields(identifiers: [
-          {namespace: "custom", key: "age_collection"},
-          {namespace: "app", key: "age_collection"},
-          {namespace: "custom", key: "age_lifestyle_image"},
-          {namespace: "app", key: "age_lifestyle_image"},
-          {namespace: "custom", key: "sort_order"},
-          {namespace: "app", key: "sort_order"}
-        ]) {
-          id
-          key
-          value
-          namespace
-        }
-      }
-    }
-  }
-` as const;
 
 // ✅ FIXED: GraphQL Query for Blog Articles with id field
 const AGE_BLOGS_QUERY = `#graphql

@@ -338,7 +338,6 @@ export const THEMES_PAGE_QUERY = `#graphql
                   altText
                 }
                 metafields(identifiers: [
-                  {namespace: "custom", key: "lego_theme"},
                   {namespace: "custom", key: "theme_image"}
                 ]) {
                   key
@@ -387,6 +386,7 @@ export const PRICE_AGE_PAGE_QUERY = `#graphql
                 metafields(identifiers: [
                   {namespace: "custom", key: "age_lifestyle_image"}
                 ]) {
+                  id
                   key
                   value
                   namespace
@@ -400,77 +400,6 @@ export const PRICE_AGE_PAGE_QUERY = `#graphql
   }
 ` as const;
 
-// ✅ OLD QUERIES - Can be removed after full migration to metaobjects
-const MOBILE_MENU_COLLECTION_FRAGMENT = `#graphql
-  fragment MobileMenuCollection on Collection {
-    id
-    title
-    handle
-    image {
-      id
-      url
-      altText
-      width
-      height
-    }
-    metafields(identifiers: [
-      {namespace: "custom", key: "mobile_menu_featured"},
-      {namespace: "custom", key: "mobile_menu_image"}
-    ]) {
-      key
-      value
-      namespace
-    }
-  }
-` as const;
-
-export const MOBILE_MENU_COLLECTIONS_QUERY = `#graphql
-  query MobileMenuCollections($country: CountryCode, $language: LanguageCode)
-    @inContext(country: $country, language: $language) {
-    collections(first: 75, sortKey: UPDATED_AT, reverse: true) {
-      nodes {
-        ...MobileMenuCollection
-      }
-    }
-  }
-  ${MOBILE_MENU_COLLECTION_FRAGMENT}
-` as const;
-
-const THEMES_COLLECTION_FRAGMENT = `#graphql
-  fragment ThemesCollection on Collection {
-    id
-    title
-    handle
-    image {
-      id
-      url
-      altText
-      width
-      height
-    }
-    metafields(identifiers: [
-      {namespace: "custom", key: "lego_theme"},
-      {namespace: "custom", key: "theme_image"}
-    ]) {
-      key
-      value
-      namespace
-    }
-  }
-` as const;
-
-export const THEMES_COLLECTIONS_QUERY = `#graphql
-  query ThemesCollections($country: CountryCode, $language: LanguageCode)
-    @inContext(country: $country, language: $language) {
-    collections(first: 100, sortKey: UPDATED_AT, reverse: true) {
-      nodes {
-        ...ThemesCollection
-      }
-    }
-  }
-  ${THEMES_COLLECTION_FRAGMENT}
-` as const;
-
 export const CART_QUERY_FRAGMENT = CART_FRAGMENT;
 
 export {
@@ -478,7 +407,5 @@ export {
   CART_FRAGMENT,
   MENU_FRAGMENT,
   SHOP_FRAGMENT,
-  MOBILE_MENU_COLLECTION_FRAGMENT,
-  THEMES_COLLECTION_FRAGMENT,
   POPULAR_COLLECTION_FRAGMENT,
 };

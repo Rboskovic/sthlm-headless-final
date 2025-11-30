@@ -109,7 +109,7 @@ export default function HandlaEfterPrisPage() {
         ) : (
           <div className="text-center py-16">
             <p className="text-gray-600 text-lg">
-              Prissamlingar kommer snart! Kontrollera att kollektioner har både discountpage_collection=true och age_lifestyle_image inställda.
+              Prissamlingar kommer snart!
             </p>
           </div>
         )}
@@ -355,33 +355,6 @@ function PriceCard({collection}: {collection: Collection}) {
     </Link>
   );
 }
-
-// GraphQL Query for Discount Page Collections
-const DISCOUNT_COLLECTIONS_QUERY = `#graphql
-  query DiscountCollections($country: CountryCode, $language: LanguageCode)
-    @inContext(country: $country, language: $language) {
-    collections(first: 100, sortKey: UPDATED_AT, reverse: true) {
-      nodes {
-        id
-        title
-        handle
-        description
-        metafields(identifiers: [
-          {namespace: "custom", key: "discountpage_collection"},
-          {namespace: "app", key: "discountpage_collection"},
-          {namespace: "custom", key: "age_lifestyle_image"},
-          {namespace: "app", key: "age_lifestyle_image"},
-          {namespace: "custom", key: "sort_order"},
-          {namespace: "app", key: "sort_order"}
-        ]) {
-          key
-          value
-          namespace
-        }
-      }
-    }
-  }
-` as const;
 
 // GraphQL Query for Blog Articles with discount_page metafield
 const DISCOUNT_BLOGS_QUERY = `#graphql

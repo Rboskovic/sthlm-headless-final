@@ -104,8 +104,8 @@ export default function Page() {
   if (page.handle === 'hjalp') {
     return (
       <HelpPage 
-        helpPage={page} 
-        contactInfo={data.contactInfo}
+        helpPage={page as any} 
+        contactInfo={data.contactInfo as any}
       />
     );
   }
