@@ -180,7 +180,7 @@ export function Layout({ children }: { children?: React.ReactNode }) {
     "sameAs": [
       "https://www.youtube.com/@klosslabbet",
       "https://www.instagram.com/klosslabbet.se/",
-      "https://www.facebook.com/profile.php?id=61573161414339",
+      "https://www.facebook.com/klosslabbet",
       "http://www.tiktok.com/@klosslabbet"
     ],
     "contactPoint": [

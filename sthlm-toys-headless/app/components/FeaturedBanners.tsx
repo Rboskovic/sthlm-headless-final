@@ -65,7 +65,7 @@ export function FeaturedBanners({metaobjects}: FeaturedBannersProps) {
     if (!url.includes('cdn.shopify.com')) return url;
     
     const base = url.split('?')[0];
-    return `${base}?width=${width}&format=webp`;
+    return `${base}?width=${width}&format=webp&quality=80`;
   };
 
   // ✅ PERFORMANCE: Generate srcset for responsive loading

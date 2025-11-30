@@ -30,7 +30,7 @@ export function SocialMedia({
     {
       name: 'Facebook',
       icon: SiFacebook,
-      url: facebookUrl || 'https://www.facebook.com/profile.php?id=61573161414339',
+      url: facebookUrl || 'https://www.facebook.com/klosslabbet',
     },
     {
       name: 'TikTok',

@@ -89,7 +89,7 @@ export function ProductItem({
   const getOptimizedImageSrc = (img: any, width: number) => {
     if (!img?.url) return '';
     const base = img.url.split('?')[0];
-    return `${base}?width=${width}&format=webp`;
+    return `${base}?width=${width}&format=webp&quality=85`;
   };
 
   const getImageSrcSet = (img: any) => {

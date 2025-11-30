@@ -92,16 +92,16 @@ interface TopCategoriesProps {
 const getOptimizedImageUrl = (url: string, width: number): string => {
   if (!url) return url;
   return url.includes('?') 
-    ? url.split('?')[0] + `?width=${width}` 
-    : `${url}?width=${width}`;
+    ? url.split('?')[0] + `?width=${width}&format=webp&quality=85` 
+    : `${url}?width=${width}&format=webp&quality=85`;
 };
 
 const generateSrcSet = (url: string, displaySize: number): string => {
   if (!url) return '';
   const baseUrl = url.split('?')[0];
   return [
-    `${baseUrl}?width=${displaySize} ${displaySize}w`,
-    `${baseUrl}?width=${displaySize * 2} ${displaySize * 2}w`,
+    `${baseUrl}?width=${displaySize}&format=webp&quality=85 ${displaySize}w`,
+    `${baseUrl}?width=${displaySize * 2}&format=webp&quality=85 ${displaySize * 2}w`,
   ].join(', ');
 };
 

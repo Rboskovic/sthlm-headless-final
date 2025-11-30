@@ -181,6 +181,7 @@ export function HeaderMain({
             <div style={{ pointerEvents: 'auto', width: 'fit-content' }}>
               <Logo 
                 shop={shop}
+                isMobile={false}
                 style={{
                   height: '75px',
                   maxWidth: '220px',
@@ -249,6 +250,7 @@ export function HeaderMain({
             <div style={{ pointerEvents: 'auto' }}>
               <Logo 
                 shop={shop}
+                isMobile={true}
                 style={{
                   height: '34px',
                   maxWidth: '126px',

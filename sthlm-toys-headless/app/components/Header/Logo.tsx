@@ -1,6 +1,5 @@
 // FILE: app/components/Header/Logo.tsx
-// ✅ SHOPIFY 2025 STANDARDS: Optimized logo component with proper sizing and fallbacks
-// ✅ PERFORMANCE FIX: Added explicit width/height attributes and decoding="async"
+// ✅ PERFORMANCE OPTIMIZED: Proper sizing for desktop vs mobile
 
 import {Link} from 'react-router';
 
@@ -19,20 +18,22 @@ interface LogoProps {
   };
   className?: string;
   style?: React.CSSProperties;
+  isMobile?: boolean; // NEW: Differentiate mobile vs desktop
 }
 
-export function Logo({shop, className = '', style = {}}: LogoProps) {
-  // Extract logo data with proper fallbacks
+export function Logo({shop, className = '', style = {}, isMobile = false}: LogoProps) {
   const logoUrl = shop?.brand?.logo?.image?.url;
   const logoAlt = shop?.brand?.logo?.image?.altText || shop?.name || 'Klosslabbet';
   const shopName = shop?.name || 'Klosslabbet';
 
-  // Optimize logo URL with Shopify CDN parameters
+  // ✅ PERFORMANCE: Load appropriate size based on context
+  const logoWidth = isMobile ? 150 : 250; // Mobile: 150px, Desktop: 250px
   const optimizedLogoUrl = logoUrl 
-    ? (logoUrl.includes('?') ? `${logoUrl}&width=288` : `${logoUrl}?width=288`)
+    ? (logoUrl.includes('?') 
+        ? `${logoUrl}&width=${logoWidth}&format=webp&quality=90` 
+        : `${logoUrl}?width=${logoWidth}&format=webp&quality=90`)
     : undefined;
 
-  // Default styling that can be overridden
   const defaultStyle: React.CSSProperties = {
     height: '50px',
     width: 'auto',
@@ -52,26 +53,15 @@ export function Logo({shop, className = '', style = {}}: LogoProps) {
         <img
           src={optimizedLogoUrl}
           alt={logoAlt}
-          width="288"
-          height="96"
+          width={logoWidth.toString()}
+          height={isMobile ? '50' : '83'}
           style={defaultStyle}
           loading="eager"
           fetchPriority="high"
           decoding="async"
-          onError={(e) => {
-            // Fallback if logo fails to load
-            console.warn('Logo failed to load:', optimizedLogoUrl);
-            e.currentTarget.style.display = 'none';
-            // Show fallback text logo
-            const fallback = e.currentTarget.nextElementSibling as HTMLElement;
-            if (fallback) {
-              fallback.style.display = 'flex';
-            }
-          }}
         />
       ) : null}
       
-      {/* Fallback Text Logo - Hidden by default, shown if image fails */}
       <div 
         className="flex items-center text-white font-bold"
         style={{
@@ -89,19 +79,3 @@ export function Logo({shop, className = '', style = {}}: LogoProps) {
     </Link>
   );
 }
-
-/**
- * Logo Size Guidelines for Different Contexts:
- * 
- * Desktop Header: 
- * style={{ height: '45px', maxWidth: '180px' }}
- * 
- * Mobile Header:
- * style={{ height: '36px', maxWidth: '140px' }}
- * 
- * Footer:
- * style={{ height: '32px', maxWidth: '120px' }}
- * 
- * Email/Print:
- * style={{ height: '60px', maxWidth: '240px' }}
- */
