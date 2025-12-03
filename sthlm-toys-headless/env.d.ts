@@ -26,6 +26,7 @@ declare global {
     // ✅ Judge.me environment variables (auto-injected from Oxygen)
     JUDGEME_PUBLIC_TOKEN: string;
     JUDGEME_SHOP_DOMAIN: string;
+    JUDGEME_CDN_HOST: string;
   }
 }
 

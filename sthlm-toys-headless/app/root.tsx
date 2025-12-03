@@ -1,5 +1,7 @@
-// app/root.tsx - UPDATED: Added Mega Menu Banners + Cleaned up debug logging
+// app/root.tsx - UPDATED: Added Mega Menu Banners + Judge.me Integration
+// ✅ Judge.me setup follows official docs: https://www.npmjs.com/package/@judgeme/shopify-hydrogen
 import { Analytics, getShopAnalytics, useNonce } from "@shopify/hydrogen";
+import { useJudgeme } from '@judgeme/shopify-hydrogen';
 import { type LoaderFunctionArgs } from "@shopify/remix-oxygen";
 import {
   Outlet,
@@ -11,6 +13,7 @@ import {
   Scripts,
   ScrollRestoration,
   useRouteLoaderData,
+  useLoaderData,
 } from "react-router";
 import React from "react";
 import favicon from "~/assets/favicon.svg";
@@ -148,6 +151,13 @@ export async function loader({ context }: LoaderFunctionArgs) {
       language: storefront.i18n.language,
     },
     publicStoreDomain: env.PUBLIC_STORE_DOMAIN,
+    // ✅ Judge.me configuration (per official docs)
+    judgeme: {
+      shopDomain: env.JUDGEME_SHOP_DOMAIN,
+      publicToken: env.JUDGEME_PUBLIC_TOKEN,
+      cdnHost: env.JUDGEME_CDN_HOST,
+      delay: 500,
+    },
   };
 }
 
@@ -242,7 +252,10 @@ export function Layout({ children }: { children?: React.ReactNode }) {
   );
 }
 
+// ✅ Judge.me: Following official docs - useJudgeme in App() with useLoaderData()
 export default function App() {
+  const data = useLoaderData<typeof loader>();
+  useJudgeme(data.judgeme);
   return <Outlet />;
 }
 
