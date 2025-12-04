@@ -561,7 +561,7 @@ export function CollectionPage({
           <div className={`products-transition ${isLoading ? 'opacity-50' : 'opacity-100'}`}>
             <PaginatedResourceSection
               connection={products}
-              resourcesClassName="grid grid-cols-1 sm:grid-cols-2 gap-4"
+              resourcesClassName="grid grid-cols-2 gap-4"
             >
               {({ node: product, index }: { node: Product; index: number }) => (
                 <div key={product.id} className="h-full">
