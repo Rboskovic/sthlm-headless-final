@@ -1,5 +1,6 @@
 // app/components/SearchResults.tsx
 // ✅ UPDATED: Now uses collections directly from popular_collections metaobject (no filtering)
+// ✅ FIXED: Mobile grid changed to 2 columns, TypeScript error fixed
 
 import {Link} from 'react-router';
 import {Image, Money, Pagination} from '@shopify/hydrogen';
@@ -124,8 +125,8 @@ function SearchResultsProducts({
         {({nodes, isLoading, NextLink, PreviousLink}) => {
           return (
             <>
-              {/* Product Grid using ProductItem for consistency */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12">
+              {/* ✅ UPDATED: Mobile grid changed to 2 columns, reduced gap on mobile */}
+              <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6 mb-12">
                 {nodes.map((product, index) => {
                   const productUrl = urlWithTrackingParams({
                     baseUrl: `/products/${product.handle}`,
@@ -133,16 +134,10 @@ function SearchResultsProducts({
                     term,
                   });
 
-                  // Transform product to be compatible with ProductItem
-                  const transformedProduct = {
-                    ...product,
-                    handle: product.handle,
-                  };
-
                   return (
                     <ProductItem
                       key={product.id}
-                      product={transformedProduct}
+                      product={product as any}
                       loading={index < 8 ? 'eager' : 'lazy'}
                     />
                   );
