@@ -1,8 +1,8 @@
 // FILE: app/components/Header/HeaderMain.tsx
-// ✅ SIMPLIFIED: Always shows "Mitt Konto" - Shopify handles login/account logic
+// ✅ UPDATED: Added "Spåra order" link to header utility bar
 
 import {Link} from 'react-router';
-import {Menu, User, FileText, HelpCircle} from 'lucide-react';
+import {Menu, User, FileText, HelpCircle, Package} from 'lucide-react';
 import {SearchBar} from './SearchBar';
 import {CartToggle} from './CartToggle';
 import {Logo} from './Logo';
@@ -61,9 +61,9 @@ export function HeaderMain({
               <span className="text-white">Mitt Konto</span>
             </a>
 
-            {/* Orders Link */}
-            <a
-              href={SHOPIFY_ORDERS_URL}
+            {/* ✅ NEW: Track Order Link */}
+            <Link
+              to="/pages/spara-order"
               className="flex items-center text-white hover:bg-white/10 transition-colors"
               style={{
                 fontSize: '14px',
@@ -75,9 +75,9 @@ export function HeaderMain({
                 borderRadius: '4px',
               }}
             >
-              <FileText size={15} className="text-white" />
-              <span className="text-white">Mina beställningar</span>
-            </a>
+              <Package size={15} className="text-white" />
+              <span className="text-white">Spåra order</span>
+            </Link>
 
             {/* Help Link */}
             <Link

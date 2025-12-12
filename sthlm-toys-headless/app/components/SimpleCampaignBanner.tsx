@@ -1,7 +1,7 @@
 // FILE: app/components/SimpleCampaignBanner.tsx
 // ✅ PURPOSE: Full-width campaign banner for promotional content (Black Friday, seasonal campaigns, etc.)
 // ✅ METAOBJECT: Uses 'campaign_banner' metaobject type
-// ✅ CLIENT-FRIENDLY: Easy to update - just upload image and set link
+// ✅ CLIENT-FRIENDLY: Easy to update - just upload image and set link OR collection
 // ✅ PERFORMANCE: Optimized with responsive images and proper preloading
 
 import {Link} from 'react-router';
@@ -48,19 +48,24 @@ export function SimpleCampaignBanner({
     
     const desktopImageRef = getFieldValue(fields, 'custom_desktop_slika');
     const mobileImageRef = getFieldValue(fields, 'custom_mobile_slika');
+    const linkValue = getFieldValue(fields, 'link'); // Custom URL field (new!)
     const collectionRef = getFieldValue(fields, 'custom_kolekcija'); // Collection reference
     const showButtonValue = getFieldValue(fields, 'custom_show_cta_button');
     const ctaTextValue = getFieldValue(fields, 'custom_cta_text');
     const ctaPositionValue = getFieldValue(fields, 'custom_cta_position');
 
-    // ✅ COLLECTION: Extract collection handle and build URL
+    // ✅ URL PRIORITY: Custom link > Collection > Default
+    // 1. If custom link provided, use it (takes priority)
+    // 2. Else if collection provided, build collection URL
+    // 3. Else use default linkUrl
     const collectionHandle = collectionRef?.handle || null;
-    const collectionUrl = collectionHandle ? `/collections/${collectionHandle}` : bannerData.linkUrl;
+    const finalUrl = linkValue || 
+                     (collectionHandle ? `/collections/${collectionHandle}` : bannerData.linkUrl);
 
     bannerData = {
       desktopImage: desktopImageRef?.image?.url || bannerData.desktopImage,
       mobileImage: mobileImageRef?.image?.url || desktopImageRef?.image?.url || bannerData.mobileImage,
-      linkUrl: collectionUrl,
+      linkUrl: finalUrl,
       showCtaButton: showButtonValue === 'true' || showButtonValue === true || bannerData.showCtaButton,
       ctaText: ctaTextValue || bannerData.ctaText,
       ctaPosition: ctaPositionValue || bannerData.ctaPosition,
